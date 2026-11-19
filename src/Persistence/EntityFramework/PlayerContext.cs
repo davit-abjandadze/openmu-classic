@@ -545,6 +545,64 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
     }
 
     /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<CharacterAttributeRankingEntry>> GetCharacterAttributeRankingAsync(
+        Guid sortAttributeId,
+        Guid? filterAttributeId,
+        float filterValue,
+        IReadOnlyList<Guid> attributeIds,
+        int count,
+        CancellationToken cancellationToken = default)
+    {
+        using var l = await this.LockAsync(cancellationToken).ConfigureAwait(false);
+        using (this.RepositoryProvider.ContextStack.UseContext(this))
+        {
+            var characters = this.Context.Set<Account>()
+                .Where(account => !account.IsBot && !account.IsTemplate)
+                .SelectMany(account => account.RawCharacters)
+                .Where(character => character.CharacterStatus == DataModel.Entities.CharacterStatus.Normal)
+                .Where(character => character.RawAttributes.Any(a => a.DefinitionId == sortAttributeId && a.Value > 0));
+            if (filterAttributeId is { } filterId)
+            {
+                characters = characters.Where(character => character.RawAttributes.Any(a => a.DefinitionId == filterId && a.Value == filterValue));
+            }
+
+            var ranked = await characters
+                .OrderByDescending(character => character.RawAttributes.Where(a => a.DefinitionId == sortAttributeId).Select(a => a.Value).FirstOrDefault())
+                .ThenBy(character => character.Name)
+                .Take(count)
+                .Select(character => new { character.Name, character.CharacterClassId })
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+            var names = ranked.Select(r => r.Name).ToList();
+            var values = new Dictionary<(string Name, Guid AttributeId), float>();
+            foreach (var attributeId in attributeIds.Distinct())
+            {
+                // The value is nullable, because a character may not have the attribute.
+                var attributeValues = await this.Context.Set<Character>()
+                    .Where(character => names.Contains(character.Name))
+                    .Select(character => new
+                    {
+                        character.Name,
+                        Value = character.RawAttributes.Where(a => a.DefinitionId == attributeId).Select(a => (float?)a.Value).FirstOrDefault(),
+                    })
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var row in attributeValues)
+                {
+                    values[(row.Name, attributeId)] = row.Value ?? 0;
+                }
+            }
+
+            return ranked
+                .Select(row => new CharacterAttributeRankingEntry(
+                    row.Name,
+                    row.CharacterClassId,
+                    attributeIds.Select(id => values.GetValueOrDefault((row.Name, id))).ToList()))
+                .ToList();
+        }
+    }
+
+    /// <inheritdoc />
     public async ValueTask<DataModel.Entities.GensAbuse?> GetGensAbuseAsync(
         Guid killerId,
         Guid victimId,

@@ -1,4 +1,4 @@
-// <copyright file="BotResetHandler.cs" company="MUnique">
+﻿// <copyright file="BotResetHandler.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -72,13 +72,13 @@ internal static class BotResetHandler
             return false;
         }
 
-        if (player.Level < configuration.RequiredLevel)
+        var resets = (int)attributes[Stats.Resets];
+        if (player.Level < configuration.GetRequiredLevel(resets))
         {
             return false;
         }
 
-        var nextResetCount = (int)attributes[Stats.Resets] + 1;
-        return configuration.ResetLimit is not > 0 || nextResetCount <= configuration.ResetLimit;
+        return configuration.GetEffectiveResetLimit(DateTime.UtcNow) is not { } limit || resets + 1 <= limit;
     }
 
     /// <summary>

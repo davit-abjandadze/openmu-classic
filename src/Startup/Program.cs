@@ -705,7 +705,7 @@ internal sealed class Program : IDisposable
         var parameter = args.FirstOrDefault(a => a.StartsWith("-version:", StringComparison.InvariantCultureIgnoreCase));
         if (parameter is null)
         {
-            return "season6"; // default
+            return "season6classic"; // default: Season 6 client with classic Season 1 content
         }
 
         return parameter.Substring(parameter.IndexOf(':') + 1);

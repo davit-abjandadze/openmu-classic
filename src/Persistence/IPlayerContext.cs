@@ -375,4 +375,23 @@ public interface IPlayerContext : IContext
         Guid masterLevelAttributeId,
         Guid resetsAttributeId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a ranking of the characters of players, ordered descending by the value of an attribute.
+    /// Characters of bots, templates and game masters are not ranked, and neither are characters with a value of 0 or less.
+    /// </summary>
+    /// <param name="sortAttributeId">The identifier of the attribute definition by which the characters are ordered.</param>
+    /// <param name="filterAttributeId">The identifier of an attribute definition which needs to have the <paramref name="filterValue"/>, or <c>null</c>.</param>
+    /// <param name="filterValue">The value which the attribute of <paramref name="filterAttributeId"/> needs to have.</param>
+    /// <param name="attributeIds">The identifiers of the attribute definitions of which the values are returned.</param>
+    /// <param name="count">The maximum number of entries.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The best characters.</returns>
+    ValueTask<IReadOnlyList<CharacterAttributeRankingEntry>> GetCharacterAttributeRankingAsync(
+        Guid sortAttributeId,
+        Guid? filterAttributeId,
+        float filterValue,
+        IReadOnlyList<Guid> attributeIds,
+        int count,
+        CancellationToken cancellationToken = default);
 }

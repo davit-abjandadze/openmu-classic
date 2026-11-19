@@ -87,6 +87,12 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     protected abstract IInitializer? TestAccountsInitializer { get; }
 
     /// <summary>
+    /// Gets the identifier of the time zone of the server (IANA or Windows), in which the timetables of events are defined.
+    /// When it's <c>null</c>, the server runs in UTC.
+    /// </summary>
+    protected virtual string? DefaultTimeZoneId => null;
+
+    /// <summary>
     /// Creates the initial data for a server.
     /// </summary>
     /// <param name="numberOfGameServers">The number of game servers.</param>
@@ -113,6 +119,7 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
 
         // After all items exist, for every version.
         ItemStatProfiles.Apply(this.Context, this.GameConfiguration);
+        this.OnGameConfigurationInitialized();
 
         var gameServerConfiguration = this.CreateGameServerConfiguration(this.GameConfiguration.Maps);
         await this.CreateGameServerDefinitionsAsync(gameServerConfiguration, numberOfGameServers).ConfigureAwait(false);
@@ -214,6 +221,8 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
             }
         });
 
+        this.OnPlugInsConfigured(referenceHandler);
+
         await this.AddAllUpdateEntriesAsync(plugInManager).ConfigureAwait(false);
 
         await this.Context.SaveChangesAsync().ConfigureAwait(false);
@@ -223,6 +232,26 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     /// Creates the game client definition.
     /// </summary>
     protected abstract void CreateGameClientDefinition();
+
+    /// <summary>
+    /// Called after the game configuration, including the introduced versions and stat profiles, has been initialized,
+    /// and before the server definitions are created.
+    /// Derived initializations can use it to adapt the content, e.g. to restrict it to an older game version.
+    /// </summary>
+    protected virtual void OnGameConfigurationInitialized()
+    {
+        // nothing to do by default.
+    }
+
+    /// <summary>
+    /// Called after the <see cref="GameConfiguration.PlugInConfigurations"/> have been created with their defaults.
+    /// Derived initializations can use it to activate plugins or to change their configuration.
+    /// </summary>
+    /// <param name="referenceHandler">The reference handler, which is required to set custom configurations.</param>
+    protected virtual void OnPlugInsConfigured(ReferenceHandler referenceHandler)
+    {
+        // nothing to do by default.
+    }
 
     private PlayerShopCurrenciesConfiguration CreatePlayerShopCurrenciesConfiguration()
     {
@@ -367,5 +396,6 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
         var (type, param) = IpAddressResolverFactory.DetermineBestFittingResolver(Environment.GetCommandLineArgs());
         systemConfiguration.IpResolver = type;
         systemConfiguration.IpResolverParameter = param;
+        systemConfiguration.TimeZoneId = this.DefaultTimeZoneId;
     }
 }

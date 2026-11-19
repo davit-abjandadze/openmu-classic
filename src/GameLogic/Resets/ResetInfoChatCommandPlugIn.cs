@@ -46,12 +46,15 @@ public class ResetInfoChatCommandPlugIn : IChatCommandPlugIn
             (int)player.Attributes[Stats.Resets],
             (int)player.Attributes[Stats.PointsPerReset],
             configuration);
+        var requiredLevel = configuration.GetRequiredLevel((int)player.Attributes[Stats.Resets]);
+        await ShowServerLimitAndExperienceRateAsync(player, configuration).ConfigureAwait(false);
+
         if (progression.RequiredItemAmount > 0 && configuration.RequiredResetItem is { Name: { } itemName })
         {
             await player.ShowLocalizedBlueMessageAsync(
                     nameof(PlayerMessage.NextResetInfoCompactWithItem),
                     progression.NextResetCount,
-                    configuration.RequiredLevel,
+                    requiredLevel,
                     progression.RequiredZen,
                     itemName,
                     progression.RequiredItemAmount,
@@ -64,10 +67,42 @@ public class ResetInfoChatCommandPlugIn : IChatCommandPlugIn
         await player.ShowLocalizedBlueMessageAsync(
                 nameof(PlayerMessage.NextResetInfoCompactNoItem),
                 progression.NextResetCount,
-                configuration.RequiredLevel,
+                requiredLevel,
                 progression.RequiredZen,
                 progression.PointsForReset,
                 progression.TotalPointsAfterReset)
             .ConfigureAwait(false);
+    }
+
+    private static async ValueTask ShowServerLimitAndExperienceRateAsync(Player player, ResetConfiguration configuration)
+    {
+        var now = DateTime.UtcNow;
+        if (configuration.ServerResetLimitStart is not null && configuration.GetEffectiveResetLimit(now) is { } limit)
+        {
+            if (configuration.GetNextServerResetLimitRise(now) is { } nextRise
+                && configuration.GetEffectiveResetLimit(nextRise) is { } nextLimit)
+            {
+                var remaining = nextRise - now;
+                await player.ShowLocalizedBlueMessageAsync(
+                        nameof(PlayerMessage.ResetInfoServerLimitRising),
+                        limit,
+                        nextLimit,
+                        (int)remaining.TotalHours,
+                        remaining.Minutes)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ResetInfoServerLimit), limit).ConfigureAwait(false);
+            }
+        }
+
+        if (ResetExperienceRatePlugIn.GetMultiplierOf(player) is { } multiplier)
+        {
+            await player.ShowLocalizedBlueMessageAsync(
+                    nameof(PlayerMessage.ResetInfoExperienceRate),
+                    (multiplier * player.GameContext.ExperienceRate).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))
+                .ConfigureAwait(false);
+        }
     }
 }

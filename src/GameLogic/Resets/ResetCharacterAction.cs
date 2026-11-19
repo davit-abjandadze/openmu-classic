@@ -1,4 +1,4 @@
-// <copyright file="ResetCharacterAction.cs" company="MUnique">
+﻿// <copyright file="ResetCharacterAction.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -64,15 +64,16 @@ public class ResetCharacterAction
 
         var resetProgression = ResetProgressionCalculator.Calculate(this.GetResetCount(), (int)this._player.Attributes[Stats.PointsPerReset], configuration);
 
-        if (this._player.Level < configuration.RequiredLevel)
+        var requiredLevel = configuration.GetRequiredLevel(this.GetResetCount());
+        if (this._player.Level < requiredLevel)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.RequiredLevelForReset), configuration.RequiredLevel).ConfigureAwait(false);
+            await this.ShowMessageAsync(nameof(PlayerMessage.RequiredLevelForReset), requiredLevel).ConfigureAwait(false);
             return;
         }
 
-        if (configuration.ResetLimit > 0 && resetProgression.NextResetCount > configuration.ResetLimit)
+        if (configuration.GetEffectiveResetLimit(DateTime.UtcNow) is { } resetLimit && resetProgression.NextResetCount > resetLimit)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.MaximumResetsReached), configuration.ResetLimit).ConfigureAwait(false);
+            await this.ShowMessageAsync(nameof(PlayerMessage.MaximumResetsReached), resetLimit).ConfigureAwait(false);
             return;
         }
 

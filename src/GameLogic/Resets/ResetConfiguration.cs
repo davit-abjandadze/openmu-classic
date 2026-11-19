@@ -106,6 +106,107 @@ public class ResetConfiguration
     public bool LogOut { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets the amount of levels which the required level increases with each reset which was done before.
+    /// E.g. with a <see cref="RequiredLevel"/> of 350 and an increase of 10, the second reset requires level 360.
+    /// </summary>
+    [Display(Name = "Required level increase per reset", Description = "The required level increases by this amount for each reset which was done before.")]
+    public int RequiredLevelIncreasePerReset { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum required level, up to which the required level increases.
+    /// When it's <c>null</c> or 0, the required level is not limited.
+    /// </summary>
+    [Display(Name = "Maximum required level", Description = "The required level doesn't increase above this level. Empty or 0 means no limit.")]
+    public int? MaximumRequiredLevel { get; set; }
+
+    /// <summary>
+    /// Gets or sets the point in time (UTC) at which the server reset limit starts to rise.
+    /// When it's <c>null</c>, there is no server reset limit, only the <see cref="ResetLimit"/>.
+    /// </summary>
+    /// <remarks>
+    /// The server reset limit is the same for every character: it starts with <see cref="ServerResetLimitInitial"/>
+    /// and rises by <see cref="ServerResetLimitIncreasePerDay"/> every 24 hours after this point in time,
+    /// up to the <see cref="ResetLimit"/>, if one is defined.
+    /// </remarks>
+    [Display(Name = "Server reset limit start (UTC)", Description = "The point in time from which the reset limit of the whole server rises every 24 hours. Empty means no rising server limit.")]
+    public DateTime? ServerResetLimitStart { get; set; }
+
+    /// <summary>
+    /// Gets or sets the server reset limit at <see cref="ServerResetLimitStart"/>.
+    /// </summary>
+    [Display(Name = "Server reset limit at start", Description = "The reset limit of the server on the first day.")]
+    public int ServerResetLimitInitial { get; set; } = 1;
+
+    /// <summary>
+    /// Gets or sets the amount by which the server reset limit rises every 24 hours after <see cref="ServerResetLimitStart"/>.
+    /// </summary>
+    [Display(Name = "Server reset limit increase per day", Description = "The amount by which the reset limit of the server rises each day.")]
+    public int ServerResetLimitIncreasePerDay { get; set; } = 1;
+
+    /// <summary>
+    /// Gets the required character level for the next reset.
+    /// </summary>
+    /// <param name="currentResetCount">The current reset count of the character.</param>
+    /// <returns>The required character level.</returns>
+    public int GetRequiredLevel(int currentResetCount)
+    {
+        var requiredLevel = (long)this.RequiredLevel + ((long)Math.Max(0, this.RequiredLevelIncreasePerReset) * Math.Max(0, currentResetCount));
+        if (this.MaximumRequiredLevel is > 0 and var maximum)
+        {
+            requiredLevel = Math.Min(requiredLevel, maximum);
+        }
+
+        return (int)Math.Min(requiredLevel, int.MaxValue);
+    }
+
+    /// <summary>
+    /// Gets the effective reset limit at the specified point in time, which considers
+    /// the <see cref="ResetLimit"/> and the rising server reset limit.
+    /// </summary>
+    /// <param name="utcNow">The current point in time (UTC).</param>
+    /// <returns>The effective reset limit, or <c>null</c> if there is no limit.</returns>
+    public int? GetEffectiveResetLimit(DateTime utcNow)
+    {
+        int? limit = this.ResetLimit is > 0 ? this.ResetLimit : null;
+        if (this.ServerResetLimitStart is not { } start)
+        {
+            return limit;
+        }
+
+        start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        var days = utcNow < start ? 0 : (long)(utcNow - start).TotalDays;
+        var serverLimit = (int)Math.Clamp(this.ServerResetLimitInitial + (days * this.ServerResetLimitIncreasePerDay), 0, int.MaxValue);
+        return limit is { } l ? Math.Min(l, serverLimit) : serverLimit;
+    }
+
+    /// <summary>
+    /// Gets the point in time (UTC) when the server reset limit rises next, if it rises.
+    /// </summary>
+    /// <param name="utcNow">The current point in time (UTC).</param>
+    /// <returns>The point in time of the next rise, or <c>null</c> if it doesn't rise anymore.</returns>
+    public DateTime? GetNextServerResetLimitRise(DateTime utcNow)
+    {
+        if (this.ServerResetLimitStart is not { } start || this.ServerResetLimitIncreasePerDay <= 0)
+        {
+            return null;
+        }
+
+        if (this.ResetLimit is > 0 && this.GetEffectiveResetLimit(utcNow) >= this.ResetLimit)
+        {
+            return null;
+        }
+
+        start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        if (utcNow < start)
+        {
+            return start.AddDays(1);
+        }
+
+        var days = (long)(utcNow - start).TotalDays;
+        return start.AddDays(days + 1);
+    }
+
+    /// <summary>
     /// Tier definition for the points which are granted when resetting.
     /// </summary>
     public class ResetPointTier

@@ -1198,4 +1198,67 @@ Inventory Extensions: {18}</value>
   <data name="CantDeleteCharacterWithUndeliverableWaitingItems" xml:space="preserve">
     <value>Can't delete a character while items wait for it whose item type doesn't exist anymore. Please ask an admin.</value>
   </data>
+  <data name="ResetInfoServerLimitRising" xml:space="preserve">
+    <value>Server reset limit: {0}. It rises to {1} in {2} h {3} min.</value>
+  </data>
+  <data name="ResetInfoServerLimit" xml:space="preserve">
+    <value>Server reset limit: {0}.</value>
+  </data>
+  <data name="ResetInfoExperienceRate" xml:space="preserve">
+    <value>Your EXP rate: x{0}</value>
+  </data>
+  <data name="PvpPrestigeGained" xml:space="preserve">
+    <value>+{0} PvP prestige. This week: {1}.</value>
+  </data>
+  <data name="PvpNoPrestigeSameVictim" xml:space="preserve">
+    <value>No prestige: you killed {0} too often.</value>
+  </data>
+  <data name="PvpNotActive" xml:space="preserve">
+    <value>The PvP system is not active.</value>
+  </data>
+  <data name="PvpZonesHeader" xml:space="preserve">
+    <value>PvP zones (no PK, prestige for each kill):</value>
+  </data>
+  <data name="PvpZoneEntry" xml:space="preserve">
+    <value>{0}: {1},{2} - {3},{4}</value>
+  </data>
+  <data name="PvpRankingWeekHeader" xml:space="preserve">
+    <value>PvP ranking of this week:</value>
+  </data>
+  <data name="PvpRankingTotalHeader" xml:space="preserve">
+    <value>PvP legends (all weeks):</value>
+  </data>
+  <data name="PvpRankingEntry" xml:space="preserve">
+    <value>{0}. {1} ({2}): {3} prestige, K {4} / D {5} / A {6}</value>
+  </data>
+  <data name="PvpRankingEmpty" xml:space="preserve">
+    <value>No PvP prestige yet.</value>
+  </data>
+  <data name="PvpOwnStats" xml:space="preserve">
+    <value>You: {0} prestige, K {1} / D {2} / A {3}</value>
+  </data>
+  <data name="HuntingJewelEarned" xml:space="preserve">
+    <value>You earned a {0} for hunting! Today: {1}/{2}.</value>
+  </data>
+  <data name="HuntingJewelInventoryFull" xml:space="preserve">
+    <value>Your inventory is full. Make space to receive your jewel for hunting.</value>
+  </data>
+  <data name="HuntingJewelProgress" xml:space="preserve">
+    <value>Next jewel in {0} min of hunting. Today: {1}/{2}.</value>
+  </data>
+  <data name="HuntingJewelDailyLimitReached" xml:space="preserve">
+    <value>You received all {0} jewels for today.</value>
+  </data>
+  <data name="HuntingJewelNotActive" xml:space="preserve">
+    <value>Jewels for hunting are not active.</value>
+  </data>
+  <data name="BossesHeader" xml:space="preserve">
+    <value>Bosses alive: {0}</value>
+  </data>
+  <data name="BossesEntry" xml:space="preserve">
+    <value>{0}: {1} ({2},{3})</value>
+  </data>
+  <data name="BossesNoneAlive" xml:space="preserve">
+    <value>No boss is alive right now.</value>
+  </data>
 </root>

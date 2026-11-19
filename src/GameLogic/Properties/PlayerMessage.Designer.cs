@@ -3270,5 +3270,194 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("ItemCantBeUsedOnThisMap", resourceCulture);
             }
         }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to Server reset limit: {0}. It rises to {1} in {2} h {3} min..
+        /// </summary>
+        public static string ResetInfoServerLimitRising {
+            get {
+                return ResourceManager.GetString("ResetInfoServerLimitRising", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server reset limit: {0}..
+        /// </summary>
+        public static string ResetInfoServerLimit {
+            get {
+                return ResourceManager.GetString("ResetInfoServerLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your EXP rate: x{0}.
+        /// </summary>
+        public static string ResetInfoExperienceRate {
+            get {
+                return ResourceManager.GetString("ResetInfoExperienceRate", resourceCulture);
+            }
+        }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to +{0} PvP prestige. This week: {1}..
+        /// </summary>
+        public static string PvpPrestigeGained {
+            get {
+                return ResourceManager.GetString("PvpPrestigeGained", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No prestige: you killed {0} too often..
+        /// </summary>
+        public static string PvpNoPrestigeSameVictim {
+            get {
+                return ResourceManager.GetString("PvpNoPrestigeSameVictim", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The PvP system is not active..
+        /// </summary>
+        public static string PvpNotActive {
+            get {
+                return ResourceManager.GetString("PvpNotActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PvP zones (no PK, prestige for each kill):.
+        /// </summary>
+        public static string PvpZonesHeader {
+            get {
+                return ResourceManager.GetString("PvpZonesHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: {1},{2} - {3},{4}.
+        /// </summary>
+        public static string PvpZoneEntry {
+            get {
+                return ResourceManager.GetString("PvpZoneEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PvP ranking of this week:.
+        /// </summary>
+        public static string PvpRankingWeekHeader {
+            get {
+                return ResourceManager.GetString("PvpRankingWeekHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PvP legends (all weeks):.
+        /// </summary>
+        public static string PvpRankingTotalHeader {
+            get {
+                return ResourceManager.GetString("PvpRankingTotalHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}. {1} ({2}): {3} prestige, K {4} / D {5} / A {6}.
+        /// </summary>
+        public static string PvpRankingEntry {
+            get {
+                return ResourceManager.GetString("PvpRankingEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No PvP prestige yet..
+        /// </summary>
+        public static string PvpRankingEmpty {
+            get {
+                return ResourceManager.GetString("PvpRankingEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You: {0} prestige, K {1} / D {2} / A {3}.
+        /// </summary>
+        public static string PvpOwnStats {
+            get {
+                return ResourceManager.GetString("PvpOwnStats", resourceCulture);
+            }
+        }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to You earned a {0} for hunting! Today: {1}/{2}..
+        /// </summary>
+        public static string HuntingJewelEarned {
+            get {
+                return ResourceManager.GetString("HuntingJewelEarned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your inventory is full. Make space to receive your jewel for hunting..
+        /// </summary>
+        public static string HuntingJewelInventoryFull {
+            get {
+                return ResourceManager.GetString("HuntingJewelInventoryFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Next jewel in {0} min of hunting. Today: {1}/{2}..
+        /// </summary>
+        public static string HuntingJewelProgress {
+            get {
+                return ResourceManager.GetString("HuntingJewelProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You received all {0} jewels for today..
+        /// </summary>
+        public static string HuntingJewelDailyLimitReached {
+            get {
+                return ResourceManager.GetString("HuntingJewelDailyLimitReached", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Jewels for hunting are not active..
+        /// </summary>
+        public static string HuntingJewelNotActive {
+            get {
+                return ResourceManager.GetString("HuntingJewelNotActive", resourceCulture);
+            }
+        }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to Bosses alive: {0}.
+        /// </summary>
+        public static string BossesHeader {
+            get {
+                return ResourceManager.GetString("BossesHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: {1} ({2},{3}).
+        /// </summary>
+        public static string BossesEntry {
+            get {
+                return ResourceManager.GetString("BossesEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No boss is alive right now..
+        /// </summary>
+        public static string BossesNoneAlive {
+            get {
+                return ResourceManager.GetString("BossesNoneAlive", resourceCulture);
+            }
+        }
     }
 }

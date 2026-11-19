@@ -434,6 +434,35 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
         return abuses.FirstOrDefault(abuse => abuse.KillerId == killerId && abuse.VictimId == victimId);
     }
 
+    /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<CharacterAttributeRankingEntry>> GetCharacterAttributeRankingAsync(
+        Guid sortAttributeId,
+        Guid? filterAttributeId,
+        float filterValue,
+        IReadOnlyList<Guid> attributeIds,
+        int count,
+        CancellationToken cancellationToken = default)
+    {
+        var accounts = await this.Provider.GetRepository<Account>()
+            .GetAllAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return accounts
+            .Where(account => !account.IsBot && !account.IsTemplate)
+            .SelectMany(account => account.Characters)
+            .Where(character => character.CharacterStatus == DataModel.Entities.CharacterStatus.Normal)
+            .Where(character => GetValue(character, sortAttributeId) > 0)
+            .Where(character => filterAttributeId is not { } filterId || Math.Abs(GetValue(character, filterId) - filterValue) < 0.001f)
+            .OrderByDescending(character => GetValue(character, sortAttributeId))
+            .ThenBy(character => character.Name)
+            .Take(count)
+            .Select(character => new CharacterAttributeRankingEntry(
+                character.Name,
+                character.CharacterClass?.GetId(),
+                attributeIds.Select(id => GetValue(character, id)).ToList()))
+            .ToList();
+    }
+
     private static float GetValue(DataModel.Entities.Character character, Guid attributeId)
         => character.Attributes.FirstOrDefault(a => a.Definition?.Id == attributeId)?.Value ?? 0;
 

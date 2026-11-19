@@ -182,6 +182,48 @@ public class ResetCharacterActionTest
         }
     }
 
+    /// <summary>
+    /// Verifies that the required level rises with each reset, and that the server reset limit stops further resets.
+    /// </summary>
+    [Test]
+    public async Task RisingRequiredLevelAndServerResetLimitAsync()
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var configuration = new ResetConfiguration
+        {
+            RequiredLevel = 350,
+            RequiredLevelIncreasePerReset = 10,
+            MaximumRequiredLevel = 400,
+            LevelAfterReset = 10,
+            RequiredMoney = 0,
+            ResetLimit = 55,
+            ServerResetLimitStart = DateTime.UtcNow.AddDays(-1).AddMinutes(-1),
+            ServerResetLimitInitial = 1,
+            ServerResetLimitIncreasePerDay = 1,
+            MoveHome = false,
+            LogOut = false,
+            ResetStats = false,
+        };
+        player.GameContext.FeaturePlugIns.AddPlugIn(new ResetFeaturePlugIn { Configuration = configuration }, true);
+        var action = new ResetCharacterAction(player, await CreateResetNpcAsync(player).ConfigureAwait(false));
+
+        player.Attributes![Stats.Level] = 350;
+        await action.ResetCharacterAsync().ConfigureAwait(false);
+        Assert.That((int)player.Attributes[Stats.Resets], Is.EqualTo(1), "first reset at 350");
+
+        player.Attributes[Stats.Level] = 359;
+        await action.ResetCharacterAsync().ConfigureAwait(false);
+        Assert.That((int)player.Attributes[Stats.Resets], Is.EqualTo(1), "second reset requires 360");
+
+        player.Attributes[Stats.Level] = 360;
+        await action.ResetCharacterAsync().ConfigureAwait(false);
+        Assert.That((int)player.Attributes[Stats.Resets], Is.EqualTo(2), "second reset at 360");
+
+        player.Attributes[Stats.Level] = 400;
+        await action.ResetCharacterAsync().ConfigureAwait(false);
+        Assert.That((int)player.Attributes[Stats.Resets], Is.EqualTo(2), "the server limit is 2 on the second day");
+    }
+
     private static async ValueTask<NonPlayerCharacter> CreateResetNpcAsync(Player player)
     {
         var spawnArea = new MonsterSpawnArea
