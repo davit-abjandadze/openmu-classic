@@ -3459,5 +3459,77 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("BossesNoneAlive", resourceCulture);
             }
         }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to You won {0} gold and {1} silver medal(s)! Exchange them with /medals..
+        /// </summary>
+        public static string MedalsAwarded {
+            get {
+                return ResourceManager.GetString("MedalsAwarded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medals are not active..
+        /// </summary>
+        public static string MedalsNotActive {
+            get {
+                return ResourceManager.GetString("MedalsNotActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your medals: {0} gold, {1} silver. Exchange with /medals &lt;offer&gt;:.
+        /// </summary>
+        public static string MedalsOverview {
+            get {
+                return ResourceManager.GetString("MedalsOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: {1} for {2} gold, {3} silver.
+        /// </summary>
+        public static string MedalsOffer {
+            get {
+                return ResourceManager.GetString("MedalsOffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown offer '{0}'. See /medals..
+        /// </summary>
+        public static string MedalsUnknownOffer {
+            get {
+                return ResourceManager.GetString("MedalsUnknownOffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not enough medals: {0} gold and {1} silver are required..
+        /// </summary>
+        public static string MedalsNotEnough {
+            get {
+                return ResourceManager.GetString("MedalsNotEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your inventory is full..
+        /// </summary>
+        public static string MedalsInventoryFull {
+            get {
+                return ResourceManager.GetString("MedalsInventoryFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You received {0}. Medals left: {1} gold, {2} silver..
+        /// </summary>
+        public static string MedalsExchanged {
+            get {
+                return ResourceManager.GetString("MedalsExchanged", resourceCulture);
+            }
+        }
     }
 }

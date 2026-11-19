@@ -1261,4 +1261,28 @@ Extensões de inventário: {18}</value>
   <data name="BossesNoneAlive" xml:space="preserve">
     <value>Nenhum chefe está vivo agora.</value>
   </data>
+  <data name="MedalsAwarded" xml:space="preserve">
+    <value>Você ganhou {0} medalha(s) de ouro e {1} de prata! Troque-as com /medals.</value>
+  </data>
+  <data name="MedalsNotActive" xml:space="preserve">
+    <value>As medalhas não estão ativas.</value>
+  </data>
+  <data name="MedalsOverview" xml:space="preserve">
+    <value>Suas medalhas: {0} de ouro, {1} de prata. Troque com /medals &lt;oferta&gt;:</value>
+  </data>
+  <data name="MedalsOffer" xml:space="preserve">
+    <value>{0}: {1} por {2} de ouro, {3} de prata</value>
+  </data>
+  <data name="MedalsUnknownOffer" xml:space="preserve">
+    <value>Oferta desconhecida '{0}'. Veja /medals.</value>
+  </data>
+  <data name="MedalsNotEnough" xml:space="preserve">
+    <value>Medalhas insuficientes: são necessárias {0} de ouro e {1} de prata.</value>
+  </data>
+  <data name="MedalsInventoryFull" xml:space="preserve">
+    <value>Seu inventário está cheio.</value>
+  </data>
+  <data name="MedalsExchanged" xml:space="preserve">
+    <value>Você recebeu {0}. Medalhas restantes: {1} de ouro, {2} de prata.</value>
+  </data>
 </root>

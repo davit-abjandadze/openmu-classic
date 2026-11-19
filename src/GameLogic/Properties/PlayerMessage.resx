@@ -1261,4 +1261,28 @@ Inventory Extensions: {18}</value>
   <data name="BossesNoneAlive" xml:space="preserve">
     <value>No boss is alive right now.</value>
   </data>
+  <data name="MedalsAwarded" xml:space="preserve">
+    <value>You won {0} gold and {1} silver medal(s)! Exchange them with /medals.</value>
+  </data>
+  <data name="MedalsNotActive" xml:space="preserve">
+    <value>Medals are not active.</value>
+  </data>
+  <data name="MedalsOverview" xml:space="preserve">
+    <value>Your medals: {0} gold, {1} silver. Exchange with /medals &lt;offer&gt;:</value>
+  </data>
+  <data name="MedalsOffer" xml:space="preserve">
+    <value>{0}: {1} for {2} gold, {3} silver</value>
+  </data>
+  <data name="MedalsUnknownOffer" xml:space="preserve">
+    <value>Unknown offer '{0}'. See /medals.</value>
+  </data>
+  <data name="MedalsNotEnough" xml:space="preserve">
+    <value>Not enough medals: {0} gold and {1} silver are required.</value>
+  </data>
+  <data name="MedalsInventoryFull" xml:space="preserve">
+    <value>Your inventory is full.</value>
+  </data>
+  <data name="MedalsExchanged" xml:space="preserve">
+    <value>You received {0}. Medals left: {1} gold, {2} silver.</value>
+  </data>
 </root>

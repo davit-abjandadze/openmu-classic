@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.PlugIns;
 
@@ -52,7 +53,7 @@ public class ClassicDataInitialization : DataInitialization
         base.OnGameConfigurationInitialized();
         ClassicContentRestriction.Apply(this.GameConfiguration);
         ClassicEvents.ApplyToMiniGames(this.GameConfiguration);
-        this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All));
+        this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All));
     }
 
     /// <inheritdoc />

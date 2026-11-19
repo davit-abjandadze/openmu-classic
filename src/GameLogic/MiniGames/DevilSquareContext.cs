@@ -78,6 +78,7 @@ public sealed class DevilSquareContext : MiniGameContext
         }
 
         this._highScoreTable = scoreList.AsReadOnly();
+        this.RankedFinishers = sortedFinishers.Select(state => state.Player).ToList();
 
         await this.SaveRankingAsync(sortedFinishers.Select(state => (state.Rank, state.Player.SelectedCharacter!, state.Score))).ConfigureAwait(false);
         await base.GameEndedAsync(finishers).ConfigureAwait(false);

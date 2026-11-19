@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Classic;
 
 using System.Text.Json.Serialization;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents;
 using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
 using MUnique.OpenMU.PlugIns;
@@ -76,6 +77,12 @@ public static class ClassicEvents
             configuration.EntranceOpenedMessage = "Blood Castle is open for {0} minute(s)! Join with /joinbc.";
             bloodCastle.IsActive = true;
             bloodCastle.SetConfiguration(configuration, referenceHandler);
+        }
+
+        if (Find<MiniGameMedalsPlugIn>(gameConfiguration) is { } medals)
+        {
+            medals.IsActive = true;
+            medals.SetConfiguration(MiniGameMedalsConfiguration.CreateDefault(), referenceHandler);
         }
 
         if (Find<GoldenInvasionPlugIn>(gameConfiguration) is { } golden)

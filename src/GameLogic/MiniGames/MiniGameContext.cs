@@ -105,6 +105,12 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     public MiniGameDefinition Definition { get; }
 
     /// <summary>
+    /// Gets the finishers of the ended game, ordered by their rank (best first).
+    /// It's set by games which rank their players by a score, when the game ended.
+    /// </summary>
+    public IReadOnlyList<Player> RankedFinishers { get; protected set; } = [];
+
+    /// <summary>
     /// Gets the game context to which this game belongs.
     /// </summary>
     public IGameContext GameContext => this._gameContext;
