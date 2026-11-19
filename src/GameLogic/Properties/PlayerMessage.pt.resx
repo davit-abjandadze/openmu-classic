@@ -1285,4 +1285,70 @@ Extensões de inventário: {18}</value>
   <data name="MedalsExchanged" xml:space="preserve">
     <value>Você recebeu {0}. Medalhas restantes: {1} de ouro, {2} de prata.</value>
   </data>
+  <data name="HuntingPointsNotActive" xml:space="preserve">
+    <value>Os pontos de caça não estão ativos.</value>
+  </data>
+  <data name="HuntingPointsOverview" xml:space="preserve">
+    <value>Pontos de caça: {0}. A partir do nível {1}, 1 ponto por minuto de caça; restam {2} min hoje. Troque com /hunt &lt;oferta&gt;:</value>
+  </data>
+  <data name="HuntingPointsOffer" xml:space="preserve">
+    <value>{0}: {1} por {2} pontos</value>
+  </data>
+  <data name="HuntingPointsUnknownOffer" xml:space="preserve">
+    <value>Oferta desconhecida '{0}'. Veja /hunt.</value>
+  </data>
+  <data name="HuntingPointsNotEnough" xml:space="preserve">
+    <value>Pontos de caça insuficientes: são necessários {0}.</value>
+  </data>
+  <data name="HuntingPointsExchanged" xml:space="preserve">
+    <value>Você recebeu {0}. Pontos de caça restantes: {1}.</value>
+  </data>
+  <data name="ItemExchangeUsage" xml:space="preserve">
+    <value>Troque {0} itens excelentes (nível de drop {1}+) por um destes com /exchange &lt;item&gt;:</value>
+  </data>
+  <data name="ItemExchangeUnknownTarget" xml:space="preserve">
+    <value>'{0}' não pode ser obtido por troca. Veja /exchange.</value>
+  </data>
+  <data name="ItemExchangeNotEnoughItems" xml:space="preserve">
+    <value>Você precisa de {0} itens excelentes com nível de drop {1}+ no inventário (não equipados), você tem {2}.</value>
+  </data>
+  <data name="ItemExchangePreview" xml:space="preserve">
+    <value>{0} custaria estes itens: {1}</value>
+  </data>
+  <data name="ItemExchangeConfirmHint" xml:space="preserve">
+    <value>Para confirmar, digite /exchange {0} yes</value>
+  </data>
+  <data name="ItemExchangeDone" xml:space="preserve">
+    <value>Você recebeu {0}!</value>
+  </data>
+  <data name="TeamVsTeamNotOpen" xml:space="preserve">
+    <value>A inscrição do Time contra Time não está aberta.</value>
+  </data>
+  <data name="TeamVsTeamAlreadyRegistered" xml:space="preserve">
+    <value>Você já está inscrito no Time contra Time.</value>
+  </data>
+  <data name="TeamVsTeamRegistered" xml:space="preserve">
+    <value>Você está inscrito no Time contra Time ({0} jogadores).</value>
+  </data>
+  <data name="TeamVsTeamRegistrationOpen" xml:space="preserve">
+    <value>Time contra Time: inscrição aberta por {0} minuto(s)! Entre com /jointvt.</value>
+  </data>
+  <data name="TeamVsTeamCancelled" xml:space="preserve">
+    <value>O Time contra Time foi cancelado: são necessários pelo menos {0} jogadores.</value>
+  </data>
+  <data name="TeamVsTeamStarted" xml:space="preserve">
+    <value>O Time contra Time começou! Você luta pelo time {0}.</value>
+  </data>
+  <data name="TeamVsTeamYourTeam" xml:space="preserve">
+    <value>Time {0}: {1}</value>
+  </data>
+  <data name="TeamVsTeamDraw" xml:space="preserve">
+    <value>O Time contra Time terminou empatado.</value>
+  </data>
+  <data name="TeamVsTeamWinner" xml:space="preserve">
+    <value>O time {0} venceu o Time contra Time! Melhor jogador: {1}.</value>
+  </data>
+  <data name="TeamVsTeamPoints" xml:space="preserve">
+    <value>Você recebeu {0} pontos do Time contra Time.</value>
+  </data>
 </root>

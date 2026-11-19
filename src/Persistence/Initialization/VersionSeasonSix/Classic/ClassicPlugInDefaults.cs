@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Classic;
 using System.Text.Json.Serialization;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
+using MUnique.OpenMU.GameLogic.ItemExchange;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.PlugIns;
@@ -47,6 +48,18 @@ public static class ClassicPlugInDefaults
         {
             huntingJewels.IsActive = true;
             huntingJewels.SetConfiguration(new HuntingJewelConfiguration(), referenceHandler);
+        }
+
+        if (Find<HuntingPointsPlugIn>(gameConfiguration) is { } huntingPoints)
+        {
+            huntingPoints.IsActive = true;
+            huntingPoints.SetConfiguration(HuntingPointsConfiguration.CreateDefault(), referenceHandler);
+        }
+
+        if (Find<ItemExchangeChatCommandPlugIn>(gameConfiguration) is { } itemExchange)
+        {
+            itemExchange.IsActive = true;
+            itemExchange.SetConfiguration(new ItemExchangeConfiguration(), referenceHandler);
         }
 
         if (Find<PvpSpotsPlugIn>(gameConfiguration) is { } pvp)

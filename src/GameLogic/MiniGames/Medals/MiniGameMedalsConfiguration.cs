@@ -49,7 +49,7 @@ public class MiniGameMedalsConfiguration
         configuration.Offers.Add(new MedalOffer { Key = "soul", SilverMedals = 2, ItemGroup = 14, ItemNumber = 14 });
         configuration.Offers.Add(new MedalOffer { Key = "life", SilverMedals = 3, ItemGroup = 14, ItemNumber = 16 });
         configuration.Offers.Add(new MedalOffer { Key = "creation", SilverMedals = 3, ItemGroup = 14, ItemNumber = 22 });
-        configuration.Offers.Add(new MedalOffer { Key = "box", GoldMedals = 1, ItemGroup = 14, ItemNumber = 11, ItemLevel = 10 });
+        configuration.Offers.Add(new MedalOffer { Key = "box", Name = "Box of Kundun +2", GoldMedals = 1, ItemGroup = 14, ItemNumber = 11, ItemLevel = 9 });
         return configuration;
     }
 
@@ -63,6 +63,12 @@ public class MiniGameMedalsConfiguration
         /// </summary>
         [Display(Name = "Key")]
         public string Key { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the name which is shown. When it's empty, the name of the item with its level is shown.
+        /// </summary>
+        [Display(Name = "Name", Description = "The shown name. When it's empty, the name of the item with its level is shown.")]
+        public string? Name { get; set; }
 
         /// <summary>
         /// Gets or sets the required gold medals.

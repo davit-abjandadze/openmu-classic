@@ -14,13 +14,13 @@ using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// PvP spots: areas in which killing another player never makes the killer a player killer and earns prestige.
-/// Killing a player killer earns (more) prestige everywhere.
+/// Killing a player killer earns (more) prestige everywhere, and so does winning a duel.
 /// Kills, deaths and assists are counted per week and in total, see <see cref="PvpStats"/>.
 /// </summary>
 [PlugIn]
 [Display(Name = "PvP spots and prestige", Description = "Areas in which killing players doesn't make the killer a player killer and earns prestige. Kills, deaths and assists are counted per week and in total.")]
 [Guid("2D7E5B1A-4F3C-4E8B-A6D2-9C1F0E3B7A51")]
-public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotHitPlugIn, IAttackableGotKilledPlugIn, ISupportCustomConfiguration<PvpSpotsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
+public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotHitPlugIn, IAttackableGotKilledPlugIn, IDuelWonPlugIn, ISupportCustomConfiguration<PvpSpotsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
 {
     private readonly ConcurrentDictionary<Player, ConcurrentDictionary<Player, DateTime>> _recentHits = new();
 
@@ -168,6 +168,31 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
 
         await killerPlayer.SaveProgressAsync().ConfigureAwait(false);
         await victim.SaveProgressAsync().ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DuelWonAsync(Player winner, Player loser)
+    {
+        if (this.Configuration is not { PrestigePerDuelVictory: > 0 } configuration
+            || winner.SelectedCharacter is not { } winnerCharacter
+            || loser.SelectedCharacter is not { } loserCharacter
+            || winner.Attributes is not { } attributes)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        if (this.IsFarming(winnerCharacter.Id, loserCharacter.Id, configuration, now))
+        {
+            await winner.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.PvpNoPrestigeSameVictim), loserCharacter.Name).ConfigureAwait(false);
+            return;
+        }
+
+        EnsureCurrentWeek(winner, configuration, now);
+        attributes[PvpStats.WeeklyPrestige] += configuration.PrestigePerDuelVictory;
+        attributes[PvpStats.TotalPrestige] += configuration.PrestigePerDuelVictory;
+        await winner.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.PvpPrestigeGained), configuration.PrestigePerDuelVictory, (int)attributes[PvpStats.WeeklyPrestige]).ConfigureAwait(false);
+        await winner.SaveProgressAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />

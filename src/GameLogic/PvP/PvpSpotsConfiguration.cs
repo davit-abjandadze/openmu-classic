@@ -26,6 +26,12 @@ public class PvpSpotsConfiguration
     public int PrestigePerKill { get; set; } = 10;
 
     /// <summary>
+    /// Gets or sets the prestige for a won duel.
+    /// </summary>
+    [Display(Name = "Prestige per duel victory")]
+    public int PrestigePerDuelVictory { get; set; } = 10;
+
+    /// <summary>
     /// Gets or sets the multiplier of the prestige when the victim is stronger than the killer, see <see cref="StrongerOpponentLevelDifference"/>.
     /// </summary>
     [Display(Name = "Stronger opponent multiplier", Description = "The prestige is multiplied by this value, when the victim is stronger than the killer.")]

@@ -159,7 +159,7 @@ internal class ClassicDataInitializationTest
             Assert.That(definition.Entrance!.Map!.ExpMultiplier, Is.EqualTo(2));
         }
 
-        foreach (var plugInType in new[] { typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.GoldenInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingJewelPlugIn), typeof(MUnique.OpenMU.GameLogic.MiniGames.Medals.MiniGameMedalsPlugIn) })
+        foreach (var plugInType in new[] { typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.GoldenInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingJewelPlugIn), typeof(MUnique.OpenMU.GameLogic.MiniGames.Medals.MiniGameMedalsPlugIn), typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingPointsPlugIn), typeof(MUnique.OpenMU.GameLogic.ItemExchange.ItemExchangeChatCommandPlugIn), typeof(MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamPlugIn) })
         {
             Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == plugInType.GUID).IsActive, Is.True, plugInType.Name);
         }

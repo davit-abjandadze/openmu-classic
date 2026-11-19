@@ -3531,5 +3531,203 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("MedalsExchanged", resourceCulture);
             }
         }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to Hunting points are not active..
+        /// </summary>
+        public static string HuntingPointsNotActive {
+            get {
+                return ResourceManager.GetString("HuntingPointsNotActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hunting points: {0}. From level {1}, 1 point per minute of hunting; {2} min left today. Exchange with /hunt &lt;offer&gt;:.
+        /// </summary>
+        public static string HuntingPointsOverview {
+            get {
+                return ResourceManager.GetString("HuntingPointsOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: {1} for {2} points.
+        /// </summary>
+        public static string HuntingPointsOffer {
+            get {
+                return ResourceManager.GetString("HuntingPointsOffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown offer '{0}'. See /hunt..
+        /// </summary>
+        public static string HuntingPointsUnknownOffer {
+            get {
+                return ResourceManager.GetString("HuntingPointsUnknownOffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not enough hunting points: {0} are required..
+        /// </summary>
+        public static string HuntingPointsNotEnough {
+            get {
+                return ResourceManager.GetString("HuntingPointsNotEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You received {0}. Hunting points left: {1}..
+        /// </summary>
+        public static string HuntingPointsExchanged {
+            get {
+                return ResourceManager.GetString("HuntingPointsExchanged", resourceCulture);
+            }
+        }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to Exchange {0} excellent items (drop level {1}+) for one of these with /exchange &lt;item&gt;:.
+        /// </summary>
+        public static string ItemExchangeUsage {
+            get {
+                return ResourceManager.GetString("ItemExchangeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to '{0}' can't be obtained by exchange. See /exchange..
+        /// </summary>
+        public static string ItemExchangeUnknownTarget {
+            get {
+                return ResourceManager.GetString("ItemExchangeUnknownTarget", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You need {0} excellent items with drop level {1}+ in your inventory (not equipped), you have {2}..
+        /// </summary>
+        public static string ItemExchangeNotEnoughItems {
+            get {
+                return ResourceManager.GetString("ItemExchangeNotEnoughItems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} would cost these items: {1}.
+        /// </summary>
+        public static string ItemExchangePreview {
+            get {
+                return ResourceManager.GetString("ItemExchangePreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To confirm, type /exchange {0} yes.
+        /// </summary>
+        public static string ItemExchangeConfirmHint {
+            get {
+                return ResourceManager.GetString("ItemExchangeConfirmHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You received {0}!.
+        /// </summary>
+        public static string ItemExchangeDone {
+            get {
+                return ResourceManager.GetString("ItemExchangeDone", resourceCulture);
+            }
+        }
+            
+        /// <summary>
+        ///   Looks up a localized string similar to The Team vs Team registration is not open..
+        /// </summary>
+        public static string TeamVsTeamNotOpen {
+            get {
+                return ResourceManager.GetString("TeamVsTeamNotOpen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are already registered for Team vs Team..
+        /// </summary>
+        public static string TeamVsTeamAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("TeamVsTeamAlreadyRegistered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are registered for Team vs Team ({0} players)..
+        /// </summary>
+        public static string TeamVsTeamRegistered {
+            get {
+                return ResourceManager.GetString("TeamVsTeamRegistered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Team vs Team: registration is open for {0} minute(s)! Join with /jointvt..
+        /// </summary>
+        public static string TeamVsTeamRegistrationOpen {
+            get {
+                return ResourceManager.GetString("TeamVsTeamRegistrationOpen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Team vs Team was cancelled: at least {0} players are required..
+        /// </summary>
+        public static string TeamVsTeamCancelled {
+            get {
+                return ResourceManager.GetString("TeamVsTeamCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Team vs Team started! You fight for team {0}..
+        /// </summary>
+        public static string TeamVsTeamStarted {
+            get {
+                return ResourceManager.GetString("TeamVsTeamStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Team {0}: {1}.
+        /// </summary>
+        public static string TeamVsTeamYourTeam {
+            get {
+                return ResourceManager.GetString("TeamVsTeamYourTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Team vs Team ended in a draw..
+        /// </summary>
+        public static string TeamVsTeamDraw {
+            get {
+                return ResourceManager.GetString("TeamVsTeamDraw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Team {0} won Team vs Team! Best player: {1}..
+        /// </summary>
+        public static string TeamVsTeamWinner {
+            get {
+                return ResourceManager.GetString("TeamVsTeamWinner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You received {0} Team vs Team points..
+        /// </summary>
+        public static string TeamVsTeamPoints {
+            get {
+                return ResourceManager.GetString("TeamVsTeamPoints", resourceCulture);
+            }
+        }
     }
 }

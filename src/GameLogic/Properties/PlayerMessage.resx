@@ -1285,4 +1285,70 @@ Inventory Extensions: {18}</value>
   <data name="MedalsExchanged" xml:space="preserve">
     <value>You received {0}. Medals left: {1} gold, {2} silver.</value>
   </data>
+  <data name="HuntingPointsNotActive" xml:space="preserve">
+    <value>Hunting points are not active.</value>
+  </data>
+  <data name="HuntingPointsOverview" xml:space="preserve">
+    <value>Hunting points: {0}. From level {1}, 1 point per minute of hunting; {2} min left today. Exchange with /hunt &lt;offer&gt;:</value>
+  </data>
+  <data name="HuntingPointsOffer" xml:space="preserve">
+    <value>{0}: {1} for {2} points</value>
+  </data>
+  <data name="HuntingPointsUnknownOffer" xml:space="preserve">
+    <value>Unknown offer '{0}'. See /hunt.</value>
+  </data>
+  <data name="HuntingPointsNotEnough" xml:space="preserve">
+    <value>Not enough hunting points: {0} are required.</value>
+  </data>
+  <data name="HuntingPointsExchanged" xml:space="preserve">
+    <value>You received {0}. Hunting points left: {1}.</value>
+  </data>
+  <data name="ItemExchangeUsage" xml:space="preserve">
+    <value>Exchange {0} excellent items (drop level {1}+) for one of these with /exchange &lt;item&gt;:</value>
+  </data>
+  <data name="ItemExchangeUnknownTarget" xml:space="preserve">
+    <value>'{0}' can't be obtained by exchange. See /exchange.</value>
+  </data>
+  <data name="ItemExchangeNotEnoughItems" xml:space="preserve">
+    <value>You need {0} excellent items with drop level {1}+ in your inventory (not equipped), you have {2}.</value>
+  </data>
+  <data name="ItemExchangePreview" xml:space="preserve">
+    <value>{0} would cost these items: {1}</value>
+  </data>
+  <data name="ItemExchangeConfirmHint" xml:space="preserve">
+    <value>To confirm, type /exchange {0} yes</value>
+  </data>
+  <data name="ItemExchangeDone" xml:space="preserve">
+    <value>You received {0}!</value>
+  </data>
+  <data name="TeamVsTeamNotOpen" xml:space="preserve">
+    <value>The Team vs Team registration is not open.</value>
+  </data>
+  <data name="TeamVsTeamAlreadyRegistered" xml:space="preserve">
+    <value>You are already registered for Team vs Team.</value>
+  </data>
+  <data name="TeamVsTeamRegistered" xml:space="preserve">
+    <value>You are registered for Team vs Team ({0} players).</value>
+  </data>
+  <data name="TeamVsTeamRegistrationOpen" xml:space="preserve">
+    <value>Team vs Team: registration is open for {0} minute(s)! Join with /jointvt.</value>
+  </data>
+  <data name="TeamVsTeamCancelled" xml:space="preserve">
+    <value>Team vs Team was cancelled: at least {0} players are required.</value>
+  </data>
+  <data name="TeamVsTeamStarted" xml:space="preserve">
+    <value>Team vs Team started! You fight for team {0}.</value>
+  </data>
+  <data name="TeamVsTeamYourTeam" xml:space="preserve">
+    <value>Team {0}: {1}</value>
+  </data>
+  <data name="TeamVsTeamDraw" xml:space="preserve">
+    <value>Team vs Team ended in a draw.</value>
+  </data>
+  <data name="TeamVsTeamWinner" xml:space="preserve">
+    <value>Team {0} won Team vs Team! Best player: {1}.</value>
+  </data>
+  <data name="TeamVsTeamPoints" xml:space="preserve">
+    <value>You received {0} Team vs Team points.</value>
+  </data>
 </root>

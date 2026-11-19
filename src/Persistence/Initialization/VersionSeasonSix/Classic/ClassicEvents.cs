@@ -9,11 +9,12 @@ using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents;
 using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
+using MUnique.OpenMU.GameLogic.TeamVsTeam;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// The events of the classic server: one free Devil Square and one free Blood Castle room for everyone,
-/// joined with /joinds and /joinbc, once each night, and the Golden Invasion after them.
+/// joined with /joinds and /joinbc, once each night, the Golden Invasion and the Team vs Team after them.
 /// </summary>
 public static class ClassicEvents
 {
@@ -41,6 +42,11 @@ public static class ClassicEvents
     /// The start time of the Golden Invasion, in the time zone of the server.
     /// </summary>
     public static readonly TimeOnly GoldenInvasionTime = new(23, 0);
+
+    /// <summary>
+    /// The start time of the registration of the Team vs Team, in the time zone of the server.
+    /// </summary>
+    public static readonly TimeOnly TeamVsTeamTime = new(23, 30);
 
     /// <summary>
     /// Adapts the mini game definitions: only one room per event, free, for all levels, with double experience.
@@ -83,6 +89,14 @@ public static class ClassicEvents
         {
             medals.IsActive = true;
             medals.SetConfiguration(MiniGameMedalsConfiguration.CreateDefault(), referenceHandler);
+        }
+
+        if (Find<TeamVsTeamPlugIn>(gameConfiguration) is { } teamVsTeam)
+        {
+            var configuration = TeamVsTeamConfiguration.Default;
+            configuration.Timetable = [TeamVsTeamTime];
+            teamVsTeam.IsActive = true;
+            teamVsTeam.SetConfiguration(configuration, referenceHandler);
         }
 
         if (Find<GoldenInvasionPlugIn>(gameConfiguration) is { } golden)
