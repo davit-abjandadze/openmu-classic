@@ -93,33 +93,45 @@ internal abstract class AccountInitializerBase : InitializerBase
         account.Vault = this.Context.CreateNew<ItemStorage>();
         this.AddVaultItems(account);
 
-        if (this.CreateKnight() is { } knight)
+        if (this.IsClassAvailable(CharacterClassNumber.DarkKnight) && this.CreateKnight() is { } knight)
         {
             account.Characters.Add(knight);
         }
 
-        if (this.CreateElf() is { } elf)
+        if (this.IsClassAvailable(CharacterClassNumber.FairyElf) && this.CreateElf() is { } elf)
         {
             account.Characters.Add(elf);
         }
 
-        if (this.CreateWizard() is { } wizard)
+        if (this.IsClassAvailable(CharacterClassNumber.DarkWizard) && this.CreateWizard() is { } wizard)
         {
             account.Characters.Add(wizard);
         }
 
-        if (this.CreateDarkLord() is { } darkLord)
+        if (this.IsClassAvailable(CharacterClassNumber.DarkLord) && this.CreateDarkLord() is { } darkLord)
         {
             account.Characters.Add(darkLord);
         }
 
-        if (this.CreateMagicGladiator() is { } magicGladiator)
+        if (this.IsClassAvailable(CharacterClassNumber.MagicGladiator) && this.CreateMagicGladiator() is { } magicGladiator)
         {
             account.Characters.Add(magicGladiator);
         }
 
         return account;
     }
+
+    /// <summary>
+    /// Determines whether characters of the class family, which starts with the specified class, are available.
+    /// </summary>
+    /// <remarks>
+    /// A family is available when its first class can be created. Data which leaves out some classes, like the
+    /// classic server, makes them not creatable, so the test accounts get no characters of these classes.
+    /// </remarks>
+    /// <param name="firstClass">The first class of the family.</param>
+    /// <returns><c>true</c>, if characters of the class family are available.</returns>
+    protected bool IsClassAvailable(CharacterClassNumber firstClass)
+        => this.GameConfiguration.CharacterClasses.FirstOrDefault(c => c.Number == (byte)firstClass)?.CanGetCreated is true;
 
     /// <summary>
     /// Creates the dark lord.
@@ -202,6 +214,27 @@ internal abstract class AccountInitializerBase : InitializerBase
     }
 
     /// <summary>
+    /// Gets the specified class, or its highest previous generation class which is active.
+    /// </summary>
+    /// <remarks>
+    /// Data which leaves out the later classes, like the classic data without master classes, still creates the test
+    /// characters, as the highest class which a player can reach there.
+    /// </remarks>
+    /// <param name="characterClass">The requested character class.</param>
+    /// <returns>The character class of the test character.</returns>
+    protected CharacterClass GetAvailableClass(CharacterClassNumber characterClass)
+    {
+        var result = this.GameConfiguration.CharacterClasses.First(c => c.Number == (byte)characterClass);
+        while (!result.IsActive
+               && this.GameConfiguration.CharacterClasses.FirstOrDefault(c => c.NextGenerationClass == result) is { } previousClass)
+        {
+            result = previousClass;
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Creates the character.
     /// </summary>
     /// <param name="name">The name.</param>
@@ -212,7 +245,7 @@ internal abstract class AccountInitializerBase : InitializerBase
     protected virtual Character CreateCharacter(string name, CharacterClassNumber characterClass, int level, byte slot)
     {
         var character = this.Context.CreateNew<Character>();
-        character.CharacterClass = this.GameConfiguration.CharacterClasses.First(c => c.Number == (byte)characterClass);
+        character.CharacterClass = this.GetAvailableClass(characterClass);
         character.Name = name;
         character.CharacterSlot = slot;
         character.CreateDate = DateTime.UtcNow;

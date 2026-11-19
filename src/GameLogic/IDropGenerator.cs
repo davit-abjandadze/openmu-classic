@@ -13,7 +13,7 @@ public interface IDropGenerator
     /// Gets the item drops which are generated when a monster got killed by a player.
     /// </summary>
     /// <param name="monster">The monster which got killed.</param>
-    /// <param name="gainedExperience">The experience which the player gained form the kill (relevant for the money drop).</param>
+    /// <param name="gainedExperience">The experience of the kill before any experience rate is applied, which the money drop is based on.</param>
     /// <param name="player">The player who killed the monster.</param>
     /// <returns>
     /// The item drops and money which are generated when a monster got killed by a player.

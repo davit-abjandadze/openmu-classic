@@ -468,13 +468,13 @@ public abstract class AttackableNpcBase : NonPlayerCharacter, IAttackable
 
     private async ValueTask DropItemAsync(IReadOnlyList<ExperienceShare> experienceShares, Player killer)
     {
-        var exp = 0;
-        foreach (var share in experienceShares)
-        {
-            exp += share.Experience;
-        }
+        // The money is based on the experience before any experience rate is applied. Otherwise a high
+        // experience rate multiplies the money as well, up to drops which nobody can pick up because
+        // they exceed the inventory money limit.
+        var baseExperience = this.CalculateBaseExperience(killer.Attributes?[Stats.TotalLevel] ?? 0);
+        var moneyExperience = (int)Math.Min(baseExperience, int.MaxValue);
 
-        var (generatedItems, droppedMoney) = await this._dropGenerator.GenerateItemDropsAsync(this.Definition, exp, killer).ConfigureAwait(false);
+        var (generatedItems, droppedMoney) = await this._dropGenerator.GenerateItemDropsAsync(this.Definition, moneyExperience, killer).ConfigureAwait(false);
         if (droppedMoney > 0)
         {
             await this.HandleMoneyDropAsync(droppedMoney.Value, killer, experienceShares).ConfigureAwait(false);

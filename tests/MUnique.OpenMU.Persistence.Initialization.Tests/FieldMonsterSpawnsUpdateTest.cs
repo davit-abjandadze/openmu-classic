@@ -24,7 +24,7 @@ internal class FieldMonsterSpawnsUpdateTest
 
     private const short SpiderNumber = 3;
 
-    private const short MarlonNumber = 229;
+    private const short DeviasNpcNumber = 233;
 
     private const short DeathKnightNumber = 40;
 
@@ -69,7 +69,7 @@ internal class FieldMonsterSpawnsUpdateTest
         var oldEliteYeti = AddSpawn(context, gameConfiguration, devias, 103, EliteYetiNumber, 0, 128, 128, 245, 200);
         var oldGoblin = AddSpawn(context, gameConfiguration, noria, 21, GoblinNumber, 128, 251, 0, 128, 155);
         var customGolem = AddSpawn(context, gameConfiguration, noria, 999, GolemNumber, 10, 20, 10, 20, 5);
-        var npcCount = devias.MonsterSpawns.Count(s => s.MonsterDefinition?.Number == MarlonNumber);
+        var npcCount = devias.MonsterSpawns.Count(s => s.MonsterDefinition?.Number == DeviasNpcNumber);
 
         var update = new FieldMonsterSpawnsUpdatePlugInSeason6();
         await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
@@ -81,7 +81,7 @@ internal class FieldMonsterSpawnsUpdateTest
         Assert.That(devias.MonsterSpawns, Does.Not.Contain(oldEliteYeti));
         Assert.That(noria.MonsterSpawns, Does.Not.Contain(oldGoblin));
         Assert.That(noria.MonsterSpawns, Does.Contain(customGolem));
-        Assert.That(devias.MonsterSpawns.Count(s => s.MonsterDefinition?.Number == MarlonNumber), Is.EqualTo(npcCount).And.GreaterThan(0));
+        Assert.That(devias.MonsterSpawns.Count(s => s.MonsterDefinition?.Number == DeviasNpcNumber), Is.EqualTo(npcCount).And.GreaterThan(0));
     }
 
     /// <summary>

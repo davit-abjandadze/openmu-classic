@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Items;
 
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 
 /// <summary>
@@ -115,6 +116,11 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
         if (storage.Any())
         {
             return CraftingResult.IncorrectMixItems;
+        }
+
+        if (this.ExceedsMaximumItemLevel(player, items))
+        {
+            return CraftingResult.InvalidItemLevel;
         }
 
         if (totalCraftingPrice > 0)
@@ -250,6 +256,28 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
             luckOption.ItemOption = luck.PossibleOptions.First();
             resultItem.ItemOptions.Add(luckOption);
         }
+    }
+
+    /// <summary>
+    /// Determines whether the crafting would upgrade an item above its maximum level,
+    /// or above the limit of the <see cref="ItemLevelLimitPlugIn"/>.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <param name="items">The required items which were found.</param>
+    /// <returns><c>true</c>, if an item would exceed its maximum level.</returns>
+    private bool ExceedsMaximumItemLevel(Player player, IList<CraftingRequiredItemLink> items)
+    {
+        var limit = ItemLevelLimitPlugIn.GetMaximumItemLevel(player.GameContext);
+        foreach (var resultItem in this._settings.ResultItems.Where(r => r.Reference > 0 && r.AddLevel > 0))
+        {
+            if (items.FirstOrDefault(i => i.ItemRequirement.Reference == resultItem.Reference) is { } link
+                && link.Items.Any(item => item.Level + resultItem.AddLevel > Math.Min(limit, item.Definition!.MaximumItemLevel)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

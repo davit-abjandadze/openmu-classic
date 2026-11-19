@@ -128,7 +128,9 @@ public class PickupItemAction
             return false;
         }
 
-        var dist = (int)player.GetDistanceTo(droppedLocateable);
+        // The client sends the request as soon as it arrived at the drop, while the server may still
+        // be a step or two behind on the same walk.
+        var dist = (int)(player.GetDistanceTo(droppedLocateable) - player.GetWalkLagTolerance());
         if (dist > MaximumPickupDistance)
         {
             return false;

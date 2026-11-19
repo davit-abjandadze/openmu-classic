@@ -186,6 +186,23 @@ public class DropGeneratorTest
     }
 
     /// <summary>
+    /// Tests that a money drop doesn't overflow for a huge experience, but stays at most at the
+    /// maximum amount of money a player can carry.
+    /// </summary>
+    [Test]
+    public async ValueTask TestMoneyDropDoesNotOverflowAsync()
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var monster = this.GetMonster(1, 10);
+        monster.DropItemGroups.Add(4000, SpecialItemType.Money, false);
+
+        var generator = new DefaultDropGenerator(this.GetGameConfig(), this.GetRandomizer2(0, 0));
+        var (_, money) = await generator.GenerateItemDropsAsync(monster, int.MaxValue, player).ConfigureAwait(false);
+
+        Assert.That(money, Is.EqualTo((uint)int.MaxValue));
+    }
+
+    /// <summary>
     /// Tests that inactive items are not dropped, but the active items of the same drop group.
     /// </summary>
     [Test]

@@ -61,7 +61,8 @@ public class NpcSpawnsUpdatePlugInSeason6 : UpdatePlugInBase
         new(Aida.Number, 2, 370, 86, 13, Direction.SouthWest), // Jerridon
         new(Arena.Number, 2, 200, 63, 160, Direction.SouthWest), // Soccer Ball
         new(Arena.Number, 3, 239, 72, 164, Direction.SouthWest), // Arena Guard
-        new(Atlans.Number, 10, 229, 17, 25, Direction.South), // Marlon
+        // Classic: Marlon (3rd class quest NPC) removed.
+        // new(Atlans.Number, 10, 229, 17, 25, Direction.South), // Marlon
         new(CrywolfFortress.Number, 3, 226, 135, 47, Direction.South), // Pet Trainer
         new(CrywolfFortress.Number, 5, 256, 96, 25, Direction.South), // Lahap
         new(CrywolfFortress.Number, 7, 240, 113, 56, Direction.South), // Safety Guardian

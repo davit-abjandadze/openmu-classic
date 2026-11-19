@@ -8312,5 +8312,194 @@ namespace MUnique.OpenMU.Web.AdminPanel.Properties {
                 return ResourceManager.GetString("ExcellentOptionsHint", resourceCulture);
             }
         }
+    
+        /// <summary>
+        ///   Looks up a localized string similar to Control Center.
+        /// </summary>
+        public static string ControlCenter {
+            get {
+                return ResourceManager.GetString("ControlCenter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The most important settings of the server on one page. Every change is previewed....
+        /// </summary>
+        public static string ControlCenterIntro {
+            get {
+                return ResourceManager.GetString("ControlCenterIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Game settings.
+        /// </summary>
+        public static string ControlCenterGameSettings {
+            get {
+                return ResourceManager.GetString("ControlCenterGameSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Zen drop rate.
+        /// </summary>
+        public static string ControlCenterMoneyRate {
+            get {
+                return ResourceManager.GetString("ControlCenterMoneyRate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dropped items stay (seconds).
+        /// </summary>
+        public static string ControlCenterItemDropSeconds {
+            get {
+                return ResourceManager.GetString("ControlCenterItemDropSeconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Experience rate per game server (multiplies the global rate).
+        /// </summary>
+        public static string ControlCenterServerExperienceRates {
+            get {
+                return ResourceManager.GetString("ControlCenterServerExperienceRates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The changes apply to the running game servers. The experience rate by resets is ....
+        /// </summary>
+        public static string ControlCenterSettingsHint {
+            get {
+                return ResourceManager.GetString("ControlCenterSettingsHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save these changes?.
+        /// </summary>
+        public static string ControlCenterConfirmChanges {
+            get {
+                return ResourceManager.GetString("ControlCenterConfirmChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Features.
+        /// </summary>
+        public static string ControlCenterFeatures {
+            get {
+                return ResourceManager.GetString("ControlCenterFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All plugins.
+        /// </summary>
+        public static string ControlCenterAllPlugins {
+            get {
+                return ResourceManager.GetString("ControlCenterAllPlugins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string ControlCenterSettings {
+            get {
+                return ResourceManager.GetString("ControlCenterSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resets.
+        /// </summary>
+        public static string ControlCenterResets {
+            get {
+                return ResourceManager.GetString("ControlCenterResets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rewards.
+        /// </summary>
+        public static string ControlCenterRewards {
+            get {
+                return ResourceManager.GetString("ControlCenterRewards", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PvP.
+        /// </summary>
+        public static string ControlCenterPvp {
+            get {
+                return ResourceManager.GetString("ControlCenterPvp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Events.
+        /// </summary>
+        public static string ControlCenterEvents {
+            get {
+                return ResourceManager.GetString("ControlCenterEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other.
+        /// </summary>
+        public static string ControlCenterOther {
+            get {
+                return ResourceManager.GetString("ControlCenterOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All editors.
+        /// </summary>
+        public static string ControlCenterEditors {
+            get {
+                return ResourceManager.GetString("ControlCenterEditors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Players.
+        /// </summary>
+        public static string ControlCenterPlayers {
+            get {
+                return ResourceManager.GetString("ControlCenterPlayers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Game content.
+        /// </summary>
+        public static string ControlCenterGameContent {
+            get {
+                return ResourceManager.GetString("ControlCenterGameContent", resourceCulture);
+            }
+        }
+    
+        /// <summary>
+        ///   Looks up a localized string similar to Activate "{0}"?.
+        /// </summary>
+        public static string ControlCenterActivateQuestion {
+            get {
+                return ResourceManager.GetString("ControlCenterActivateQuestion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deactivate "{0}"?.
+        /// </summary>
+        public static string ControlCenterDeactivateQuestion {
+            get {
+                return ResourceManager.GetString("ControlCenterDeactivateQuestion", resourceCulture);
+            }
+        }
     }
 }

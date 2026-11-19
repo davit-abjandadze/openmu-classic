@@ -34,8 +34,16 @@ internal class GameMaster2 : AccountInitializerBase
     {
         var account = base.CreateAccount();
         account.State = AccountState.GameMaster;
-        account.Characters.Add(this.CreateSummoner());
-        account.Characters.Add(this.CreateFistMaster());
+        if (this.IsClassAvailable(CharacterClassNumber.Summoner))
+        {
+            account.Characters.Add(this.CreateSummoner());
+        }
+
+        if (this.IsClassAvailable(CharacterClassNumber.RageFighter))
+        {
+            account.Characters.Add(this.CreateFistMaster());
+        }
+
         account.Characters.ForEach(c =>
         {
             c.CharacterStatus = CharacterStatus.GameMaster;

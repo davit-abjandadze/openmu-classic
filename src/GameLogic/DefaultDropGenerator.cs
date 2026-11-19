@@ -316,7 +316,7 @@ public class DefaultDropGenerator : IDropGenerator
 
             if (droppedMoney is not null)
             {
-                money += droppedMoney.Value;
+                money = (uint)Math.Min((long)money + droppedMoney.Value, int.MaxValue);
             }
 
             remainingDrops--;
@@ -348,7 +348,7 @@ public class DefaultDropGenerator : IDropGenerator
 
                 if (droppedMoney is not null)
                 {
-                    money += droppedMoney.Value;
+                    money = (uint)Math.Min((long)money + droppedMoney.Value, int.MaxValue);
                 }
             }
         }
@@ -555,7 +555,7 @@ public class DefaultDropGenerator : IDropGenerator
         var item = this.GenerateSpecialItem(monster, selectedGroup);
         if (item is null && selectedGroup.ItemType == SpecialItemType.Money)
         {
-            droppedMoney = (uint)(gainedExperience + BaseMoneyDrop);
+            droppedMoney = (uint)Math.Min((long)Math.Max(gainedExperience, 0) + BaseMoneyDrop, int.MaxValue);
         }
 
         return item;

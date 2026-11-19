@@ -54,11 +54,48 @@ public class MonsterItemDroppedPlugInTest
         Assert.That(droppedItem.Item, Is.SameAs(item));
     }
 
-    private static async ValueTask<Monster> CreateMonsterAsync(IGameContext gameContext, IDropGenerator dropGenerator)
+    /// <summary>
+    /// Tests that the money drop of a killed monster is based on the experience before the experience
+    /// rate is applied. Otherwise a high experience rate results in money drops which exceed the
+    /// inventory money limit, and nobody can pick them up.
+    /// </summary>
+    [Test]
+    public async Task MoneyDropIsNotMultipliedByExperienceRateAsync()
+    {
+        var gameContext = GameContextTestHelper.CreateGameContext();
+        gameContext.Configuration.ExperienceRate = 5000;
+        var passedExperience = new System.Collections.Concurrent.ConcurrentQueue<int>();
+        var dropGenerator = new Mock<IDropGenerator>();
+        dropGenerator.Setup(g => g.GenerateItemDropsAsync(It.IsAny<DataModel.Configuration.MonsterDefinition>(), It.IsAny<int>(), It.IsAny<Player>()))
+            .Callback((DataModel.Configuration.MonsterDefinition _, int experience, Player _) => passedExperience.Enqueue(experience))
+            .Returns(ValueTask.FromResult<(IEnumerable<Item> Items, uint? Money)>(([], null)));
+        var killer = await PlayerTestHelper.CreatePlayerAsync(gameContext).ConfigureAwait(false);
+        var monster = await CreateMonsterAsync(gameContext, dropGenerator.Object, level: 50).ConfigureAwait(false);
+        var baseExperience = (int)monster.CalculateBaseExperience(killer.Attributes![Stats.TotalLevel]);
+
+        await monster.ReflectDamageAsync(killer, 1_000_000).ConfigureAwait(false);
+
+        // The drop happens delayed, after the death animation.
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (passedExperience.IsEmpty && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50).ConfigureAwait(false);
+        }
+
+        Assert.That(baseExperience, Is.GreaterThan(0));
+        Assert.That(passedExperience, Is.EqualTo(new[] { baseExperience }));
+    }
+
+    private static async ValueTask<Monster> CreateMonsterAsync(IGameContext gameContext, IDropGenerator dropGenerator, int level = 0)
     {
         // A unique id, because the attributes of monster definitions are cached by their id.
         var monsterDefinition = new MonsterDefinition { Id = Guid.NewGuid(), ObjectKind = NpcObjectKind.Monster };
         monsterDefinition.Attributes.Add(new MonsterAttribute { AttributeDefinition = Stats.MaximumHealth, Value = 100 });
+        if (level > 0)
+        {
+            monsterDefinition.Attributes.Add(new MonsterAttribute { AttributeDefinition = Stats.Level, Value = level });
+        }
+
         var map = await gameContext.GetMapAsync(0).ConfigureAwait(false);
         var spawnArea = new MonsterSpawnArea
         {

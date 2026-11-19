@@ -6,8 +6,10 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Classic;
 
 using System.Text.Json.Serialization;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic.CashShop;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
 using MUnique.OpenMU.GameLogic.ItemExchange;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.PlugIns;
@@ -15,7 +17,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Activates and configures the plugins of the classic server:
 /// resets with a rising required level and a rising server reset limit, the experience rate by resets,
-/// and the PvP spots with prestige.
+/// and the PvP spots with prestige. The cash shop is deactivated.
 /// </summary>
 public static class ClassicPlugInDefaults
 {
@@ -73,6 +75,68 @@ public static class ClassicPlugInDefaults
             pvp.IsActive = true;
             pvp.SetConfiguration(configuration, referenceHandler);
         }
+
+        // A classic server has no cash shop: the client's shop (X key) is refused and no points are granted.
+        if (Find<CashShopFeaturePlugIn>(gameConfiguration) is { } cashShop)
+        {
+            cashShop.IsActive = false;
+        }
+
+        if (Find<StartingInventoryExtensionsPlugIn>(gameConfiguration) is { } inventoryExtensions)
+        {
+            inventoryExtensions.IsActive = true;
+            inventoryExtensions.SetConfiguration(new StartingInventoryExtensionsConfiguration(), referenceHandler);
+        }
+
+        if (Find<ItemLevelLimitPlugIn>(gameConfiguration) is { } itemLevelLimit)
+        {
+            itemLevelLimit.IsActive = true;
+            itemLevelLimit.SetConfiguration(new ItemLevelLimitConfiguration(), referenceHandler);
+        }
+    }
+
+    /// <summary>
+    /// Activates the <see cref="ItemLevelLimitPlugIn"/> with its default limit (+11),
+    /// and creates its plugin configuration if it doesn't exist yet.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="context">The context which creates the plugin configuration.</param>
+    /// <param name="referenceHandler">The reference handler.</param>
+    public static void ActivateItemLevelLimit(GameConfiguration gameConfiguration, IContext context, ReferenceHandler referenceHandler)
+    {
+        if (Find<ItemLevelLimitPlugIn>(gameConfiguration) is not { } plugInConfiguration)
+        {
+            var typeId = typeof(ItemLevelLimitPlugIn).GUID;
+            plugInConfiguration = context.CreateNew<PlugInConfiguration>();
+            plugInConfiguration.SetGuid(typeId);
+            plugInConfiguration.TypeId = typeId;
+            gameConfiguration.PlugInConfigurations.Add(plugInConfiguration);
+        }
+
+        plugInConfiguration.IsActive = true;
+        plugInConfiguration.SetConfiguration(new ItemLevelLimitConfiguration(), referenceHandler);
+    }
+
+    /// <summary>
+    /// Activates the <see cref="StartingInventoryExtensionsPlugIn"/> with all inventory extensions,
+    /// and creates its plugin configuration if it doesn't exist yet.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="context">The context which creates the plugin configuration.</param>
+    /// <param name="referenceHandler">The reference handler.</param>
+    public static void ActivateStartingInventoryExtensions(GameConfiguration gameConfiguration, IContext context, ReferenceHandler referenceHandler)
+    {
+        if (Find<StartingInventoryExtensionsPlugIn>(gameConfiguration) is not { } plugInConfiguration)
+        {
+            var typeId = typeof(StartingInventoryExtensionsPlugIn).GUID;
+            plugInConfiguration = context.CreateNew<PlugInConfiguration>();
+            plugInConfiguration.SetGuid(typeId);
+            plugInConfiguration.TypeId = typeId;
+            gameConfiguration.PlugInConfigurations.Add(plugInConfiguration);
+        }
+
+        plugInConfiguration.IsActive = true;
+        plugInConfiguration.SetConfiguration(new StartingInventoryExtensionsConfiguration(), referenceHandler);
     }
 
     /// <summary>

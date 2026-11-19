@@ -93,6 +93,17 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     protected virtual string? DefaultTimeZoneId => null;
 
     /// <summary>
+    /// Gets the data initialization key of the configuration updates which apply to the initialized data.
+    /// </summary>
+    /// <remarks>
+    /// The update service determines this key of an existing database by its game client version, not by the
+    /// initialization which created it. A derived initialization, which builds on the data of another one for the
+    /// same client, has to return the key of that one. Otherwise, a new database doesn't mark these updates as
+    /// installed, and the next start applies all of them again to data which already contains their changes.
+    /// </remarks>
+    protected virtual string UpdateKey => this.Key;
+
+    /// <summary>
     /// Creates the initial data for a server.
     /// </summary>
     /// <param name="numberOfGameServers">The number of game servers.</param>
@@ -119,7 +130,7 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
 
         // After all items exist, for every version.
         ItemStatProfiles.Apply(this.Context, this.GameConfiguration);
-        this.OnGameConfigurationInitialized();
+        await this.OnGameConfigurationInitializedAsync().ConfigureAwait(false);
 
         var gameServerConfiguration = this.CreateGameServerConfiguration(this.GameConfiguration.Maps);
         await this.CreateGameServerDefinitionsAsync(gameServerConfiguration, numberOfGameServers).ConfigureAwait(false);
@@ -238,9 +249,11 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     /// and before the server definitions are created.
     /// Derived initializations can use it to adapt the content, e.g. to restrict it to an older game version.
     /// </summary>
-    protected virtual void OnGameConfigurationInitialized()
+    /// <returns>The task.</returns>
+    protected virtual ValueTask OnGameConfigurationInitializedAsync()
     {
         // nothing to do by default.
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>
@@ -296,7 +309,7 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     private async ValueTask AddAllUpdateEntriesAsync(PlugInManager plugInManager)
     {
         var updates = plugInManager.GetStrategyProvider<Guid, IConfigurationUpdatePlugIn>()
-                          ?.AvailableStrategies.Where(up => up.DataInitializationKey == this.Key)
+                          ?.AvailableStrategies.Where(up => up.DataInitializationKey == this.UpdateKey)
                           .ToList();
         if (updates is not { Count: > 0 })
         {
@@ -306,7 +319,7 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
         await NewDatabaseUpdates.InstallAsync(this.Context, this.GameConfiguration, updates).ConfigureAwait(false);
 
         var updateState = this.Context.CreateNew<ConfigurationUpdateState>();
-        updateState.InitializationKey = this.Key;
+        updateState.InitializationKey = this.UpdateKey;
     }
 
     private async ValueTask CreateConnectServerDefinitionAsync()

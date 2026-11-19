@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Tests;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.PlugIns;
 
@@ -44,6 +45,13 @@ public static class GameContextTestHelper
             {
                 TypeId = new Guid("E90A72C3-0459-4323-B6D3-171F88D35542"), // MuHelperFeaturePlugIn
                 IsActive = true,
+            },
+
+            // It's disabled by default, and would change the inventory size of the test characters.
+            new ()
+            {
+                TypeId = typeof(StartingInventoryExtensionsPlugIn).GUID,
+                IsActive = false,
             },
         };
 

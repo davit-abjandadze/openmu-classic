@@ -68,6 +68,13 @@ public class WarpAction
             return false;
         }
 
+        if (!warpInfo.Gate.Map.IsActive)
+        {
+            // The map of a deactivated content isn't created by the server.
+            errorMessage = "The warp target is not available";
+            return false;
+        }
+
         if (warpInfo.Gate.Map.TryGetRequirementError(player, out var message))
         {
             errorMessage = message;

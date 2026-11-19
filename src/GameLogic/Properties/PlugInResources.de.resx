@@ -1875,6 +1875,12 @@
   <data name="InventoryExtensionDeliveryPlugIn_Description" xml:space="preserve">
     <value>Fügt dem Charakter eine Inventarerweiterung hinzu, wenn ein Spieler den Magischen Rucksack aus dem Cash-Shop-Lager verwendet.</value>
   </data>
+  <data name="StartingInventoryExtensionsPlugIn_Name" xml:space="preserve">
+    <value>Inventarerweiterungen von Beginn an</value>
+  </data>
+  <data name="StartingInventoryExtensionsPlugIn_Description" xml:space="preserve">
+    <value>Schaltet die konfigurierte Anzahl an Inventarerweiterungen für jeden Charakter von Beginn an frei: bei der Erstellung, und wenn ein bestehender Charakter mit weniger Erweiterungen das Spiel betritt.</value>
+  </data>
   <data name="SummonerCharacterCardDeliveryPlugIn_Name" xml:space="preserve">
     <value>Cash-Shop: Summoner-Charakterkarte</value>
   </data>

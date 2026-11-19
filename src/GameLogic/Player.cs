@@ -1022,6 +1022,13 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// <param name="steps">The steps.</param>
     public ValueTask WalkToAsync(Point target, Memory<WalkingStep> steps) => this._movement.WalkToAsync(target, steps);
 
+    /// <summary>
+    /// Gets the distance in tiles by which the client may plausibly be ahead of the server position,
+    /// because the server is still pacing the steps of the current walk.
+    /// </summary>
+    /// <returns>The tolerated distance in tiles; zero, if the player isn't walking.</returns>
+    public double GetWalkLagTolerance() => this._movement.GetWalkLagTolerance();
+
     /// <inheritdoc />
     public ValueTask<int> GetDirectionsAsync(Memory<Direction> directions) => this._movement.GetDirectionsAsync(directions);
 
@@ -2211,6 +2218,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         }
 
         this.AddMissingStatAttributes();
+        this.GameContext.PlugInManager.GetPlugInPoint<ICharacterEnteringWorldPlugIn>()?.CharacterEnteringWorld(this, selectedCharacter);
 
         // The previous character of this connection may still hold its attribute system.
         this.ReleaseAttributeSystem();

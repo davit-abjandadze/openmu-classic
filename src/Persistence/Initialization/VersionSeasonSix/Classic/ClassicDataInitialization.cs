@@ -49,11 +49,19 @@ public class ClassicDataInitialization : DataInitialization
     protected override string? DefaultTimeZoneId => "Asia/Tbilisi";
 
     /// <inheritdoc />
-    protected override void OnGameConfigurationInitialized()
+    /// <remarks>
+    /// The classic data is the Season 6 data with restricted content, so the Season 6 updates apply to it.
+    /// </remarks>
+    protected override string UpdateKey => VersionSeasonSix.DataInitialization.Id;
+
+    /// <inheritdoc />
+    protected override async ValueTask OnGameConfigurationInitializedAsync()
     {
-        base.OnGameConfigurationInitialized();
+        await base.OnGameConfigurationInitializedAsync().ConfigureAwait(false);
         ClassicContentRestriction.Apply(this.GameConfiguration);
         ClassicEvents.ApplyToMiniGames(this.GameConfiguration);
+        await ClassicMerchantStores.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
+        await ClassicBoxes.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All).Concat(HuntingPointStats.All).Concat(TeamVsTeamStats.All));
     }
 

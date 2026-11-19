@@ -1,0 +1,240 @@
+@page "/control-center"
+@attribute [Authorize(Policy = AdminPolicies.Administrator)]
+@using MUnique.OpenMU.DataModel
+@using MUnique.OpenMU.DataModel.Configuration
+@using MUnique.OpenMU.DataModel.Configuration.Items
+@using MUnique.OpenMU.Web.AdminPanel.Properties
+
+<PageTitle>OpenMU: @Resources.ControlCenter</PageTitle>
+<Breadcrumb IsFirstFromRoot="true" Caption="@Resources.ControlCenter"/>
+<h1>@Resources.ControlCenter</h1>
+<p class="text-muted">@Resources.ControlCenterIntro</p>
+
+<div class="row g-3">
+    @* Servers *@
+    <div class="col-12 col-xxl-6">
+        <div class="card h-100">
+            <div class="card-header"><span class="oi oi-project me-2" aria-hidden="true"></span>@Resources.Servers</div>
+            <div class="card-body">
+                @if (this._gameServers is not null)
+                {
+                    <div class="mb-3">
+                        <GlobalMessageForm Servers="@this._servers"/>
+                    </div>
+                }
+
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>@Resources.ServerName</th>
+                        <th>@Resources.PlayerCount</th>
+                        <th>@Resources.CurrentState</th>
+                        <th>@Resources.Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var server in this._servers.OrderBy(s => s.Type).ThenBy(s => s.Description))
+                    {
+                        <ServerItem Server="@server"/>
+                    }
+                    </tbody>
+                    <tfoot>
+                    <TotalOnlineCounter Servers="@this._servers"/>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* Main game settings *@
+    <div class="col-12 col-xxl-6">
+        <div class="card h-100">
+            <div class="card-header"><span class="oi oi-cog me-2" aria-hidden="true"></span>@Resources.ControlCenterGameSettings</div>
+            <div class="card-body">
+                @if (this._settings is not { } settings)
+                {
+                    <p><em>@Resources.Loading</em></p>
+                }
+                else
+                {
+                    <div class="row g-2">
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-exp">@Caption(nameof(GameConfiguration.ExperienceRate))</label>
+                            <input id="cc-exp" type="number" min="0" step="0.1" class="form-control form-control-sm" @bind="settings.ExperienceRate"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-money">@Resources.ControlCenterMoneyRate</label>
+                            <input id="cc-money" type="number" min="0" step="0.1" class="form-control form-control-sm" disabled="@(!this._isMoneyRateAvailable)" @bind="settings.MoneyRate"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-level">@Caption(nameof(GameConfiguration.MaximumLevel))</label>
+                            <input id="cc-level" type="number" min="1" class="form-control form-control-sm" @bind="settings.MaximumLevel"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-party">@Caption(nameof(GameConfiguration.MaximumPartySize))</label>
+                            <input id="cc-party" type="number" min="1" max="255" class="form-control form-control-sm" @bind="settings.MaximumPartySize"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-chars">@Caption(nameof(GameConfiguration.MaximumCharactersPerAccount))</label>
+                            <input id="cc-chars" type="number" min="1" max="255" class="form-control form-control-sm" @bind="settings.MaximumCharactersPerAccount"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-drop-duration">@Resources.ControlCenterItemDropSeconds</label>
+                            <input id="cc-drop-duration" type="number" min="1" class="form-control form-control-sm" @bind="settings.ItemDropDurationSeconds"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-inv-money">@Caption(nameof(GameConfiguration.MaximumInventoryMoney))</label>
+                            <input id="cc-inv-money" type="number" min="0" class="form-control form-control-sm" @bind="settings.MaximumInventoryMoney"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-vault-money">@Caption(nameof(GameConfiguration.MaximumVaultMoney))</label>
+                            <input id="cc-vault-money" type="number" min="0" class="form-control form-control-sm" @bind="settings.MaximumVaultMoney"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-option-level">@Caption(nameof(GameConfiguration.MaximumItemOptionLevelDrop))</label>
+                            <input id="cc-option-level" type="number" min="0" max="7" class="form-control form-control-sm" @bind="settings.MaximumItemOptionLevelDrop"/>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-0" for="cc-exc-delta">@Caption(nameof(GameConfiguration.ExcellentItemDropLevelDelta))</label>
+                            <input id="cc-exc-delta" type="number" min="0" max="255" class="form-control form-control-sm" @bind="settings.ExcellentItemDropLevelDelta"/>
+                        </div>
+                        <div class="col-12 col-md-8 d-flex flex-wrap align-items-end gap-3">
+                            <div class="form-check form-switch">
+                                <input id="cc-drop-money" class="form-check-input" type="checkbox" role="switch" @bind="settings.ShouldDropMoney"/>
+                                <label class="form-check-label small" for="cc-drop-money">@Caption(nameof(GameConfiguration.ShouldDropMoney))</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input id="cc-area-pvp" class="form-check-input" type="checkbox" role="switch" @bind="settings.AreaSkillHitsPlayer"/>
+                                <label class="form-check-label small" for="cc-area-pvp">@Caption(nameof(GameConfiguration.AreaSkillHitsPlayer))</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input id="cc-exp-overflow" class="form-check-input" type="checkbox" role="switch" @bind="settings.PreventExperienceOverflow"/>
+                                <label class="form-check-label small" for="cc-exp-overflow">@Caption(nameof(GameConfiguration.PreventExperienceOverflow))</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (this._serverRates.Count > 0)
+                    {
+                        <h6 class="mt-3">@Resources.ControlCenterServerExperienceRates</h6>
+                        <div class="row g-2">
+                            @foreach (var server in this._serverRates)
+                            {
+                                <div class="col-6 col-md-4">
+                                    <label class="form-label small mb-0" for="@($"cc-server-{server.ServerId}")">@server.Description</label>
+                                    <input id="@($"cc-server-{server.ServerId}")" type="number" min="0" step="0.1" class="form-control form-control-sm" @bind="server.ExperienceRate"/>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <p class="small text-muted mt-3 mb-2">@Resources.ControlCenterSettingsHint</p>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" disabled="@(this._isSaving || !this.HasSettingChanges)" @onclick="this.OnSaveClickAsync">
+                            <span class="oi oi-check me-1" aria-hidden="true"></span>@Resources.Save
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" disabled="@(this._isSaving || !this.HasSettingChanges)" @onclick="this.OnDiscardClick">
+                            @Resources.Cancel
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Features *@
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><span class="oi oi-puzzle-piece me-2" aria-hidden="true"></span>@Resources.ControlCenterFeatures</span>
+                <NavLink class="btn btn-sm btn-outline-secondary" href="plugins">@Resources.ControlCenterAllPlugins</NavLink>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach (var (group, items) in this._features)
+                    {
+                        <div class="col-12 col-lg-6 col-xxl-4">
+                            <h6>@group.GetCaption()</h6>
+                            <ul class="list-group">
+                                @foreach (var item in items)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-start gap-2">
+                                        <div class="me-auto">
+                                            <div>
+                                                <span class="badge @(item.IsActive ? "text-bg-success" : "text-bg-secondary") me-1">@(item.IsActive ? Resources.Active : Resources.Inactive)</span>
+                                                <strong>@item.PlugInName</strong>
+                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(item.PlugInDescription))
+                                            {
+                                                <div class="small text-muted">@item.PlugInDescription</div>
+                                            }
+                                        </div>
+                                        <div class="text-nowrap">
+                                            <button type="button" class="btn btn-sm @(item.IsActive ? "btn-warning" : "btn-success")" @onclick="() => this.OnToggleFeatureClickAsync(item)">@(item.IsActive ? Resources.Deactivate : Resources.Activate)</button>
+
+                                            @if (item.ConfigurationType is not null)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-secondary ms-1" title="@Resources.ControlCenterSettings" @onclick="() => this.PlugInController.ShowPlugInConfigAsync(item)">
+                                                    <span class="oi oi-cog" aria-hidden="true"></span>
+                                                </button>
+                                            }
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Links to the detailed editors *@
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><span class="oi oi-list me-2" aria-hidden="true"></span>@Resources.ControlCenterEditors</div>
+            <div class="card-body">
+                <h6>@Resources.ControlCenterPlayers</h6>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <NavLink class="btn btn-outline-primary" href="accounts">@Resources.Accounts</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="logged-in">@Resources.OnlineAccounts</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="guilds">@Resources.Guilds</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="leaderboards">@Resources.Leaderboards</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="castle-siege">@Resources.CastleSiege</NavLink>
+                </div>
+
+                <h6>@Resources.ControlCenterGameContent</h6>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(ItemDefinition).FullName}/")">@Resources.Items</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(MonsterDefinition).FullName}/")">@Resources.Monsters</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="edit-item-drops">@Resources.ItemDrops</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(DropItemGroup).FullName}/")">@Resources.DropItemGroups</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(GameMapDefinition).FullName}/")">@Resources.GameMaps</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="map-editor">@Resources.MapEditor</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="merchants/">@Resources.MerchantStores</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(CharacterClass).FullName}/")">@Resources.CharacterClasses</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(Skill).FullName}/")">@Resources.Skills</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(MiniGameDefinition).FullName}/")">@Resources.MiniGames</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(WarpInfo).FullName}/")">@Resources.WarpList</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="@($"edit-config-grid/{typeof(JewelMix).FullName}/")">@Resources.JewelMixes</NavLink>
+                    <NavLink class="btn btn-outline-primary" href="cash-shop-catalog">@Resources.CashShopCatalog</NavLink>
+                </div>
+
+                <h6>@Resources.System</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <NavLink class="btn btn-outline-secondary" href="content-activation">@Resources.ContentActivation</NavLink>
+                    <NavLink class="btn btn-outline-secondary" href="chat-commands">@Resources.ChatCommands</NavLink>
+                    <NavLink class="btn btn-outline-secondary" href="plugins">@Resources.Plugins</NavLink>
+                    <NavLink class="btn btn-outline-secondary" href="@($"edit-config/{typeof(GameConfiguration).FullName}/")">@Resources.FullConfiguration</NavLink>
+                    <NavLink class="btn btn-outline-secondary" href="config-updates">@Resources.Updates</NavLink>
+                    <NavLink class="btn btn-outline-secondary" href="audit">@Resources.ResourceManager.GetString("AuditHistory", Resources.Culture)</NavLink>
+                    @if (AdminPanelEnvironment.IsHostingEmbedded)
+                    {
+                        <NavLink class="btn btn-outline-secondary" href="logfiles">@Resources.LogFiles</NavLink>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

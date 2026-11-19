@@ -1681,6 +1681,12 @@
   <data name="InventoryExtensionDeliveryPlugIn_Description" xml:space="preserve">
     <value>Adds an inventory extension to the character when a player uses the Magic Backpack from the cash shop storage.</value>
   </data>
+  <data name="StartingInventoryExtensionsPlugIn_Name" xml:space="preserve">
+    <value>Starting inventory extensions</value>
+  </data>
+  <data name="StartingInventoryExtensionsPlugIn_Description" xml:space="preserve">
+    <value>Unlocks the configured number of inventory extensions for every character from the start: when it is created, and when an existing character with fewer extensions enters the game.</value>
+  </data>
   <data name="SummonerCharacterCardDeliveryPlugIn_Name" xml:space="preserve">
     <value>Cash shop: Summoner Character Card</value>
   </data>

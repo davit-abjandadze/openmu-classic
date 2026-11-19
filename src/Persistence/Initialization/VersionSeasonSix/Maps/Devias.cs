@@ -38,7 +38,8 @@ internal class Devias : Version095d.Maps.Devias
         yield return this.CreateMonsterSpawn(36, this.NpcDictionary[257], 219, 73, Direction.SouthEast);
         yield return this.CreateMonsterSpawn(37, this.NpcDictionary[566], 204, 61, Direction.SouthWest);
         yield return this.CreateMonsterSpawn(38, this.NpcDictionary[379], 32, 31, Direction.SouthEast);
-        yield return this.CreateMonsterSpawn(39, this.NpcDictionary[229], 197, 48, Direction.SouthEast, SpawnTrigger.Wandering); // Marlon
+        // Classic: Marlon (3rd class quest NPC) removed.
+        // yield return this.CreateMonsterSpawn(39, this.NpcDictionary[229], 197, 48, Direction.SouthEast, SpawnTrigger.Wandering); // Marlon
         yield return this.CreateMonsterSpawn(40, this.NpcDictionary[233], 209, 30, Direction.SouthWest);
         yield return this.CreateMonsterSpawn(41, this.NpcDictionary[233], 219, 9, Direction.SouthEast);
         yield return this.CreateMonsterSpawn(42, this.NpcDictionary[568], 225, 52, Direction.South, SpawnTrigger.Wandering); // Wandering Merchant Zyro

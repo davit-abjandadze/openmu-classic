@@ -4660,6 +4660,24 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unlocks the configured number of inventory extensions for every character from the start..
+        /// </summary>
+        public static string StartingInventoryExtensionsPlugIn_Description {
+            get {
+                return ResourceManager.GetString("StartingInventoryExtensionsPlugIn_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting inventory extensions.
+        /// </summary>
+        public static string StartingInventoryExtensionsPlugIn_Name {
+            get {
+                return ResourceManager.GetString("StartingInventoryExtensionsPlugIn_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This plugin handles the drop of an item box, e.g. box of kundun..
         /// </summary>
         public static string ItemBoxDroppedPlugIn_Description {

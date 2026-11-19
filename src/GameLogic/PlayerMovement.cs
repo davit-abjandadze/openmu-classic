@@ -102,6 +102,19 @@ internal sealed class PlayerMovement : IDisposable
     public TimeSpan StepDelay => this.GetStepDelay(null);
 
     /// <summary>
+    /// Gets the distance in tiles by which the client may plausibly be ahead of the server position,
+    /// because the server is still pacing the steps of the current walk. Range checks of requests
+    /// which the client sends when it arrived somewhere, like picking up a drop, should tolerate it.
+    /// </summary>
+    /// <returns>The tolerated distance in tiles; zero, if the player isn't walking.</returns>
+    public double GetWalkLagTolerance()
+    {
+        return this.IsWalking
+            ? Math.Min(this.GetMaxAllowedLagOffset(), this.GetMaxAllowedWalkStartOffset())
+            : 0;
+    }
+
+    /// <summary>
     /// Moves the player instantly to the specified coordinate.
     /// </summary>
     /// <param name="target">The target.</param>

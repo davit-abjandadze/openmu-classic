@@ -6,6 +6,8 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Classic;
 
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
 
 /// <summary>
@@ -14,6 +16,8 @@ using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
 ///   <item>Only Dark Wizard, Dark Knight and Fairy Elf (and their second classes) are active and can be created.</item>
 ///   <item>Maps, monsters, items and mini games which were introduced after <see cref="TargetVersion"/> are deactivated.</item>
 ///   <item>Items can't be upgraded above <see cref="MaximumItemLevel"/>.</item>
+///   <item>Skills, and the scrolls and orbs which teach them, have no character level requirement.</item>
+///   <item>The buffs of Dark Wizard, Dark Knight and Fairy Elf only affect the caster, see <see cref="SelfOnlyBuffSkills"/>.</item>
 /// </list>
 /// </summary>
 /// <remarks>
@@ -28,9 +32,15 @@ public class ClassicContentRestriction
     public const GameVersion TargetVersion = GameVersion.Season1;
 
     /// <summary>
-    /// The maximum item level (+13).
+    /// The highest item level (+13) which the data supports.
+    /// The upgrade mixes up to this level stay in the data; the actually reachable level is limited
+    /// by the <see cref="GameLogic.PlugIns.ItemLevelLimitPlugIn"/> (+11 by default), so it can be raised up to this level in its configuration.
     /// </summary>
     public const byte MaximumItemLevel = 13;
+
+    private const byte OrbsGroup = 12;
+
+    private const byte ScrollsGroup = 15;
 
     private static readonly IReadOnlySet<byte> AllowedClasses = new HashSet<byte>
     {
@@ -86,6 +96,25 @@ public class ClassicContentRestriction
     };
 
     /// <summary>
+    /// The maps of <see cref="TargetVersion"/> which the classic server doesn't offer anyway.
+    /// </summary>
+    private static readonly IReadOnlySet<short> RemovedMaps = new HashSet<short>
+    {
+        33, // Aida
+    };
+
+    /// <summary>
+    /// The buff skills which can only be cast on the caster itself, not on other players or party members.
+    /// </summary>
+    private static readonly IReadOnlySet<short> SelfOnlyBuffSkills = new HashSet<short>
+    {
+        16, // Soul Barrier (Dark Wizard)
+        27, // Greater Defense (Fairy Elf)
+        28, // Greater Damage (Fairy Elf)
+        48, // Swell Life (Dark Knight)
+    };
+
+    /// <summary>
     /// Applies the restriction to the specified game configuration.
     /// </summary>
     /// <param name="gameConfiguration">The game configuration.</param>
@@ -102,6 +131,8 @@ public class ClassicContentRestriction
         {
             map.IsActive = false;
         }
+
+        DeactivateRemovedMaps(gameConfiguration);
 
         foreach (var monster in gameConfiguration.Monsters.Where(m => IsTooNew(m.IntroducedIn)
                      || (m.IntroducedIn == GameVersion.Unknown && !ClassicMonstersOfUnknownVersion.Contains(m.Number))))
@@ -130,12 +161,85 @@ public class ClassicContentRestriction
         }
 
         RemoveUpgradeCraftingsAboveMaximumLevel(gameConfiguration);
+        RemoveSkillLevelRequirements(gameConfiguration);
+        RestrictBuffsToSelf(gameConfiguration);
+    }
+
+    /// <summary>
+    /// Determines whether the game configuration was created by the <see cref="ClassicDataInitialization"/>.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <returns><c>true</c>, if it's a classic configuration; otherwise, <c>false</c>.</returns>
+    /// <remarks>
+    /// The classic data shares the Season 6 updates, so a classic-only update has to check this.
+    /// Only the classic data has the PvP attributes.
+    /// </remarks>
+    internal static bool IsClassic(GameConfiguration gameConfiguration)
+        => gameConfiguration.Attributes.Any(a => a.Id == PvpStats.Week.Id);
+
+    /// <summary>
+    /// Removes the character level requirements of the skills and of the items which teach them (scrolls, orbs, parchments).
+    /// Other requirements, like energy, stay.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void RemoveSkillLevelRequirements(GameConfiguration gameConfiguration)
+    {
+        static void RemoveLevelRequirements(ICollection<AttributeRequirement> requirements)
+        {
+            foreach (var requirement in requirements.Where(r => r.Attribute?.Id == Stats.Level.Id).ToList())
+            {
+                requirements.Remove(requirement);
+            }
+        }
+
+        foreach (var skill in gameConfiguration.Skills)
+        {
+            RemoveLevelRequirements(skill.Requirements);
+        }
+
+        foreach (var item in gameConfiguration.Items.Where(IsSkillLearningItem))
+        {
+            RemoveLevelRequirements(item.Requirements);
+        }
+    }
+
+    /// <summary>
+    /// Restricts the <see cref="SelfOnlyBuffSkills"/> to the caster: a cast on another player is refused,
+    /// and Swell Life no longer affects the party members.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void RestrictBuffsToSelf(GameConfiguration gameConfiguration)
+    {
+        foreach (var skill in gameConfiguration.Skills.Where(s => SelfOnlyBuffSkills.Contains(s.Number)))
+        {
+            skill.TargetRestriction = SkillTargetRestriction.Self;
+            if (skill.Target == SkillTarget.ImplicitParty)
+            {
+                skill.Target = SkillTarget.ImplicitPlayer;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deactivates the maps which the classic server doesn't offer, although they belong to <see cref="TargetVersion"/>.
+    /// Warps to inactive maps are neither listed in the warp window nor usable.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void DeactivateRemovedMaps(GameConfiguration gameConfiguration)
+    {
+        foreach (var map in gameConfiguration.Maps.Where(m => RemovedMaps.Contains(m.Number)))
+        {
+            map.IsActive = false;
+        }
     }
 
     private static bool IsTooNew(GameVersion version) => version != GameVersion.Unknown && version > TargetVersion;
 
     private static bool IsOnlyForInactiveClasses(ItemDefinition item)
         => item.QualifiedCharacters.Count > 0 && item.QualifiedCharacters.All(c => !c.IsActive);
+
+    private static bool IsSkillLearningItem(ItemDefinition item)
+        => item.Skill is not null && item.Group is OrbsGroup or ScrollsGroup;
 
     private static void RemoveUpgradeCraftingsAboveMaximumLevel(GameConfiguration gameConfiguration)
     {

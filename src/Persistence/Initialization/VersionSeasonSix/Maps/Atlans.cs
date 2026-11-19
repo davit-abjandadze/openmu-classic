@@ -30,6 +30,8 @@ internal class Atlans : Version075.Maps.Atlans
     /// </remarks>
     protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
     {
-        yield return this.CreateMonsterSpawn(10, this.NpcDictionary[229], 17, 25, Direction.South, SpawnTrigger.Wandering); // Marlon
+        // Classic: Marlon (3rd class quest NPC) removed.
+        // yield return this.CreateMonsterSpawn(10, this.NpcDictionary[229], 17, 25, Direction.South, SpawnTrigger.Wandering); // Marlon
+        yield break;
     }
 }

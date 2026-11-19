@@ -2756,4 +2756,67 @@
   <data name="ShopImportRejected" xml:space="preserve">
     <value>The shop was not changed, because the file contains entries which can't be imported: {0}</value>
   </data>
+  <data name="ControlCenter" xml:space="preserve">
+    <value>Control Center</value>
+  </data>
+  <data name="ControlCenterIntro" xml:space="preserve">
+    <value>The most important settings of the server on one page. Every change is previewed, confirmed and recorded in the audit history.</value>
+  </data>
+  <data name="ControlCenterGameSettings" xml:space="preserve">
+    <value>Game settings</value>
+  </data>
+  <data name="ControlCenterMoneyRate" xml:space="preserve">
+    <value>Zen drop rate</value>
+  </data>
+  <data name="ControlCenterItemDropSeconds" xml:space="preserve">
+    <value>Dropped items stay (seconds)</value>
+  </data>
+  <data name="ControlCenterServerExperienceRates" xml:space="preserve">
+    <value>Experience rate per game server (multiplies the global rate)</value>
+  </data>
+  <data name="ControlCenterSettingsHint" xml:space="preserve">
+    <value>The changes apply to the running game servers. The experience rate by resets is configured at the feature "Reset experience rate".</value>
+  </data>
+  <data name="ControlCenterConfirmChanges" xml:space="preserve">
+    <value>Save these changes?</value>
+  </data>
+  <data name="ControlCenterFeatures" xml:space="preserve">
+    <value>Features</value>
+  </data>
+  <data name="ControlCenterAllPlugins" xml:space="preserve">
+    <value>All plugins</value>
+  </data>
+  <data name="ControlCenterSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="ControlCenterResets" xml:space="preserve">
+    <value>Resets</value>
+  </data>
+  <data name="ControlCenterRewards" xml:space="preserve">
+    <value>Rewards</value>
+  </data>
+  <data name="ControlCenterPvp" xml:space="preserve">
+    <value>PvP</value>
+  </data>
+  <data name="ControlCenterEvents" xml:space="preserve">
+    <value>Events</value>
+  </data>
+  <data name="ControlCenterOther" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="ControlCenterEditors" xml:space="preserve">
+    <value>All editors</value>
+  </data>
+  <data name="ControlCenterPlayers" xml:space="preserve">
+    <value>Players</value>
+  </data>
+  <data name="ControlCenterGameContent" xml:space="preserve">
+    <value>Game content</value>
+  </data>
+  <data name="ControlCenterActivateQuestion" xml:space="preserve">
+    <value>Activate "{0}"?</value>
+  </data>
+  <data name="ControlCenterDeactivateQuestion" xml:space="preserve">
+    <value>Deactivate "{0}"?</value>
+  </data>
 </root>
