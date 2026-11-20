@@ -81,13 +81,13 @@ public class ClassicResetRulesTest
     /// <summary>
     /// Tests the default experience multipliers by reset count.
     /// </summary>
-    [TestCase(0, 540)]
-    [TestCase(4, 540)]
-    [TestCase(5, 432)]
-    [TestCase(14, 324)]
-    [TestCase(49, 126)]
-    [TestCase(50, 108)]
-    [TestCase(200, 108)]
+    [TestCase(0, 1f)]
+    [TestCase(4, 1f)]
+    [TestCase(5, 0.8f)]
+    [TestCase(14, 0.6f)]
+    [TestCase(49, 0.23f)]
+    [TestCase(50, 0.2f)]
+    [TestCase(200, 0.2f)]
     public void DefaultExperienceRateByResets(int resets, float expected)
     {
         Assert.That(ResetExperienceRateConfiguration.CreateDefault().GetMultiplier(resets), Is.EqualTo(expected));

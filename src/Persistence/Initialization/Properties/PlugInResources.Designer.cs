@@ -1169,11 +1169,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicStartingInventoryExtensionsUpdatePlugIn_Description text.</summary>
         public static string ClassicStartingInventoryExtensionsUpdatePlugIn_Description => ResourceManager.GetString("ClassicStartingInventoryExtensionsUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized ClassicRelativeResetExperienceRatesUpdatePlugIn_Name text.</summary>
+        public static string ClassicRelativeResetExperienceRatesUpdatePlugIn_Name => ResourceManager.GetString("ClassicRelativeResetExperienceRatesUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicRelativeResetExperienceRatesUpdatePlugIn_Description text.</summary>
+        public static string ClassicRelativeResetExperienceRatesUpdatePlugIn_Description => ResourceManager.GetString("ClassicRelativeResetExperienceRatesUpdatePlugIn_Description", resourceCulture)!;
+
         /// <summary>Gets the localized ClassicItemLevelLimitUpdatePlugIn_Name text.</summary>
         public static string ClassicItemLevelLimitUpdatePlugIn_Name => ResourceManager.GetString("ClassicItemLevelLimitUpdatePlugIn_Name", resourceCulture)!;
 
         /// <summary>Gets the localized ClassicItemLevelLimitUpdatePlugIn_Description text.</summary>
         public static string ClassicItemLevelLimitUpdatePlugIn_Description => ResourceManager.GetString("ClassicItemLevelLimitUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicMagicGladiatorUpdatePlugIn_Name text.</summary>
+        public static string ClassicMagicGladiatorUpdatePlugIn_Name => ResourceManager.GetString("ClassicMagicGladiatorUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicMagicGladiatorUpdatePlugIn_Description text.</summary>
+        public static string ClassicMagicGladiatorUpdatePlugIn_Description => ResourceManager.GetString("ClassicMagicGladiatorUpdatePlugIn_Description", resourceCulture)!;
 
         /// <summary>Gets the localized ClassicSkillStoresUpdatePlugIn_Name text.</summary>
         public static string ClassicSkillStoresUpdatePlugIn_Name => ResourceManager.GetString("ClassicSkillStoresUpdatePlugIn_Name", resourceCulture)!;
@@ -1187,5 +1199,40 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicBoxesUpdatePlugIn_Description text.</summary>
         public static string ClassicBoxesUpdatePlugIn_Description => ResourceManager.GetString("ClassicBoxesUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized ClassicBossListsUpdatePlugIn_Name text.</summary>
+        public static string ClassicBossListsUpdatePlugIn_Name => ResourceManager.GetString("ClassicBossListsUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicBossListsUpdatePlugIn_Description text.</summary>
+        public static string ClassicBossListsUpdatePlugIn_Description => ResourceManager.GetString("ClassicBossListsUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicBossesUpdatePlugIn_Name text.</summary>
+        public static string ClassicBossesUpdatePlugIn_Name => ResourceManager.GetString("ClassicBossesUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicBossesUpdatePlugIn_Description text.</summary>
+        public static string ClassicBossesUpdatePlugIn_Description => ResourceManager.GetString("ClassicBossesUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicRemovedSkillScrollsUpdatePlugIn_Name text.</summary>
+        public static string ClassicRemovedSkillScrollsUpdatePlugIn_Name => ResourceManager.GetString("ClassicRemovedSkillScrollsUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicRemovedSkillScrollsUpdatePlugIn_Description text.</summary>
+        public static string ClassicRemovedSkillScrollsUpdatePlugIn_Description => ResourceManager.GetString("ClassicRemovedSkillScrollsUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicBossStrengthUpdatePlugIn_Name text.</summary>
+        public static string ClassicBossStrengthUpdatePlugIn_Name => ResourceManager.GetString("ClassicBossStrengthUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicBossStrengthUpdatePlugIn_Description text.</summary>
+        public static string ClassicBossStrengthUpdatePlugIn_Description => ResourceManager.GetString("ClassicBossStrengthUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicMedalMerchantUpdatePlugIn_Name text.</summary>
+        public static string ClassicMedalMerchantUpdatePlugIn_Name => ResourceManager.GetString("ClassicMedalMerchantUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicMedalMerchantUpdatePlugIn_Description text.</summary>
+        public static string ClassicMedalMerchantUpdatePlugIn_Description => ResourceManager.GetString("ClassicMedalMerchantUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicFarmSpotsUpdatePlugIn_Name text.</summary>
+        public static string ClassicFarmSpotsUpdatePlugIn_Name => ResourceManager.GetString("ClassicFarmSpotsUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicFarmSpotsUpdatePlugIn_Description text.</summary>
+        public static string ClassicFarmSpotsUpdatePlugIn_Description => ResourceManager.GetString("ClassicFarmSpotsUpdatePlugIn_Description", resourceCulture)!;
     }
 }

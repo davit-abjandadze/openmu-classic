@@ -3470,6 +3470,15 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} gold and {1} silver medal item(s) of your inventory were added to your medals..
+        /// </summary>
+        public static string MedalsItemsDeposited {
+            get {
+                return ResourceManager.GetString("MedalsItemsDeposited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Medals are not active..
         /// </summary>
         public static string MedalsNotActive {
@@ -3511,6 +3520,42 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         public static string MedalsNotEnough {
             get {
                 return ResourceManager.GetString("MedalsNotEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Boss information is not available..
+        /// </summary>
+        public static string BossesNotActive {
+            get {
+                return ResourceManager.GetString("BossesNotActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bosses:.
+        /// </summary>
+        public static string BossesOverview {
+            get {
+                return ResourceManager.GetString("BossesOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1}): alive.
+        /// </summary>
+        public static string BossAlive {
+            get {
+                return ResourceManager.GetString("BossAlive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1}): dead, respawns in {2}h {3:00}m {4:00}s.
+        /// </summary>
+        public static string BossRespawnsIn {
+            get {
+                return ResourceManager.GetString("BossRespawnsIn", resourceCulture);
             }
         }
         
@@ -3727,6 +3772,24 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         public static string TeamVsTeamPoints {
             get {
                 return ResourceManager.GetString("TeamVsTeamPoints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not enough silver medals for {0}: {1} are required, you have {2}..
+        /// </summary>
+        public static string MedalMerchantNotEnough {
+            get {
+                return ResourceManager.GetString("MedalMerchantNotEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You bought {0} for {1} silver medal(s). Silver medals left: {2}..
+        /// </summary>
+        public static string MedalMerchantBought {
+            get {
+                return ResourceManager.GetString("MedalMerchantBought", resourceCulture);
             }
         }
     }

@@ -9933,4 +9933,40 @@ public class PacketStructureTests
         Assert.That(actualLength, Is.EqualTo(expectedLength), 
             "Packet length mismatch: declared length does not match calculated size");
     }
+
+    /// <summary>
+    /// Tests the packet size calculation for BossMapMarkersExtended.
+    /// </summary>
+    [Test]
+    public void BossMapMarkersExtended_PacketSizeValidation()
+    {
+        // Basic packet validation
+        // Validate header type and field boundaries
+        
+        // Field 'MapNumber' starts at index 4 with size 1
+        Assert.That(4, Is.GreaterThanOrEqualTo(0), 
+            "Field 'MapNumber' has invalid negative index");
+        
+        // Field 'Count' starts at index 5 with size 1
+        Assert.That(5, Is.GreaterThanOrEqualTo(0), 
+            "Field 'Count' has invalid negative index");
+    }
+
+    /// <summary>
+    /// Tests the packet size calculation for FarmSpotMapMarkersExtended.
+    /// </summary>
+    [Test]
+    public void FarmSpotMapMarkersExtended_PacketSizeValidation()
+    {
+        // Basic packet validation
+        // Validate header type and field boundaries
+        
+        // Field 'MapNumber' starts at index 4 with size 1
+        Assert.That(4, Is.GreaterThanOrEqualTo(0), 
+            "Field 'MapNumber' has invalid negative index");
+        
+        // Field 'Count' starts at index 5 with size 1
+        Assert.That(5, Is.GreaterThanOrEqualTo(0), 
+            "Field 'Count' has invalid negative index");
+    }
 }

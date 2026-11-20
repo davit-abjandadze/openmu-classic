@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Character;
 
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.Character;
 
 /// <summary>
@@ -19,6 +20,7 @@ public class RequestCharacterListAction
     {
         if (await player.PlayerState.TryAdvanceToAsync(PlayerState.CharacterSelection).ConfigureAwait(false))
         {
+            player.GameContext.PlugInManager.GetPlugInPoint<ICharacterListRequestingPlugIn>()?.CharacterListRequesting(player);
             await player.InvokeViewPlugInAsync<IShowCharacterListPlugIn>(p => p.ShowCharacterListAsync()).ConfigureAwait(false);
         }
     }

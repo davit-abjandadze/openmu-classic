@@ -17,6 +17,7 @@ using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
 ///   <item>Maps, monsters, items and mini games which were introduced after <see cref="TargetVersion"/> are deactivated.</item>
 ///   <item>Items can't be upgraded above <see cref="MaximumItemLevel"/>.</item>
 ///   <item>Skills, and the scrolls and orbs which teach them, have no character level requirement.</item>
+///   <item>The scrolls of Decay, Ice Storm and Nova are deactivated, see <see cref="RemovedSkillItems"/>.</item>
 ///   <item>The buffs of Dark Wizard, Dark Knight and Fairy Elf only affect the caster, see <see cref="SelfOnlyBuffSkills"/>.</item>
 /// </list>
 /// </summary>
@@ -50,6 +51,7 @@ public class ClassicContentRestriction
         (byte)CharacterClassNumber.BladeKnight,
         (byte)CharacterClassNumber.FairyElf,
         (byte)CharacterClassNumber.MuseElf,
+        (byte)CharacterClassNumber.MagicGladiator,
     };
 
     private static readonly IReadOnlySet<byte> CreatableClasses = new HashSet<byte>
@@ -57,6 +59,7 @@ public class ClassicContentRestriction
         (byte)CharacterClassNumber.DarkWizard,
         (byte)CharacterClassNumber.DarkKnight,
         (byte)CharacterClassNumber.FairyElf,
+        (byte)CharacterClassNumber.MagicGladiator,
     };
 
     /// <summary>
@@ -104,6 +107,17 @@ public class ClassicContentRestriction
     };
 
     /// <summary>
+    /// The skill scrolls which the classic server doesn't offer. They neither drop nor are sold.
+    /// Characters which already learned the skill keep it.
+    /// </summary>
+    private static readonly IReadOnlySet<(byte Group, short Number)> RemovedSkillItems = new HashSet<(byte Group, short Number)>
+    {
+        (ScrollsGroup, 16), // Scroll of Decay
+        (ScrollsGroup, 17), // Scroll of Ice Storm
+        (ScrollsGroup, 18), // Scroll of Nova
+    };
+
+    /// <summary>
     /// The buff skills which can only be cast on the caster itself, not on other players or party members.
     /// </summary>
     private static readonly IReadOnlySet<short> SelfOnlyBuffSkills = new HashSet<short>
@@ -120,12 +134,7 @@ public class ClassicContentRestriction
     /// <param name="gameConfiguration">The game configuration.</param>
     public static void Apply(GameConfiguration gameConfiguration)
     {
-        foreach (var characterClass in gameConfiguration.CharacterClasses)
-        {
-            var isAllowed = AllowedClasses.Contains(characterClass.Number);
-            characterClass.IsActive = isAllowed;
-            characterClass.CanGetCreated = CreatableClasses.Contains(characterClass.Number);
-        }
+        ApplyClassRestrictions(gameConfiguration);
 
         foreach (var map in gameConfiguration.Maps.Where(m => IsTooNew(m.IntroducedIn)))
         {
@@ -147,9 +156,7 @@ public class ClassicContentRestriction
 
         foreach (var item in gameConfiguration.Items)
         {
-            if (IsTooNew(item.IntroducedIn)
-                || (item.IntroducedIn == GameVersion.Unknown && !ClassicItemsOfUnknownVersion.Contains((item.Group, item.Number)))
-                || IsOnlyForInactiveClasses(item))
+            if (IsExcluded(item))
             {
                 item.IsActive = false;
             }
@@ -160,6 +167,7 @@ public class ClassicContentRestriction
             }
         }
 
+        DeactivateRemovedSkillItems(gameConfiguration);
         RemoveUpgradeCraftingsAboveMaximumLevel(gameConfiguration);
         RemoveSkillLevelRequirements(gameConfiguration);
         RestrictBuffsToSelf(gameConfiguration);
@@ -232,6 +240,50 @@ public class ClassicContentRestriction
             map.IsActive = false;
         }
     }
+
+    /// <summary>
+    /// Deactivates the <see cref="RemovedSkillItems"/> (Scroll of Decay, Ice Storm and Nova), so they don't drop.
+    /// The <see cref="ClassicMerchantStores"/> remove inactive scrolls and orbs from the stores.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void DeactivateRemovedSkillItems(GameConfiguration gameConfiguration)
+    {
+        foreach (var item in gameConfiguration.Items.Where(i => RemovedSkillItems.Contains((i.Group, i.Number))))
+        {
+            item.IsActive = false;
+        }
+    }
+
+    /// <summary>
+    /// Activates the classes which the classic server offers (e.g. the Magic Gladiator, which was added later)
+    /// and the items which were only deactivated because their classes were inactive, in an existing database.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void ActivateAllowedClasses(GameConfiguration gameConfiguration)
+    {
+        ApplyClassRestrictions(gameConfiguration);
+        foreach (var item in gameConfiguration.Items.Where(i => !i.IsActive
+                     && i.QualifiedCharacters.Any(c => c.IsActive)
+                     && !IsExcluded(i)
+                     && !RemovedSkillItems.Contains((i.Group, i.Number))))
+        {
+            item.IsActive = true;
+        }
+    }
+
+    private static void ApplyClassRestrictions(GameConfiguration gameConfiguration)
+    {
+        foreach (var characterClass in gameConfiguration.CharacterClasses)
+        {
+            characterClass.IsActive = AllowedClasses.Contains(characterClass.Number);
+            characterClass.CanGetCreated = CreatableClasses.Contains(characterClass.Number);
+        }
+    }
+
+    private static bool IsExcluded(ItemDefinition item)
+        => IsTooNew(item.IntroducedIn)
+           || (item.IntroducedIn == GameVersion.Unknown && !ClassicItemsOfUnknownVersion.Contains((item.Group, item.Number)))
+           || IsOnlyForInactiveClasses(item);
 
     private static bool IsTooNew(GameVersion version) => version != GameVersion.Unknown && version > TargetVersion;
 

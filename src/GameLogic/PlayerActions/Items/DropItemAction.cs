@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Items;
 
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
 using MUnique.OpenMU.Pathfinding;
@@ -44,6 +45,13 @@ public class DropItemAction
                 "Player {0} tried to drop {1}, which its item definition doesn't allow. The client item data may differ from the server.",
                 player,
                 item);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemCannotBeDropped)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IItemDropResultPlugIn>(p => p.ItemDropResultAsync(slot, false)).ConfigureAwait(false);
+            return;
+        }
+
+        if (MedalItems.IsSilverMedal(item))
+        {
             await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemCannotBeDropped)).ConfigureAwait(false);
             await player.InvokeViewPlugInAsync<IItemDropResultPlugIn>(p => p.ItemDropResultAsync(slot, false)).ConfigureAwait(false);
             return;

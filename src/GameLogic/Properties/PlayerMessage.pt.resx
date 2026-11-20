@@ -1264,6 +1264,9 @@ Extensões de inventário: {18}</value>
   <data name="MedalsAwarded" xml:space="preserve">
     <value>Você ganhou {0} medalha(s) de ouro e {1} de prata! Troque-as com /medals.</value>
   </data>
+  <data name="MedalsItemsDeposited" xml:space="preserve">
+    <value>{0} medalha(s) de ouro e {1} de prata do seu inventário foram adicionadas às suas medalhas.</value>
+  </data>
   <data name="MedalsNotActive" xml:space="preserve">
     <value>As medalhas não estão ativas.</value>
   </data>
@@ -1350,5 +1353,23 @@ Extensões de inventário: {18}</value>
   </data>
   <data name="TeamVsTeamPoints" xml:space="preserve">
     <value>Você recebeu {0} pontos do Time contra Time.</value>
+  </data>
+  <data name="MedalMerchantNotEnough" xml:space="preserve">
+    <value>Medalhas de prata insuficientes para {0}: são necessárias {1}, você tem {2}.</value>
+  </data>
+  <data name="MedalMerchantBought" xml:space="preserve">
+    <value>Você comprou {0} por {1} medalha(s) de prata. Medalhas de prata restantes: {2}.</value>
+  </data>
+  <data name="BossesNotActive" xml:space="preserve">
+    <value>As informações dos chefes não estão disponíveis.</value>
+  </data>
+  <data name="BossesOverview" xml:space="preserve">
+    <value>Chefes:</value>
+  </data>
+  <data name="BossAlive" xml:space="preserve">
+    <value>{0} ({1}): vivo</value>
+  </data>
+  <data name="BossRespawnsIn" xml:space="preserve">
+    <value>{0} ({1}): morto, renasce em {2}h {3:00}m {4:00}s</value>
   </data>
 </root>

@@ -1264,6 +1264,9 @@ Inventory Extensions: {18}</value>
   <data name="MedalsAwarded" xml:space="preserve">
     <value>You won {0} gold and {1} silver medal(s)! Exchange them with /medals.</value>
   </data>
+  <data name="MedalsItemsDeposited" xml:space="preserve">
+    <value>{0} gold and {1} silver medal item(s) of your inventory were added to your medals.</value>
+  </data>
   <data name="MedalsNotActive" xml:space="preserve">
     <value>Medals are not active.</value>
   </data>
@@ -1350,5 +1353,23 @@ Inventory Extensions: {18}</value>
   </data>
   <data name="TeamVsTeamPoints" xml:space="preserve">
     <value>You received {0} Team vs Team points.</value>
+  </data>
+  <data name="MedalMerchantNotEnough" xml:space="preserve">
+    <value>Not enough silver medals for {0}: {1} are required, you have {2}.</value>
+  </data>
+  <data name="MedalMerchantBought" xml:space="preserve">
+    <value>You bought {0} for {1} silver medal(s). Silver medals left: {2}.</value>
+  </data>
+  <data name="BossesNotActive" xml:space="preserve">
+    <value>Boss information is not available.</value>
+  </data>
+  <data name="BossesOverview" xml:space="preserve">
+    <value>Bosses:</value>
+  </data>
+  <data name="BossAlive" xml:space="preserve">
+    <value>{0} ({1}): alive</value>
+  </data>
+  <data name="BossRespawnsIn" xml:space="preserve">
+    <value>{0} ({1}): dead, respawns in {2}h {3:00}m {4:00}s</value>
   </data>
 </root>

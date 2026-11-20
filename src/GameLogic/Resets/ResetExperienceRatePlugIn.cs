@@ -12,6 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Multiplies the experience of a character by a factor which depends on its reset count,
 /// e.g. high for the first resets and lower with each further reset.
+/// The factor is applied on top of the configured experience rate of the game and the game server.
 /// </summary>
 [PlugIn]
 [Display(Name = "Experience rate by resets", Description = "Multiplies the experience of a character by a factor which depends on its reset count.")]

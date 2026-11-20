@@ -62,6 +62,9 @@ public class ClassicDataInitialization : DataInitialization
         ClassicEvents.ApplyToMiniGames(this.GameConfiguration);
         await ClassicMerchantStores.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         await ClassicBoxes.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
+        ClassicBosses.Apply(this.Context, this.GameConfiguration);
+        ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);
+        await ClassicMedalMerchant.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All).Concat(HuntingPointStats.All).Concat(TeamVsTeamStats.All));
     }
 

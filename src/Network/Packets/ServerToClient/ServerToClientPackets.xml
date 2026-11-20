@@ -16732,6 +16732,117 @@
       <CausedReaction>The 1.04d client does not read any payload of this packet.</CausedReaction>
       <Fields />
     </Packet>
+    <Packet>
+      <HeaderType>C2Header</HeaderType>
+      <Code>FB</Code>
+      <Name>BossMapMarkersExtended</Name>
+      <Direction>ServerToClient</Direction>
+      <SentWhen>A player entered a map, or a boss of the player's current map got killed or respawned.</SentWhen>
+      <CausedReaction>The bosses of the map are shown on the full-screen map (Tab) of the open source client, with the remaining time until a killed boss respawns. Replaces all previously sent bosses of the same map. The original client ignores this packet.</CausedReaction>
+      <Fields>
+        <Field>
+          <Index>4</Index>
+          <Type>Byte</Type>
+          <Name>MapNumber</Name>
+        </Field>
+        <Field>
+          <Index>5</Index>
+          <Type>Byte</Type>
+          <Name>Count</Name>
+        </Field>
+        <Field>
+          <Index>6</Index>
+          <Type>Structure[]</Type>
+          <TypeName>BossMarker</TypeName>
+          <Name>Bosses</Name>
+          <ItemCountField>Count</ItemCountField>
+        </Field>
+      </Fields>
+      <Structures>
+        <Structure>
+          <Name>BossMarker</Name>
+          <Description>A boss of the map.</Description>
+          <Length>28</Length>
+          <Fields>
+            <Field>
+              <Index>0</Index>
+              <Type>Byte</Type>
+              <Name>PositionX</Name>
+            </Field>
+            <Field>
+              <Index>1</Index>
+              <Type>Byte</Type>
+              <Name>PositionY</Name>
+            </Field>
+            <Field>
+              <Index>2</Index>
+              <Type>Boolean</Type>
+              <Name>IsAlive</Name>
+            </Field>
+            <Field>
+              <Index>4</Index>
+              <Type>IntegerLittleEndian</Type>
+              <Name>RespawnSeconds</Name>
+              <Description>The seconds until the boss respawns, when it's not alive. The position is the place of its death then.</Description>
+            </Field>
+            <Field>
+              <Index>8</Index>
+              <Type>String</Type>
+              <Name>Name</Name>
+              <Length>20</Length>
+            </Field>
+          </Fields>
+        </Structure>
+      </Structures>
+    </Packet>
+    <Packet>
+      <HeaderType>C2Header</HeaderType>
+      <Code>FC</Code>
+      <Name>FarmSpotMapMarkersExtended</Name>
+      <Direction>ServerToClient</Direction>
+      <SentWhen>A player entered a map.</SentWhen>
+      <CausedReaction>The farm spots of the map, small places where a few monsters of the same kind stand together, are shown as dots on the full-screen map (Tab) of the open source client. Replaces all previously sent farm spots of the same map. The original client ignores this packet.</CausedReaction>
+      <Fields>
+        <Field>
+          <Index>4</Index>
+          <Type>Byte</Type>
+          <Name>MapNumber</Name>
+        </Field>
+        <Field>
+          <Index>5</Index>
+          <Type>Byte</Type>
+          <Name>Count</Name>
+        </Field>
+        <Field>
+          <Index>6</Index>
+          <Type>Structure[]</Type>
+          <TypeName>FarmSpotMarker</TypeName>
+          <Name>Spots</Name>
+          <ItemCountField>Count</ItemCountField>
+        </Field>
+      </Fields>
+      <Structures>
+        <Structure>
+          <Name>FarmSpotMarker</Name>
+          <Description>A farm spot of the map.</Description>
+          <Length>2</Length>
+          <Fields>
+            <Field>
+              <Index>0</Index>
+              <Type>Byte</Type>
+              <Name>PositionX</Name>
+              <Description>The x coordinate of the centre of the spot.</Description>
+            </Field>
+            <Field>
+              <Index>1</Index>
+              <Type>Byte</Type>
+              <Name>PositionY</Name>
+              <Description>The y coordinate of the centre of the spot.</Description>
+            </Field>
+          </Fields>
+        </Structure>
+      </Structures>
+    </Packet>
   </Packets>
   <Enums>
     <Enum>

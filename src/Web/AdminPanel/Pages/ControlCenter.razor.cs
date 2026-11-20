@@ -21,6 +21,7 @@ using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents;
 using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
+using MUnique.OpenMU.GameLogic.PlugIns.UnlockCharacterClass;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.TeamVsTeam;
@@ -52,7 +53,7 @@ public partial class ControlCenter : ComponentBase, IDisposable
         new(() => Resources.ControlCenterRewards, [typeof(HuntingJewelPlugIn), typeof(HuntingPointsPlugIn), typeof(ItemExchangeChatCommandPlugIn), typeof(MiniGameMedalsPlugIn)]),
         new(() => Resources.ControlCenterPvp, [typeof(PvpSpotsPlugIn), typeof(TeamVsTeamPlugIn)]),
         new(() => Resources.ControlCenterEvents, [typeof(DevilSquareStartPlugIn), typeof(BloodCastleStartPlugIn), typeof(GoldenInvasionPlugIn), typeof(RedDragonInvasionPlugIn), typeof(WhiteWizardInvasionPlugIn)]),
-        new(() => Resources.ControlCenterOther, [typeof(ItemLevelLimitPlugIn), typeof(BossStatusChatCommandPlugIn), typeof(PeriodicSaveProgressPlugIn)]),
+        new(() => Resources.ControlCenterOther, [typeof(ItemLevelLimitPlugIn), typeof(UnlockedCharacterClassesPlugIn), typeof(BossStatusChatCommandPlugIn), typeof(PeriodicSaveProgressPlugIn)]),
     ];
 
     private IList<IManageableServer> _servers = [];

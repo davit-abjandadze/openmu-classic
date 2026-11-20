@@ -11,7 +11,8 @@ using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// Changes the boxes of an existing classic (Season 1 content) database: monsters drop the Box of Heaven,
-/// which drops a normal +7 to +11 weapon or armor piece, and Caren the Barmaid sells the Box of Kundun +1 to +5.
+/// which drops a normal +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +5,
+/// and the excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4.
 /// </summary>
 /// <remarks>
 /// The classic data shares the Season 6 updates, so this update does nothing on a regular Season 6 database.
@@ -29,7 +30,7 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Monsters of level 30 and above drop the Box of Heaven (0.1% chance), which always drops a normal (not excellent) +7 to +11 weapon or armor piece, and Caren the Barmaid sells the Box of Kundun +1 to +5. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Monsters of level 30 and above drop the Box of Heaven (0.1% chance), which always drops a normal (not excellent) +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +5, and the excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -45,6 +46,15 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
 
     /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 11, 20, 12, 00, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Version 2 moves the Archangel weapons from the Box of Kundun +4 to the +5.
+    /// </remarks>
+    public override int Version => 2;
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 20, 18, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     protected override async ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)

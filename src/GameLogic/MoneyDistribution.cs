@@ -149,6 +149,24 @@ internal static class MoneyDistribution
     }
 
     /// <summary>
+    /// Gets the amount of money which is shown to the observer for a money drop on the ground.
+    /// For a player, it's the amount with their <see cref="Stats.MoneyAmountRate"/> applied - what they
+    /// get when they pick it up alone. Otherwise, the ground shows less money than the inventory gains.
+    /// </summary>
+    /// <param name="observer">The observer which sees the money drop.</param>
+    /// <param name="amount">The amount, before the money rate of the player is applied.</param>
+    /// <returns>The amount to show.</returns>
+    public static uint GetShownAmount(IWorldObserver observer, uint amount)
+    {
+        if (observer is not Player player || amount == 0)
+        {
+            return amount;
+        }
+
+        return (uint)Math.Clamp(GetScaledAmount(player, amount), 0, uint.MaxValue);
+    }
+
+    /// <summary>
     /// Determines whether the inventory money of the player is too full to take the given amount
     /// (after the money rate of the player is applied), so that a pick up fails because of the
     /// <see cref="DataModel.Configuration.GameConfiguration.MaximumInventoryMoney"/> and not because of

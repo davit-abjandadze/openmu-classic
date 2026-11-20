@@ -19,6 +19,8 @@ using MUnique.OpenMU.Persistence.Initialization.Properties;
 ///   <item>Monsters of at least level <see cref="BoxOfHeavenMinimumMonsterLevel"/> drop the Box of Heaven with a chance of
 ///     <see cref="BoxOfHeavenDropChance"/>, on all maps which have the common jewel drop.</item>
 ///   <item>Caren the Barmaid sells the Box of Kundun +1 to +5 (Box of Luck +8 to +12).</item>
+///   <item>The excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4. They are the strongest weapons
+///     of the classic server, but the other weapons of the +5 are either weaker or not part of it.</item>
 /// </list>
 /// </summary>
 /// <remarks>
@@ -50,6 +52,22 @@ public static class ClassicBoxes
     /// The level of the Box of Luck which is the Box of Kundun +5.
     /// </summary>
     public const byte LastBoxOfKundunLevel = 12;
+
+    /// <summary>
+    /// The level of the Box of Luck which is the Box of Kundun +4, from which the Archangel weapons are moved away.
+    /// </summary>
+    public const byte BoxOfKundunPlus4Level = 11;
+
+    /// <summary>
+    /// The Archangel weapons (group, number) which drop from the Box of Kundun +5 instead of the +4.
+    /// </summary>
+    public static readonly IReadOnlyList<(byte Group, short Number)> ArchangelWeapons =
+    [
+        (0, 19), // Divine Sword of Archangel
+        (2, 13), // Divine Scepter of Archangel
+        (4, 18), // Divine Crossbow of Archangel
+        (5, 10), // Divine Staff of Archangel
+    ];
 
     /// <summary>
     /// The chance that a monster drops the Box of Heaven. It's the same as the chance of the common jewel drop.
@@ -97,7 +115,18 @@ public static class ClassicBoxes
         {
             AddBoxesOfKundun(context, store, boxOfLuck);
         }
+
+        MoveArchangelWeaponsToBoxOfKundunPlus5(gameConfiguration, boxOfLuck);
     }
+
+    /// <summary>
+    /// Gets the excellent item group of a Box of Kundun.
+    /// </summary>
+    /// <param name="boxOfLuck">The Box of Luck.</param>
+    /// <param name="level">The level of the Box of Luck, which is the Box of Kundun.</param>
+    /// <returns>The excellent item group, if it exists.</returns>
+    internal static ItemDropItemGroup? GetBoxOfKundunItemGroup(ItemDefinition boxOfLuck, byte level)
+        => boxOfLuck.DropItems.FirstOrDefault(g => g.SourceItemLevel == level && g.ItemType == SpecialItemType.Excellent);
 
     /// <summary>
     /// Gets the Box of Luck, whose levels are the Box of Heaven and the Boxes of Kundun.
@@ -193,6 +222,25 @@ public static class ClassicBoxes
         foreach (var item in items.Where(i => !itemGroup.PossibleItems.Contains(i)).OrderBy(i => i.Group).ThenBy(i => i.Number))
         {
             itemGroup.PossibleItems.Add(item);
+        }
+    }
+
+    private static void MoveArchangelWeaponsToBoxOfKundunPlus5(GameConfiguration gameConfiguration, ItemDefinition boxOfLuck)
+    {
+        if (GetBoxOfKundunItemGroup(boxOfLuck, LastBoxOfKundunLevel) is not { } plus5)
+        {
+            return;
+        }
+
+        var plus4 = GetBoxOfKundunItemGroup(boxOfLuck, BoxOfKundunPlus4Level);
+        var weapons = gameConfiguration.Items.Where(i => ArchangelWeapons.Contains((i.Group, i.Number)));
+        foreach (var weapon in weapons)
+        {
+            plus4?.PossibleItems.Remove(weapon);
+            if (!plus5.PossibleItems.Contains(weapon))
+            {
+                plus5.PossibleItems.Add(weapon);
+            }
         }
     }
 

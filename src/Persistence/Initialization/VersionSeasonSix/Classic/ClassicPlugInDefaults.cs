@@ -9,7 +9,10 @@ using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.CashShop;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
 using MUnique.OpenMU.GameLogic.ItemExchange;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
+using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.PlugIns.UnlockCharacterClass;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.PlugIns;
@@ -93,6 +96,74 @@ public static class ClassicPlugInDefaults
             itemLevelLimit.IsActive = true;
             itemLevelLimit.SetConfiguration(new ItemLevelLimitConfiguration(), referenceHandler);
         }
+
+        if (Find<MedalMerchantPlugIn>(gameConfiguration) is { } medalMerchant)
+        {
+            medalMerchant.IsActive = true;
+            medalMerchant.SetConfiguration(MedalMerchantConfiguration.CreateDefault(), referenceHandler);
+        }
+
+        if (Find<UnlockedCharacterClassesPlugIn>(gameConfiguration) is { } unlockedClasses)
+        {
+            unlockedClasses.IsActive = true;
+            unlockedClasses.SetConfiguration(new UnlockedCharacterClassesConfiguration(), referenceHandler);
+        }
+    }
+
+    /// <summary>
+    /// Activates the <see cref="UnlockedCharacterClassesPlugIn"/>, so every account can create a Magic Gladiator,
+    /// and creates its plugin configuration if it doesn't exist yet.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="context">The context which creates the plugin configuration.</param>
+    /// <param name="referenceHandler">The reference handler.</param>
+    public static void ActivateUnlockedCharacterClasses(GameConfiguration gameConfiguration, IContext context, ReferenceHandler referenceHandler)
+    {
+        if (Find<UnlockedCharacterClassesPlugIn>(gameConfiguration) is not { } plugInConfiguration)
+        {
+            var typeId = typeof(UnlockedCharacterClassesPlugIn).GUID;
+            plugInConfiguration = context.CreateNew<PlugInConfiguration>();
+            plugInConfiguration.SetGuid(typeId);
+            plugInConfiguration.TypeId = typeId;
+            gameConfiguration.PlugInConfigurations.Add(plugInConfiguration);
+        }
+
+        plugInConfiguration.IsActive = true;
+        plugInConfiguration.SetConfiguration(new UnlockedCharacterClassesConfiguration(), referenceHandler);
+    }
+
+    /// <summary>
+    /// Activates the <see cref="MedalMerchantPlugIn"/> with its default prices,
+    /// and creates its plugin configuration if it doesn't exist yet.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="context">The context which creates the plugin configuration.</param>
+    /// <param name="referenceHandler">The reference handler.</param>
+    public static void ActivateMedalMerchant(GameConfiguration gameConfiguration, IContext context, ReferenceHandler referenceHandler)
+    {
+        if (Find<MedalMerchantPlugIn>(gameConfiguration) is not { } plugInConfiguration)
+        {
+            var typeId = typeof(MedalMerchantPlugIn).GUID;
+            plugInConfiguration = context.CreateNew<PlugInConfiguration>();
+            plugInConfiguration.SetGuid(typeId);
+            plugInConfiguration.TypeId = typeId;
+            gameConfiguration.PlugInConfigurations.Add(plugInConfiguration);
+        }
+
+        plugInConfiguration.IsActive = true;
+        plugInConfiguration.SetConfiguration(MedalMerchantConfiguration.CreateDefault(), referenceHandler);
+    }
+
+    /// <summary>
+    /// Resets the boss lists of the <see cref="BossMapMarkersPlugIn"/> and the <see cref="BossStatusChatCommandPlugIn"/>
+    /// to their defaults, which are only the field bosses: Balrog, Hydra, Zaikan, Death Beam Knight, Dark Phoenix and Hell Maine.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="referenceHandler">The reference handler.</param>
+    public static void ResetBossLists(GameConfiguration gameConfiguration, ReferenceHandler referenceHandler)
+    {
+        Find<BossMapMarkersPlugIn>(gameConfiguration)?.SetConfiguration(new BossMapMarkersConfiguration(), referenceHandler);
+        Find<BossStatusChatCommandPlugIn>(gameConfiguration)?.SetConfiguration(new BossStatusChatCommandPlugIn.BossStatusConfiguration(), referenceHandler);
     }
 
     /// <summary>
@@ -173,6 +244,28 @@ public static class ClassicPlugInDefaults
         configuration.PointsTiers.Add(new ResetConfiguration.ResetPointTier { MinimumResetCount = 2, PointsGranted = 1500 });
         configuration.PointsTiers.Add(new ResetConfiguration.ResetPointTier { MinimumResetCount = 5, PointsGranted = 1000 });
         return configuration;
+    }
+
+    /// <summary>
+    /// Replaces the first default configuration of the <see cref="ResetExperienceRatePlugIn"/>, which held
+    /// absolute rates (540 at zero resets) and therefore multiplied the configured experience rate by up to 540,
+    /// with the current default of relative multipliers. A configuration which was changed by hand is kept.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="referenceHandler">The reference handler.</param>
+    /// <returns><c>True</c>, if the configuration was replaced.</returns>
+    public static bool ReplaceAbsoluteResetExperienceRates(GameConfiguration gameConfiguration, ReferenceHandler referenceHandler)
+    {
+        const float firstAbsoluteDefaultRate = 540;
+        if (Find<ResetExperienceRatePlugIn>(gameConfiguration) is not { } plugInConfiguration
+            || plugInConfiguration.GetConfiguration<ResetExperienceRateConfiguration>(referenceHandler) is not { } configuration
+            || configuration.GetMultiplier(0) != firstAbsoluteDefaultRate)
+        {
+            return false;
+        }
+
+        plugInConfiguration.SetConfiguration(ResetExperienceRateConfiguration.CreateDefault(), referenceHandler);
+        return true;
     }
 
     private static PlugInConfiguration? Find<TPlugIn>(GameConfiguration gameConfiguration)

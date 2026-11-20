@@ -17,6 +17,8 @@ public class WizardTeleportAction
     private const ushort TeleportSkillId = 6;
     private const ushort TeleportTargetSkillId = 15;
 
+    private static readonly TimeSpan TeleportCooldown = TimeSpan.FromSeconds(3);
+
     private static readonly short[] PreventingMagicEffects =
     {
         0x39, // Stone
@@ -35,6 +37,7 @@ public class WizardTeleportAction
     {
         if (!player.IsAtSafezone()
             && player.IsActive()
+            && player.TeleportCooldownUntil <= DateTime.UtcNow
             && player.SkillList?.GetSkill(TeleportSkillId) is { } skillEntry
             && skillEntry.Skill is { } skill
             && player.CurrentMap!.Terrain.WalkMap[target.X, target.Y]
@@ -44,6 +47,7 @@ public class WizardTeleportAction
             && !IsTeleportPreventedByPlugIns(player, target)
             && await player.TryConsumeForSkillAsync(skillEntry).ConfigureAwait(false))
         {
+            player.TeleportCooldownUntil = DateTime.UtcNow + TeleportCooldown;
             _ = Task.Run(() => player.TeleportAsync(target, skill));
         }
         else

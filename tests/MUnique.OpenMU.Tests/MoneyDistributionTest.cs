@@ -249,6 +249,22 @@ public class MoneyDistributionTest
     }
 
     /// <summary>
+    /// Tests that a money drop shows the amount which the player gains when picking it up,
+    /// i.e. with the money rate of the player applied.
+    /// </summary>
+    [Test]
+    public async Task ShownAmountIncludesTheMoneyRateAsync()
+    {
+        var (player, _) = await CreateTwoPlayersAsync().ConfigureAwait(false);
+        SetMoneyRate(player, 150);
+        player.Money = 0;
+
+        var shown = MoneyDistribution.GetShownAmount(player, 30);
+        Assert.That(MoneyDistribution.TryPay(player, 30), Is.True);
+        Assert.That(shown, Is.EqualTo(player.Money));
+    }
+
+    /// <summary>
     /// Tests that the pick up failure is attributed to the inventory money limit when the whole
     /// pile does not fit anymore (before, the client showed the generic "can't pick that up").
     /// </summary>

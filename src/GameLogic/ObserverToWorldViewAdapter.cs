@@ -70,7 +70,7 @@ public sealed class ObserverToWorldViewAdapter : AsyncDisposable, IBucketMapObse
             }
             else if (item is DroppedMoney droppedMoney)
             {
-                await this._adaptee.InvokeViewPlugInAsync<IShowMoneyDropPlugIn>(p => p.ShowMoneyAsync(droppedMoney.Id, true, droppedMoney.Amount, droppedMoney.Position)).ConfigureAwait(false);
+                await this._adaptee.InvokeViewPlugInAsync<IShowMoneyDropPlugIn>(p => p.ShowMoneyAsync(droppedMoney.Id, true, MoneyDistribution.GetShownAmount(this._adaptee, droppedMoney.Amount), droppedMoney.Position)).ConfigureAwait(false);
             }
             else
             {
@@ -211,7 +211,7 @@ public sealed class ObserverToWorldViewAdapter : AsyncDisposable, IBucketMapObse
         var droppedMoney = newObjects.OfType<DroppedMoney>();
         foreach (var money in droppedMoney)
         {
-            await this._adaptee.InvokeViewPlugInAsync<IShowMoneyDropPlugIn>(p => p.ShowMoneyAsync(money.Id, false, money.Amount, money.Position)).ConfigureAwait(false);
+            await this._adaptee.InvokeViewPlugInAsync<IShowMoneyDropPlugIn>(p => p.ShowMoneyAsync(money.Id, false, MoneyDistribution.GetShownAmount(this._adaptee, money.Amount), money.Position)).ConfigureAwait(false);
         }
 
         await newItems.ForEachAsync(item => item.AddObserverAsync(this._adaptee)).ConfigureAwait(false);

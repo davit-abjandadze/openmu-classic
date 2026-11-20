@@ -1,4 +1,4 @@
-// <copyright file="ClassicFeaturesTest.cs" company="MUnique">
+﻿// <copyright file="ClassicFeaturesTest.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -13,6 +13,8 @@ using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
 using MUnique.OpenMU.GameLogic.ItemExchange;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
+using MUnique.OpenMU.GameLogic.PlugIns.UnlockCharacterClass;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.GameLogic.TeamVsTeam;
 
@@ -158,12 +160,67 @@ public class ClassicFeaturesTest
         Assert.That(winner.Attributes[PvpStats.TotalPrestige], Is.EqualTo(20));
     }
 
+    /// <summary>
+    /// Tests that the medal items in the inventory, e.g. dropped by bosses, are added to the medals,
+    /// while other levels of the Box of Luck stay in the inventory.
+    /// </summary>
+    [Test]
+    public async ValueTask MedalItemsAreDepositedAsync()
+    {
+        var player = await CreatePlayerAsync(MedalStats.All).ConfigureAwait(false);
+        var definition = new Mock<ItemDefinition>();
+        definition.SetupAllProperties();
+        definition.Setup(d => d.PossibleItemOptions).Returns(new List<ItemOptionDefinition>());
+        definition.Object.Group = MedalItems.Group;
+        definition.Object.Number = MedalItems.Number;
+        definition.Object.Width = 1;
+        definition.Object.Height = 1;
+        byte slot = 12;
+        foreach (var level in new byte[] { MedalItems.SilverMedalLevel, MedalItems.SilverMedalLevel, MedalItems.SilverMedalLevel, MedalItems.GoldMedalLevel, 12 })
+        {
+            var item = CreateItem(definition.Object);
+            item.Level = level;
+            await player.Inventory!.AddItemAsync(slot++, item).ConfigureAwait(false);
+        }
+
+        var (gold, silver) = await MedalItems.DepositAsync(player).ConfigureAwait(false);
+
+        Assert.That((gold, silver), Is.EqualTo((1, 3)));
+        Assert.That(player.Attributes![MedalStats.GoldMedals], Is.EqualTo(1));
+        Assert.That(player.Attributes[MedalStats.SilverMedals], Is.EqualTo(3));
+        Assert.That(player.Inventory!.Items.Select(i => (int)i.Level), Is.EqualTo(new[] { 12 }));
+    }
+
     private static void Hunt(HuntingPointsPlugIn plugIn, Player player, HuntingPointsConfiguration configuration, DateTime from, int minutes)
     {
         for (var minute = 0; minute <= minutes; minute++)
         {
             plugIn.AddHuntingTime(player, player.Attributes!, configuration, from.AddMinutes(minute));
         }
+    }
+
+    /// <summary>
+    /// Tests that the configured classes are unlocked for the account before the character list is shown,
+    /// only once, and only if they are active and can get created.
+    /// </summary>
+    [Test]
+    public async Task UnlockedCharacterClassesAsync()
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var classes = player.GameContext.Configuration.CharacterClasses;
+        var magicGladiator = new CharacterClass { Number = 12, IsActive = true, CanGetCreated = true, CreationAllowedFlag = 4 };
+        var darkLord = new CharacterClass { Number = 16, IsActive = false, CanGetCreated = true, CreationAllowedFlag = 2 };
+        classes.Add(magicGladiator);
+        classes.Add(darkLord);
+        var plugIn = new UnlockedCharacterClassesPlugIn
+        {
+            Configuration = new UnlockedCharacterClassesConfiguration { ClassNumbers = { 16 } },
+        };
+
+        plugIn.CharacterListRequesting(player);
+        plugIn.CharacterListRequesting(player);
+
+        Assert.That(player.Account!.UnlockedCharacterClasses, Is.EquivalentTo(new[] { magicGladiator }));
     }
 
     private static async ValueTask<Player> CreatePlayerAsync(IEnumerable<MUnique.OpenMU.AttributeSystem.AttributeDefinition> attributes)

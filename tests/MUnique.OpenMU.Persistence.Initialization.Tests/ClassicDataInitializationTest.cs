@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
+using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
+using MUnique.OpenMU.GameLogic.PlugIns.UnlockCharacterClass;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Classic;
 using MUnique.OpenMU.Persistence.InMemory;
@@ -46,7 +50,7 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that only Dark Wizard, Dark Knight and Fairy Elf can be created, and only they and their second classes are active.
+    /// Tests that only Dark Wizard, Dark Knight, Fairy Elf and Magic Gladiator can be created, and only they and their second classes are active.
     /// </summary>
     [Test]
     public void OnlyClassicClassesAreActive()
@@ -54,19 +58,59 @@ internal class ClassicDataInitializationTest
         var active = this._gameConfiguration.CharacterClasses.Where(c => c.IsActive).Select(c => (int)c.Number).Order();
         var creatable = this._gameConfiguration.CharacterClasses.Where(c => c.CanGetCreated).Select(c => (int)c.Number).Order();
 
-        Assert.That(active, Is.EqualTo(new[] { 0, 2, 4, 6, 8, 10 }));
-        Assert.That(creatable, Is.EqualTo(new[] { 0, 4, 8 }));
+        Assert.That(active, Is.EqualTo(new[] { 0, 2, 4, 6, 8, 10, 12 }));
+        Assert.That(creatable, Is.EqualTo(new[] { 0, 4, 8, 12 }));
     }
 
     /// <summary>
-    /// Tests that no content newer than Season 1 is active.
+    /// Tests that every account can create a Magic Gladiator from the start, by the active <see cref="UnlockedCharacterClassesPlugIn"/>.
+    /// </summary>
+    [Test]
+    public void MagicGladiatorIsUnlockedForEveryAccount()
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(p => p.TypeId == typeof(UnlockedCharacterClassesPlugIn).GUID);
+
+        Assert.That(plugIn.IsActive, Is.True);
+        Assert.That(plugIn.GetConfiguration<UnlockedCharacterClassesConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())?.ClassNumbers, Is.EquivalentTo(new byte[] { 12 }));
+    }
+
+    /// <summary>
+    /// Tests that the update activates the Magic Gladiator, its items and the <see cref="UnlockedCharacterClassesPlugIn"/>
+    /// in an existing classic database where it's inactive, without activating non-classic items.
+    /// </summary>
+    [Test]
+    public async Task UpdateActivatesMagicGladiatorAsync()
+    {
+        var magicGladiator = this._gameConfiguration.CharacterClasses.Single(c => c.Number == 12);
+        var magicGladiatorItems = this._gameConfiguration.Items
+            .Where(i => i.IsActive && i.QualifiedCharacters.Count > 0 && i.QualifiedCharacters.All(c => c.Number == 12))
+            .ToList();
+        var activeItems = this._gameConfiguration.Items.Count(i => i.IsActive);
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(p => p.TypeId == typeof(UnlockedCharacterClassesPlugIn).GUID);
+        magicGladiator.IsActive = false;
+        magicGladiator.CanGetCreated = false;
+        magicGladiatorItems.ForEach(i => i.IsActive = false);
+        plugIn.IsActive = false;
+
+        await new ClassicMagicGladiatorUpdatePlugIn().ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(magicGladiator.IsActive, Is.True);
+        Assert.That(magicGladiator.CanGetCreated, Is.True);
+        Assert.That(magicGladiatorItems.Select(i => i.IsActive), Is.All.True);
+        Assert.That(this._gameConfiguration.Items.Count(i => i.IsActive), Is.EqualTo(activeItems));
+        Assert.That(plugIn.IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that no content newer than Season 1 is active, except the bosses which the classic server spawns additionally.
     /// </summary>
     [Test]
     public void NoNewerContentIsActive()
     {
         var target = ClassicContentRestriction.TargetVersion;
         Assert.That(this._gameConfiguration.Maps.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
-        Assert.That(this._gameConfiguration.Monsters.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
+        var addedBosses = ClassicBosses.Bosses.Where(b => b.Spawn is not null).Select(b => b.MonsterNumber).ToHashSet();
+        Assert.That(this._gameConfiguration.Monsters.Where(m => m.IsActive && m.IntroducedIn > target && !addedBosses.Contains(m.Number)), Is.Empty);
         Assert.That(this._gameConfiguration.Items.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
         Assert.That(this._gameConfiguration.MiniGameDefinitions.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
         Assert.That(this._gameConfiguration.Maps.Single(m => m.Number == 0).IsActive, Is.True, "Lorencia");
@@ -190,13 +234,17 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that no store sells the potion stacks of three pieces anymore, and that every store sells
-    /// stacks of 255 large healing and large mana potions, which don't overlap other items.
+    /// Tests that no store sells the potion stacks of three pieces anymore, and that every store except the medal merchant
+    /// sells stacks of 255 large healing and large mana potions, which don't overlap other items.
     /// </summary>
     [Test]
     public void AllStoresSellLargePotionStacks()
     {
-        var stores = this._gameConfiguration.Monsters.Select(m => m.MerchantStore).OfType<ItemStorage>().ToList();
+        var stores = this._gameConfiguration.Monsters
+            .Where(m => m.Number != MedalMerchantConfiguration.DefaultMerchantNumber)
+            .Select(m => m.MerchantStore)
+            .OfType<ItemStorage>()
+            .ToList();
 
         Assert.That(stores, Is.Not.Empty);
         foreach (var store in stores)
@@ -253,6 +301,41 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that the scrolls of Decay, Ice Storm and Nova are inactive, so they don't drop, and that Pasi the Mage doesn't sell them.
+    /// </summary>
+    [Test]
+    public void DecayIceStormAndNovaScrollsAreRemoved()
+    {
+        var scrolls = this._gameConfiguration.Items.Where(i => i.Group == 15 && i.Number is 16 or 17 or 18).ToList();
+        var pasi = this._gameConfiguration.Monsters.Single(m => m.Number == 254).MerchantStore!;
+
+        Assert.That(scrolls, Has.Count.EqualTo(3));
+        Assert.That(scrolls.Select(i => i.IsActive), Is.All.False);
+        Assert.That(pasi.Items.Where(i => scrolls.Contains(i.Definition!)), Is.Empty);
+    }
+
+    /// <summary>
+    /// Tests that the update deactivates the scrolls of Decay, Ice Storm and Nova of an existing classic database
+    /// and removes them from the store of Pasi the Mage.
+    /// </summary>
+    [Test]
+    public async Task UpdateRemovesDecayIceStormAndNovaScrollsAsync()
+    {
+        var scrolls = this._gameConfiguration.Items.Where(i => i.Group == 15 && i.Number is 16 or 17 or 18).ToList();
+        var pasi = this._gameConfiguration.Monsters.Single(m => m.Number == 254).MerchantStore!;
+        scrolls.ForEach(i => i.IsActive = true);
+        await ClassicMerchantStores.ApplyAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        Assume.That(pasi.Items.Where(i => scrolls.Contains(i.Definition!)), Is.Not.Empty);
+
+        var update = new ClassicRemovedSkillScrollsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(scrolls.Select(i => i.IsActive), Is.All.False);
+        Assert.That(pasi.Items.Where(i => scrolls.Contains(i.Definition!)), Is.Empty);
+    }
+
+    /// <summary>
     /// Tests that the update replaces the potion stacks of three pieces of an existing classic database,
     /// and that applying it again doesn't add the large potion stacks twice.
     /// </summary>
@@ -300,15 +383,15 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that the test accounts only have characters of the classic classes (Dark Wizard, Dark Knight and Fairy Elf,
+    /// Tests that the test accounts only have characters of the classic classes (Dark Wizard, Dark Knight, Fairy Elf and Magic Gladiator,
     /// with their second classes), and none of the classes which the classic server doesn't have, like the Dark Lord,
-    /// the Summoner, the Rage Fighter, the Magic Gladiator or the master classes. A master class character would
+    /// the Summoner, the Rage Fighter or the master classes. A master class character would
     /// open the master skill tree in the client.
     /// </summary>
     [Test]
     public async Task TestAccountsHaveOnlyClassicCharactersAsync()
     {
-        int[] classicClasses = [0, 2, 4, 6, 8, 10];
+        int[] classicClasses = [0, 2, 4, 6, 8, 10, 12];
         var characters = (await this._context.GetAsync<Account>().ConfigureAwait(false)).SelectMany(a => a.Characters).ToList();
 
         Assert.That(characters, Is.Not.Empty);
@@ -327,7 +410,7 @@ internal class ClassicDataInitializationTest
         Assert.That(reset.IsActive, Is.True);
         Assert.That(experience.IsActive, Is.True);
         Assert.That(reset.CustomConfiguration?.Replace(" ", string.Empty), Does.Contain("\"RequiredLevelIncreasePerReset\":10").And.Contain("\"ResetLimit\":55"));
-        Assert.That(experience.CustomConfiguration, Does.Contain("540"));
+        Assert.That(experience.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetExperienceRateConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())?.GetMultiplier(0), Is.EqualTo(1));
     }
 
     /// <summary>
@@ -396,6 +479,33 @@ internal class ClassicDataInitializationTest
 
         var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId);
         Assert.That(plugIn.IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that the update replaces the former absolute experience rates by resets (540 at zero resets)
+    /// by the relative ones, and that it keeps a configuration which was changed by hand.
+    /// </summary>
+    [Test]
+    public async Task UpdateReplacesAbsoluteResetExperienceRatesAsync()
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.Resets.ResetExperienceRatePlugIn).GUID);
+        var absolute = new MUnique.OpenMU.GameLogic.Resets.ResetExperienceRateConfiguration();
+        absolute.Tiers.Add(new() { MinimumResetCount = 0, Multiplier = 540 });
+        absolute.Tiers.Add(new() { MinimumResetCount = 5, Multiplier = 432 });
+        plugIn.SetConfiguration(absolute, new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+
+        var update = new ClassicRelativeResetExperienceRatesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        var configuration = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetExperienceRateConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!;
+        Assert.That(configuration.GetMultiplier(0), Is.EqualTo(1));
+        Assert.That(configuration.GetMultiplier(5), Is.EqualTo(0.8f));
+
+        var custom = new MUnique.OpenMU.GameLogic.Resets.ResetExperienceRateConfiguration();
+        custom.Tiers.Add(new() { MinimumResetCount = 0, Multiplier = 3 });
+        plugIn.SetConfiguration(custom, new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        Assert.That(plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetExperienceRateConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!.GetMultiplier(0), Is.EqualTo(3));
     }
 
     /// <summary>
@@ -583,5 +693,326 @@ internal class ClassicDataInitializationTest
         var newDropGroup = this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == ClassicBoxes.GetBoxOfHeavenMonsterDropId());
         var lorencia = this._gameConfiguration.Maps.First(m => m.Number == 0);
         Assert.That(lorencia.DropItemGroups.Count(g => g == newDropGroup), Is.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Tests that the excellent Archangel weapons drop from the Box of Kundun +5 and not from the +4.
+    /// </summary>
+    [Test]
+    public void ArchangelWeaponsDropFromBoxOfKundunPlus5()
+    {
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        var plus4 = ClassicBoxes.GetBoxOfKundunItemGroup(box, ClassicBoxes.BoxOfKundunPlus4Level)!;
+        var plus5 = ClassicBoxes.GetBoxOfKundunItemGroup(box, ClassicBoxes.LastBoxOfKundunLevel)!;
+        var weapons = this._gameConfiguration.Items.Where(i => ClassicBoxes.ArchangelWeapons.Contains((i.Group, i.Number))).ToList();
+
+        Assert.That(weapons, Has.Count.EqualTo(ClassicBoxes.ArchangelWeapons.Count));
+        Assert.That(plus5.PossibleItems, Is.SupersetOf(weapons));
+        Assert.That(plus4.PossibleItems.Intersect(weapons), Is.Empty);
+        Assert.That(plus4.PossibleItems.Select(i => (i.Group, i.Number)), Does.Contain(((byte)0, (short)16)), "Sword of Destruction stays in the +4");
+    }
+
+    /// <summary>
+    /// Tests that the update moves the Archangel weapons of an existing classic database from the Box of Kundun +4
+    /// to the +5, and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateMovesArchangelWeaponsToBoxOfKundunPlus5Async()
+    {
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        var plus4 = ClassicBoxes.GetBoxOfKundunItemGroup(box, ClassicBoxes.BoxOfKundunPlus4Level)!;
+        var plus5 = ClassicBoxes.GetBoxOfKundunItemGroup(box, ClassicBoxes.LastBoxOfKundunLevel)!;
+        var weapons = this._gameConfiguration.Items.Where(i => ClassicBoxes.ArchangelWeapons.Contains((i.Group, i.Number))).ToList();
+        foreach (var weapon in weapons)
+        {
+            plus5.PossibleItems.Remove(weapon);
+            plus4.PossibleItems.Add(weapon);
+        }
+
+        var plus4Count = plus4.PossibleItems.Count;
+        var plus5Count = plus5.PossibleItems.Count;
+
+        var update = new ClassicBoxesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(plus4.PossibleItems.Intersect(weapons), Is.Empty);
+        Assert.That(plus5.PossibleItems, Is.SupersetOf(weapons));
+        Assert.That(plus4.PossibleItems, Has.Count.EqualTo(plus4Count - weapons.Count));
+        Assert.That(plus5.PossibleItems, Has.Count.EqualTo(plus5Count + weapons.Count));
+    }
+
+    /// <summary>
+    /// Tests that the bosses respawn after their delays and drop a Box of Kundun and silver medals on their map only.
+    /// </summary>
+    [Test]
+    public void BossesDropBoxesOfKundunAndSilverMedals()
+    {
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        var expected = new (short Monster, short Map, int BoxLevel, int Medals, int Minutes)[]
+        {
+            (49, 7, 10, 1, 70), // Hydra, Atlans, Box of Kundun +3
+            (38, 4, 10, 1, 70), // Balrog, Lost Tower, Box of Kundun +3
+            (59, 8, 11, 1, 120), // Zaikan, Tarkan, Box of Kundun +4
+            (63, 8, 11, 1, 120), // Death Beam Knight, Tarkan, Box of Kundun +4
+            (77, 10, 12, 3, 240), // Dark Phoenix, Icarus, Box of Kundun +5
+            (309, 6, 12, 3, 240), // Hell Maine, Arena, Box of Kundun +5
+        };
+
+        foreach (var (monsterNumber, mapNumber, boxLevel, medals, minutes) in expected)
+        {
+            var monster = this._gameConfiguration.Monsters.Single(m => m.Number == monsterNumber);
+            var map = this._gameConfiguration.Maps.Single(m => m.Number == mapNumber);
+            var groups = map.DropItemGroups.Where(g => g.Monster == monster).ToList();
+
+            Assert.That(monster.RespawnDelay, Is.EqualTo(TimeSpan.FromMinutes(minutes)), monster.Designation.ToString());
+            Assert.That(groups.All(g => g.Chance >= 1.0 && g.PossibleItems.SequenceEqual(new[] { box })), Is.True);
+            Assert.That(groups.Select(g => (int)g.ItemLevel!.Value), Is.EquivalentTo(new[] { boxLevel }.Concat(Enumerable.Repeat(5, medals))));
+            Assert.That(monster.NumberOfMaximumItemDrops, Is.GreaterThanOrEqualTo(groups.Count + ClassicBosses.NormalDrops));
+            Assert.That(this._gameConfiguration.Maps.Where(m => m != map).SelectMany(m => m.DropItemGroups).Where(g => g.Monster == monster), Is.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Tests that Hell Maine is active and spawns once on a walkable tile outside of the safezone of the Arena.
+    /// </summary>
+    [Test]
+    public void HellMaineSpawnsInArena()
+    {
+        var hellMaine = this._gameConfiguration.Monsters.Single(m => m.Number == 309);
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6);
+        var spawn = arena.MonsterSpawns.Single(s => s.MonsterDefinition == hellMaine);
+        var terrain = new GameMapTerrain(arena);
+
+        Assert.That(hellMaine.IsActive, Is.True);
+        Assert.That(spawn.Quantity, Is.EqualTo(1));
+        Assert.That(spawn.SpawnTrigger, Is.EqualTo(SpawnTrigger.Automatic));
+        Assert.That(terrain.WalkMap[spawn.X1, spawn.Y1], Is.True);
+        Assert.That(terrain.SafezoneMap[spawn.X1, spawn.Y1], Is.False);
+    }
+
+    /// <summary>
+    /// Tests that the update adds Hell Maine and its spawn in the Arena to an existing database, also when it's applied twice.
+    /// </summary>
+    [Test]
+    public async Task HellMaineUpdateIsRepeatableAsync()
+    {
+        var hellMaine = this._gameConfiguration.Monsters.Single(m => m.Number == 309);
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6);
+        foreach (var spawn in arena.MonsterSpawns.Where(s => s.MonsterDefinition == hellMaine).ToList())
+        {
+            arena.MonsterSpawns.Remove(spawn);
+        }
+
+        hellMaine.IsActive = false;
+
+        var update = new ClassicBossesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(hellMaine.IsActive, Is.True);
+        Assert.That(arena.MonsterSpawns.Count(s => s.MonsterDefinition == hellMaine), Is.EqualTo(1));
+        Assert.That(arena.DropItemGroups.Count(g => g.Monster == hellMaine), Is.EqualTo(4));
+    }
+
+    /// <summary>
+    /// Tests that the update adds the boss drops to an existing database, also when it's applied twice.
+    /// </summary>
+    [Test]
+    public async Task BossesUpdateIsRepeatableAsync()
+    {
+        var phoenix = this._gameConfiguration.Monsters.Single(m => m.Number == 77);
+        var icarus = this._gameConfiguration.Maps.Single(m => m.Number == 10);
+        foreach (var group in icarus.DropItemGroups.Where(g => g.Monster == phoenix).ToList())
+        {
+            icarus.DropItemGroups.Remove(group);
+            this._gameConfiguration.DropItemGroups.Remove(group);
+        }
+
+        phoenix.RespawnDelay = TimeSpan.FromSeconds(10);
+
+        var update = new ClassicBossesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(phoenix.RespawnDelay, Is.EqualTo(TimeSpan.FromMinutes(240)));
+        Assert.That(icarus.DropItemGroups.Count(g => g.Monster == phoenix), Is.EqualTo(4));
+        var boss = ClassicBosses.Bosses.Single(b => b.MonsterNumber == 77);
+        var ids = Enumerable.Range(0, 4).Select(i => ClassicBosses.GetDropGroupId(boss, (byte)i)).ToList();
+        Assert.That(this._gameConfiguration.DropItemGroups.Count(g => ids.Contains(g.GetId())), Is.EqualTo(4));
+    }
+
+    /// <summary>
+    /// Tests that the bosses are much stronger than normal monsters, and that the strength update sets
+    /// the values again, also when it's applied twice, without duplicating the attributes.
+    /// </summary>
+    [Test]
+    public async Task BossesAreStrongAsync()
+    {
+        foreach (var boss in ClassicBosses.Bosses)
+        {
+            var monster = this._gameConfiguration.Monsters.Single(m => m.Number == boss.MonsterNumber);
+            Assert.That(GetValue(monster, Stats.MaximumHealth), Is.EqualTo(boss.Strength.Health), boss.Name);
+            Assert.That(GetValue(monster, Stats.DefenseBase), Is.EqualTo(boss.Strength.Defense), boss.Name);
+            Assert.That(boss.Strength.Health, Is.GreaterThanOrEqualTo(500_000), boss.Name);
+        }
+
+        var phoenix = this._gameConfiguration.Monsters.Single(m => m.Number == 77);
+        phoenix.Attributes.Single(a => a.AttributeDefinition == Stats.MaximumHealth.GetPersistent(this._gameConfiguration)).Value = 95_000;
+        var attributeCount = phoenix.Attributes.Count;
+
+        var update = new ClassicBossStrengthUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(GetValue(phoenix, Stats.MaximumHealth), Is.EqualTo(5_000_000));
+        Assert.That(GetValue(phoenix, Stats.MinimumPhysBaseDmg), Is.LessThan(GetValue(phoenix, Stats.MaximumPhysBaseDmg)));
+        Assert.That(phoenix.Attributes.Count, Is.EqualTo(attributeCount));
+
+        float GetValue(MonsterDefinition monster, AttributeSystem.AttributeDefinition attribute)
+            => monster.Attributes.Single(a => a.AttributeDefinition == attribute.GetPersistent(this._gameConfiguration)).Value;
+    }
+
+    /// <summary>
+    /// Tests that Thompson the Merchant stands on a walkable safezone tile next to the fountain of Lorencia,
+    /// sells only the Box of Kundun +4 and +5, and that the medal merchant plugin is active with their prices.
+    /// </summary>
+    [Test]
+    public void MedalMerchantSellsBoxesOfKundun()
+    {
+        var merchant = this._gameConfiguration.Monsters.Single(m => m.Number == MedalMerchantConfiguration.DefaultMerchantNumber);
+        var lorencia = this._gameConfiguration.Maps.Single(m => m.Number == 0);
+        var spawn = lorencia.MonsterSpawns.Single(s => s.MonsterDefinition == merchant);
+        var terrain = new GameMapTerrain(lorencia);
+
+        Assert.That(merchant.IsActive, Is.True);
+        Assert.That(merchant.NpcWindow, Is.EqualTo(NpcWindow.Merchant));
+        Assert.That((spawn.X1, spawn.Y1), Is.EqualTo((ClassicMedalMerchant.X, ClassicMedalMerchant.Y)));
+        Assert.That(terrain.WalkMap[spawn.X1, spawn.Y1] && terrain.SafezoneMap[spawn.X1, spawn.Y1], Is.True);
+        Assert.That(lorencia.MonsterSpawns.Where(s => s != spawn).Any(s => s.X1 == spawn.X1 && s.Y1 == spawn.Y1), Is.False);
+        Assert.That(this._gameConfiguration.Maps.SelectMany(m => m.MonsterSpawns).Count(s => s.MonsterDefinition == merchant), Is.EqualTo(1));
+
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        Assert.That(merchant.MerchantStore!.Items.All(i => i.Definition == box), Is.True);
+        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 11, 12 }));
+
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MedalMerchantPlugIn).GUID);
+        var configuration = plugIn.GetConfiguration<MedalMerchantConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+        Assert.That(plugIn.IsActive, Is.True);
+        Assert.That(configuration!.MerchantNumber, Is.EqualTo(merchant.Number));
+        Assert.That(merchant.MerchantStore.Items.Select(i => configuration.GetPrice(i)?.SilverMedals).Order(), Is.EqualTo(new int?[] { 10, 15 }));
+    }
+
+    /// <summary>
+    /// Tests that the medal merchant update replaces the potions of the store by the boxes and adds the spawn
+    /// to an existing database, also when it's applied twice.
+    /// </summary>
+    [Test]
+    public async Task MedalMerchantUpdateIsRepeatableAsync()
+    {
+        var merchant = this._gameConfiguration.Monsters.Single(m => m.Number == MedalMerchantConfiguration.DefaultMerchantNumber);
+        var lorencia = this._gameConfiguration.Maps.Single(m => m.Number == 0);
+        lorencia.MonsterSpawns.Remove(lorencia.MonsterSpawns.Single(s => s.MonsterDefinition == merchant));
+        var potion = this._context.CreateNew<Item>();
+        potion.Definition = this._gameConfiguration.Items.First(i => i.Group == 14 && i.Number == 3);
+        potion.ItemSlot = 100;
+        merchant.MerchantStore!.Items.Add(potion);
+        merchant.IsActive = false;
+
+        var update = new ClassicMedalMerchantUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(merchant.IsActive, Is.True);
+        Assert.That(lorencia.MonsterSpawns.Count(s => s.MonsterDefinition == merchant), Is.EqualTo(1));
+        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 11, 12 }));
+        Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MedalMerchantPlugIn).GUID).IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that every map from Lorencia to Icarus has 35 farm spots with 8 monsters on a tiny square
+    /// of walkable tiles outside of the safezone, apart from each other.
+    /// </summary>
+    [Test]
+    public void FarmSpotsAreOnWalkableSquares()
+    {
+        foreach (var mapNumber in ClassicFarmSpots.MapNumbers)
+        {
+            var map = this._gameConfiguration.Maps.Single(m => m.Number == mapNumber && m.Discriminator == 0);
+            var terrain = new GameMapTerrain(map);
+            var spots = map.MonsterSpawns.Where(s => ClassicFarmSpots.IsFarmSpot(s) && !ClassicFarmSpots.IsFixedSpot(s)).ToList();
+
+            Assert.That(spots, Has.Count.EqualTo(ClassicFarmSpots.SpotsPerMap), map.Name.ValueInNeutralLanguage);
+            Assert.That(spots.Select(s => s.MonsterDefinition).Distinct().Count(), Is.GreaterThan(1), map.Name.ValueInNeutralLanguage);
+            foreach (var (a, b) in spots.SelectMany((a, i) => spots.Skip(i + 1).Select(b => (a, b))))
+            {
+                var dx = (a.X1 + a.X2 - b.X1 - b.X2) / 2.0;
+                var dy = (a.Y1 + a.Y2 - b.Y1 - b.Y2) / 2.0;
+                Assert.That(Math.Sqrt((dx * dx) + (dy * dy)), Is.GreaterThanOrEqualTo(ClassicFarmSpots.MinimumDistanceBetweenSpots));
+            }
+
+            foreach (var spot in spots)
+            {
+                TestContext.Out.WriteLine($"{map.Name.ValueInNeutralLanguage}: {spot.MonsterDefinition!.Designation.ValueInNeutralLanguage} ({spot.MonsterDefinition.Number}) x {spot.Quantity} at {(spot.X1 + spot.X2) / 2}/{(spot.Y1 + spot.Y2) / 2}");
+                Assert.That(spot.MonsterDefinition.IsActive, Is.True);
+                Assert.That(spot.Quantity, Is.EqualTo(ClassicFarmSpots.MonstersPerSpot));
+                Assert.That(spot.X2 - spot.X1, Is.EqualTo(2 * ClassicFarmSpots.Radius));
+                var free = 0;
+                for (var x = spot.X1; x <= spot.X2; x++)
+                {
+                    for (var y = spot.Y1; y <= spot.Y2; y++)
+                    {
+                        free += terrain.WalkMap[x, y] && !terrain.SafezoneMap[x, y] ? 1 : 0;
+                    }
+                }
+
+                Assert.That(free, Is.GreaterThanOrEqualTo(ClassicFarmSpots.MinimumFreeTiles));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tests that the hand-picked farm spots exist with their monster on walkable tiles.
+    /// </summary>
+    [Test]
+    public void FixedFarmSpotsAreOnWalkableTiles()
+    {
+        foreach (var fixedSpot in ClassicFarmSpots.FixedSpots)
+        {
+            var map = this._gameConfiguration.Maps.Single(m => m.Number == fixedSpot.MapNumber && m.Discriminator == 0);
+            var terrain = new GameMapTerrain(map);
+            var spot = map.MonsterSpawns.Single(s => ClassicFarmSpots.IsFixedSpot(s) && s.X1 + ClassicFarmSpots.Radius == fixedSpot.X && s.Y1 + ClassicFarmSpots.Radius == fixedSpot.Y);
+            Assert.That(spot.MonsterDefinition!.Number, Is.EqualTo(fixedSpot.MonsterNumber));
+            Assert.That(spot.Quantity, Is.EqualTo(ClassicFarmSpots.MonstersPerSpot));
+            var free = 0;
+            for (var x = spot.X1; x <= spot.X2; x++)
+            {
+                for (var y = spot.Y1; y <= spot.Y2; y++)
+                {
+                    free += terrain.WalkMap[x, y] && !terrain.SafezoneMap[x, y] ? 1 : 0;
+                }
+            }
+
+            TestContext.Out.WriteLine($"{map.Name.ValueInNeutralLanguage}: {spot.MonsterDefinition.Designation.ValueInNeutralLanguage} at {fixedSpot.X}/{fixedSpot.Y}: {free} free tiles");
+            Assert.That(free, Is.GreaterThan(0), $"{fixedSpot}");
+        }
+    }
+
+    /// <summary>
+    /// Tests that the farm spot update adds the spots once, also when it's applied twice.
+    /// </summary>
+    [Test]
+    public async Task FarmSpotsUpdateIsRepeatableAsync()
+    {
+        var lorencia = this._gameConfiguration.Maps.Single(m => m.Number == 0);
+        lorencia.MonsterSpawns.Remove(lorencia.MonsterSpawns.First(ClassicFarmSpots.IsFarmSpot));
+        var count = this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count);
+
+        var update = new ClassicFarmSpotsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(lorencia.MonsterSpawns.Count(ClassicFarmSpots.IsFarmSpot), Is.EqualTo(ClassicFarmSpots.SpotsPerMap));
+        Assert.That(this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count), Is.EqualTo(count + 1));
     }
 }

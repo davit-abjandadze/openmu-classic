@@ -47555,6 +47555,305 @@ public readonly struct ActiveQuestListReady
     /// <returns>The packet as byte span.</returns>
     public static implicit operator Memory<byte>(ActiveQuestListReady packet) => packet._data; 
 }
+
+
+/// <summary>
+/// Is sent by the server when: A player entered a map, or a boss of the player's current map got killed or respawned.
+/// Causes reaction on client side: The bosses of the map are shown on the full-screen map (Tab) of the open source client, with the remaining time until a killed boss respawns. Replaces all previously sent bosses of the same map. The original client ignores this packet.
+/// </summary>
+public readonly struct BossMapMarkersExtended
+{
+    private readonly Memory<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BossMapMarkersExtended"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public BossMapMarkersExtended(Memory<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BossMapMarkersExtended"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private BossMapMarkersExtended(Memory<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (ushort)data.Length;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC2;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xFB;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C2Header Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the map number.
+    /// </summary>
+    public byte MapNumber
+    {
+        get => this._data.Span[4];
+        set => this._data.Span[4] = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the count.
+    /// </summary>
+    public byte Count
+    {
+        get => this._data.Span[5];
+        set => this._data.Span[5] = value;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="BossMarker"/> of the specified index.
+    /// </summary>
+        public BossMarker this[int index] => new (this._data.Slice(6 + index * BossMarker.Length));
+
+    /// <summary>
+    /// Performs an implicit conversion from a Memory of bytes to a <see cref="BossMapMarkersExtended"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator BossMapMarkersExtended(Memory<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="BossMapMarkersExtended"/> to a Memory of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Memory<byte>(BossMapMarkersExtended packet) => packet._data; 
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified count of <see cref="BossMarker"/>.
+    /// </summary>
+    /// <param name="bossesCount">The count of <see cref="BossMarker"/> from which the size will be calculated.</param>
+        
+    public static int GetRequiredSize(int bossesCount) => bossesCount * BossMarker.Length + 6;
+
+
+/// <summary>
+/// A boss of the map..
+/// </summary>
+public readonly struct BossMarker
+{
+    private readonly Memory<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BossMarker"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public BossMarker(Memory<byte> data)
+    {
+        this._data = data;
+    }
+
+    /// <summary>
+    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
+    /// </summary>
+    public static int Length => 28;
+
+    /// <summary>
+    /// Gets or sets the position x.
+    /// </summary>
+    public byte PositionX
+    {
+        get => this._data.Span[0];
+        set => this._data.Span[0] = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the position y.
+    /// </summary>
+    public byte PositionY
+    {
+        get => this._data.Span[1];
+        set => this._data.Span[1] = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the is alive.
+    /// </summary>
+    public bool IsAlive
+    {
+        get => this._data.Span[2..].GetBoolean();
+        set => this._data.Span[2..].SetBoolean(value);
+    }
+
+    /// <summary>
+    /// Gets or sets the seconds until the boss respawns, when it's not alive. The position is the place of its death then.
+    /// </summary>
+    public uint RespawnSeconds
+    {
+        get => ReadUInt32LittleEndian(this._data.Span[4..]);
+        set => WriteUInt32LittleEndian(this._data.Span[4..], value);
+    }
+
+    /// <summary>
+    /// Gets or sets the name.
+    /// </summary>
+    public string Name
+    {
+        get => this._data.Span.ExtractString(8, 20, System.Text.Encoding.UTF8);
+        set => this._data.Slice(8, 20).Span.WriteString(value, System.Text.Encoding.UTF8);
+    }
+}
+}
+
+
+/// <summary>
+/// Is sent by the server when: A player entered a map.
+/// Causes reaction on client side: The farm spots of the map, small places where a few monsters of the same kind stand together, are shown as dots on the full-screen map (Tab) of the open source client. Replaces all previously sent farm spots of the same map. The original client ignores this packet.
+/// </summary>
+public readonly struct FarmSpotMapMarkersExtended
+{
+    private readonly Memory<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FarmSpotMapMarkersExtended"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public FarmSpotMapMarkersExtended(Memory<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FarmSpotMapMarkersExtended"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private FarmSpotMapMarkersExtended(Memory<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (ushort)data.Length;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC2;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xFC;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C2Header Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the map number.
+    /// </summary>
+    public byte MapNumber
+    {
+        get => this._data.Span[4];
+        set => this._data.Span[4] = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the count.
+    /// </summary>
+    public byte Count
+    {
+        get => this._data.Span[5];
+        set => this._data.Span[5] = value;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="FarmSpotMarker"/> of the specified index.
+    /// </summary>
+        public FarmSpotMarker this[int index] => new (this._data.Slice(6 + index * FarmSpotMarker.Length));
+
+    /// <summary>
+    /// Performs an implicit conversion from a Memory of bytes to a <see cref="FarmSpotMapMarkersExtended"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator FarmSpotMapMarkersExtended(Memory<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="FarmSpotMapMarkersExtended"/> to a Memory of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Memory<byte>(FarmSpotMapMarkersExtended packet) => packet._data; 
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified count of <see cref="FarmSpotMarker"/>.
+    /// </summary>
+    /// <param name="spotsCount">The count of <see cref="FarmSpotMarker"/> from which the size will be calculated.</param>
+        
+    public static int GetRequiredSize(int spotsCount) => spotsCount * FarmSpotMarker.Length + 6;
+
+
+/// <summary>
+/// A farm spot of the map..
+/// </summary>
+public readonly struct FarmSpotMarker
+{
+    private readonly Memory<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FarmSpotMarker"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public FarmSpotMarker(Memory<byte> data)
+    {
+        this._data = data;
+    }
+
+    /// <summary>
+    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
+    /// </summary>
+    public static int Length => 2;
+
+    /// <summary>
+    /// Gets or sets the x coordinate of the centre of the spot.
+    /// </summary>
+    public byte PositionX
+    {
+        get => this._data.Span[0];
+        set => this._data.Span[0] = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the y coordinate of the centre of the spot.
+    /// </summary>
+    public byte PositionY
+    {
+        get => this._data.Span[1];
+        set => this._data.Span[1] = value;
+    }
+}
+}
     /// <summary>
     /// Describes the gens type.
     /// </summary>

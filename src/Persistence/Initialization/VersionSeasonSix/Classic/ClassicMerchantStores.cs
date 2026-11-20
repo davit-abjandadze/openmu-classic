@@ -8,16 +8,18 @@ using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
 
 /// <summary>
 /// Adapts the merchant stores of the classic server:
 /// <list type="bullet">
 ///   <item>The potion stacks of three pieces are removed from all stores.</item>
-///   <item>All stores sell stacks of <see cref="LargePotionStackSize"/> large healing and large mana potions.</item>
+///   <item>All stores sell stacks of <see cref="LargePotionStackSize"/> large healing and large mana potions,
+///     except the medal merchant, see <see cref="ClassicMedalMerchant"/>.</item>
 ///   <item>Every active skill scroll and orb is sold by the store of its class:
 ///     Dark Wizard at Pasi the Mage (Lorencia), Dark Knight at Hanzo the Blacksmith (Lorencia), Fairy Elf at Elf Lala (Noria).
-///     Scrolls and orbs of other classes are removed from these stores.
+///     Scrolls and orbs of other classes, and inactive ones, are removed from these stores.
 ///     Pasi the Mage doesn't sell the Pad set anymore, because the scrolls wouldn't fit into the store otherwise.</item>
 /// </list>
 /// </summary>
@@ -107,7 +109,10 @@ public static class ClassicMerchantStores
             .OrderBy(i => i.Number)
             .ToList();
 
-        foreach (var store in gameConfiguration.Monsters.Select(m => m.MerchantStore).OfType<ItemStorage>())
+        foreach (var store in gameConfiguration.Monsters
+                     .Where(m => m.Number != MedalMerchantConfiguration.DefaultMerchantNumber)
+                     .Select(m => m.MerchantStore)
+                     .OfType<ItemStorage>())
         {
             await RemoveThreePieceStacksAsync(context, store).ConfigureAwait(false);
             foreach (var potion in largePotions)
@@ -131,7 +136,7 @@ public static class ClassicMerchantStores
             => definition is not null && definition.QualifiedCharacters.Any(c => classes.Contains(c.Number));
 
         var removedItems = store.Items
-            .Where(i => (IsSkillLearningItem(i.Definition) && !IsForClasses(i.Definition))
+            .Where(i => (IsSkillLearningItem(i.Definition) && (!IsForClasses(i.Definition) || !i.Definition!.IsActive))
                         || (merchantNumber == PasiTheMageNumber && i.Definition is { } definition && PasiRemovedItems.Contains((definition.Group, definition.Number))))
             .ToList();
         foreach (var item in removedItems)

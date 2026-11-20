@@ -11,6 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The chat command which shows the medals and the exchange offers ("/medals"),
 /// and exchanges medals for an offer ("/medals bless").
+/// Medal items in the inventory, e.g. dropped by bosses, are added to the medals before.
 /// </summary>
 [Guid("3E9D4B27-6C1A-4D85-B0F3-8A2E5C7D1B11")]
 [PlugIn]
@@ -34,6 +35,13 @@ public class MedalsChatCommandPlugIn : IChatCommandPlugIn
         {
             await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MedalsNotActive)).ConfigureAwait(false);
             return;
+        }
+
+        var (depositedGold, depositedSilver) = await MedalItems.DepositAsync(player).ConfigureAwait(false);
+        if (depositedGold > 0 || depositedSilver > 0)
+        {
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MedalsItemsDeposited), depositedGold, depositedSilver).ConfigureAwait(false);
+            await player.SaveProgressAsync().ConfigureAwait(false);
         }
 
         var argument = command.Length > Command.Length ? command[Command.Length..].Trim() : string.Empty;

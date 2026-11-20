@@ -77,14 +77,12 @@ public class BossStatusChatCommandPlugIn : IChatCommandPlugIn, ISupportCustomCon
         [Display(Name = "Boss monster numbers", Description = "The numbers of the monsters which are listed as bosses.")]
         public IList<short> BossMonsterNumbers { get; set; } =
         [
-            18, // Gorgon
-            25, // Ice Queen
             38, // Balrog
             49, // Hydra
             59, // Zaikan
             63, // Death Beam Knight
-            66, // Cursed King
             77, // Dark Phoenix
+            309, // Hell Maine
         ];
     }
 }

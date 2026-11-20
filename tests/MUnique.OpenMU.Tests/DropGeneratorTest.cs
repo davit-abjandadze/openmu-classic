@@ -430,6 +430,36 @@ public class DropGeneratorTest
         Assert.That(item!.ItemOptions.Count(o => object.Equals(o.ItemOption?.OptionType, ItemOptionTypes.Excellent)), Is.EqualTo(2));
     }
 
+    /// <summary>
+    /// Tests that guaranteed map drops which are restricted to a monster, like the boss drops of the classic server,
+    /// drop with their item level from this monster only.
+    /// </summary>
+    [Test]
+    public async ValueTask TestMonsterSpecificGuaranteedMapDropsAsync()
+    {
+        var box = this.CreateItemDefinition(14, 11, 0);
+        box.MaximumItemLevel = 15;
+        var boss = this.GetMonster(4, 80);
+        var otherMonster = this.GetMonster(4, 80);
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        foreach (var level in new byte[] { 12, 5, 5 })
+        {
+            var dropGroup = this.CreateDropItemGroup(box);
+            dropGroup.ItemType = SpecialItemType.None;
+            dropGroup.ItemLevel = level;
+            dropGroup.Monster = boss;
+            player.CurrentMap!.Definition.DropItemGroups.Add(dropGroup);
+        }
+
+        // The chance based drops fail, so that only the guaranteed drops remain.
+        var generator = new DefaultDropGenerator(this.GetGameConfig(), this.GetRandomizer2(0, 0.9999));
+        var (bossItems, _) = await generator.GenerateItemDropsAsync(boss, 1, player).ConfigureAwait(false);
+        var (otherItems, _) = await generator.GenerateItemDropsAsync(otherMonster, 1, player).ConfigureAwait(false);
+
+        Assert.That(bossItems.Select(i => (i.Definition, (int)i.Level)), Is.EqualTo(new[] { (box, 12), (box, 5), (box, 5) }));
+        Assert.That(otherItems, Is.Empty);
+    }
+
     private IRandomizer GetRandomizerWithIncreasingInts()
     {
         var randomizer = new Mock<IRandomizer>();

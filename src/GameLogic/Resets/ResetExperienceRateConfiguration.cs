@@ -12,6 +12,15 @@ using MUnique.OpenMU.DataModel.Composition;
 public class ResetExperienceRateConfiguration
 {
     /// <summary>
+    /// The default tiers as (minimum reset count, multiplier relative to the configured experience rate).
+    /// </summary>
+    private static readonly (int Resets, float Multiplier)[] DefaultTiers =
+    [
+        (0, 1f), (5, 0.8f), (10, 0.6f), (15, 0.5f), (20, 0.4f), (25, 0.35f),
+        (30, 0.3f), (35, 0.28f), (40, 0.27f), (45, 0.23f), (50, 0.2f),
+    ];
+
+    /// <summary>
     /// Gets or sets the tiers. The tier with the highest <see cref="ExperienceRateTier.MinimumResetCount"/>
     /// which is not above the reset count of a character applies.
     /// </summary>
@@ -27,17 +36,18 @@ public class ResetExperienceRateConfiguration
     public float DefaultMultiplier { get; set; } = 1;
 
     /// <summary>
-    /// Creates the default configuration: high rates for the first resets, decreasing with each further reset.
+    /// Creates the default configuration: the full experience rate for the first resets, decreasing with each further reset.
     /// </summary>
+    /// <remarks>
+    /// The multipliers are relative to the configured experience rate of the game and the game server,
+    /// because they are applied on top of it. The curve matches effective rates of 540, 432, 324, … 108
+    /// for an experience rate of 540.
+    /// </remarks>
     /// <returns>The default configuration.</returns>
     public static ResetExperienceRateConfiguration CreateDefault()
     {
         var configuration = new ResetExperienceRateConfiguration();
-        foreach (var (resets, multiplier) in new (int, float)[]
-                 {
-                     (0, 540), (5, 432), (10, 324), (15, 270), (20, 216), (25, 189),
-                     (30, 162), (35, 153), (40, 144), (45, 126), (50, 108),
-                 })
+        foreach (var (resets, multiplier) in DefaultTiers)
         {
             configuration.Tiers.Add(new ExperienceRateTier { MinimumResetCount = resets, Multiplier = multiplier });
         }
