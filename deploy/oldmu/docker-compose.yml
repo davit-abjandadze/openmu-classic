@@ -1,0 +1,117 @@
+# Production deployment of the Old MU server (classic Season 1 content for the Season 6 client).
+# It builds the server image from the sources of this repository instead of using munique/openmu.
+# See README.md in this folder.
+name: oldmu
+
+services:
+  openmu-startup:
+    build:
+      context: ../../src
+      dockerfile: Startup/Dockerfile
+    image: oldmu-server:${OLDMU_TAG:-latest}
+    container_name: oldmu-server
+    restart: unless-stopped
+    ports:
+      # The admin panel is only reachable from the server itself; use an SSH tunnel to open it.
+      - "127.0.0.1:${ADMIN_PANEL_PORT:-8080}:8080"
+      # Connect server (44406 is the one the launcher uses).
+      - "44405:44405"
+      - "44406:44406"
+      # Game servers and chat server.
+      - "45901-45906:45901-45906"
+      - "45980:45980"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      DB_HOST: database
+      DB_ADMIN_USER: ${DB_ADMIN_USER:-postgres}
+      DB_ADMIN_PW: ${DB_ADMIN_PW:?Set DB_ADMIN_PW in .env}
+      # The address which the game client gets to connect to a game server: the domain or public IP.
+      RESOLVE_IP: ${PUBLIC_HOST:?Set PUBLIC_HOST in .env}
+      OPENMU_ADMIN_USER: ${OPENMU_ADMIN_USER:?Set OPENMU_ADMIN_USER in .env}
+      OPENMU_ADMIN_PASSWORD: ${OPENMU_ADMIN_PASSWORD:?Set OPENMU_ADMIN_PASSWORD in .env}
+      # The test accounts (testgm, test400, ...) have well-known passwords and game master rights.
+      Database__CreateTestAccounts: ${CREATE_TEST_ACCOUNTS:-false}
+    volumes:
+      - adminpanel-keys:/app/data-protection-keys
+      # A named volume, because the server runs as a non-root user which can't write to a host folder of root.
+      - logs:/app/logs
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # The public website with the registration form. It creates the accounts through the API of
+  # the server (inside the compose network) with an API key, see README.md.
+  website:
+    build:
+      context: ../../website/OldMuSite
+    image: oldmu-website:${OLDMU_TAG:-latest}
+    container_name: oldmu-website
+    restart: unless-stopped
+    ports:
+      - "${WEBSITE_PORT:-80}:8080"
+    environment:
+      Site__ApiUrl: http://openmu-startup:8080
+      Site__ApiKey: ${WEBSITE_API_KEY:-}
+      Site__DownloadUrl: ${DOWNLOAD_URL:-}
+      Site__DiscordUrl: ${DISCORD_URL:-}
+      # Only true when a reverse proxy (Caddy, nginx) is in front of the site.
+      Site__TrustForwardedHeaders: ${WEBSITE_BEHIND_PROXY:-false}
+    volumes:
+      - website-data:/app/data
+    depends_on:
+      - openmu-startup
+
+  database:
+    image: postgres:18
+    container_name: oldmu-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_ADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PW:?Set DB_ADMIN_PW in .env}
+      POSTGRES_DB: openmu
+    # No published port: the database is only reachable inside the compose network.
+    volumes:
+      - dbdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d openmu"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backup:
+    image: postgres:18
+    container_name: oldmu-backup
+    restart: unless-stopped
+    environment:
+      PGHOST: database
+      PGUSER: ${DB_ADMIN_USER:-postgres}
+      PGPASSWORD: ${DB_ADMIN_PW:?Set DB_ADMIN_PW in .env}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-21600}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          file=/backups/openmu-$$(date -u +%Y%m%d-%H%M%S).dump
+          if pg_dump -Fc -d openmu -f "$$file.tmp"; then
+            mv "$$file.tmp" "$$file"
+            echo "backup written: $$file"
+          else
+            rm -f "$$file.tmp"
+            echo "backup FAILED"
+          fi
+          find /backups -name 'openmu-*.dump' -mtime +$$BACKUP_KEEP_DAYS -delete
+          sleep $$BACKUP_INTERVAL_SECONDS
+        done
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  adminpanel-keys:
+  dbdata:
+  logs:
+  website-data:
