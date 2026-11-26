@@ -31,4 +31,10 @@ public enum ApiKeyRole
     /// The <see cref="AdminRoles.CashShop"/> role, which only allows to grant cash shop coins.
     /// </summary>
     CashShop,
+
+    /// <summary>
+    /// The <see cref="AdminRoles.Registration"/> role, which allows to create accounts and to read like a viewer,
+    /// e.g. for the registration form of a website.
+    /// </summary>
+    Registration,
 }

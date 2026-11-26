@@ -226,9 +226,55 @@ public sealed class AccountAdministrationApiTests : System.IDisposable
         Assert.That((await this._audit.ReadAsync(0, 100).ConfigureAwait(false)).Items.Single().Frontend, Is.EqualTo("api"));
     }
 
+    /// <summary>A key with the registration role, e.g. of a website, creates accounts.</summary>
+    [Test]
+    public async Task RegistrationKeyCreatesAccountAsync()
+    {
+        await this.UseRegistrationKeyAsync().ConfigureAwait(false);
+        using var response = await this._http.PostAsJsonAsync("/api/accounts", new { loginName = "newbie", password = "secret1" }).ConfigureAwait(false);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+        var audit = (await this._audit.ReadAsync(0, 100).ConfigureAwait(false)).Items.Single();
+        Assert.That(audit.Operation, Is.EqualTo("accounts_create"));
+        Assert.That(audit.Outcome, Is.EqualTo("Succeeded"));
+    }
+
+    /// <summary>A key with the registration role reads like a viewer.</summary>
+    [Test]
+    public async Task RegistrationKeyReadsLikeViewerAsync()
+    {
+        await this.UseRegistrationKeyAsync().ConfigureAwait(false);
+        using var response = await this._http.GetAsync("/api/accounts/tester").ConfigureAwait(false);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+    }
+
+    /// <summary>A key with the registration role can't change, ban or disconnect accounts like an operator.</summary>
+    /// <param name="operation">The operation.</param>
+    /// <param name="method">The HTTP method.</param>
+    [TestCase("password", "PUT")]
+    [TestCase("state", "PUT")]
+    [TestCase("disconnect", "POST")]
+    public async Task RegistrationKeyCannotChangeAccountsAsync(string operation, string method)
+    {
+        await this.UseRegistrationKeyAsync().ConfigureAwait(false);
+        var path = operation == "disconnect" ? "/api/players/tester/disconnect" : $"/api/accounts/tester/{operation}";
+        using var request = new HttpRequestMessage(new HttpMethod(method), path) { Content = JsonContent.Create(new { password = "secret2", state = "Banned", reason = "Test" }) };
+        using var response = await this._http.SendAsync(request).ConfigureAwait(false);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+        Assert.That((await this._audit.ReadAsync(0, 100).ConfigureAwait(false)).Total, Is.Zero);
+    }
+
     private void UseViewerKey()
     {
         this._http.DefaultRequestHeaders.Clear();
         this._http.DefaultRequestHeaders.Add("X-Api-Key", "omu_viewer-key-for-mcp-integration-tests");
+    }
+
+    private async Task UseRegistrationKeyAsync()
+    {
+        const string registrationKey = "omu_registration-key-for-account-api-tests";
+        var keys = this._host.App.Services.GetRequiredService<IApiKeyRepository>();
+        await keys.AddAsync(new ApiKey { Id = Guid.NewGuid(), Name = "website", KeyHash = MUnique.OpenMU.Web.AdminPanel.Auth.ApiKeyGenerator.Hash(registrationKey), Roles = AdminRoles.Registration }).ConfigureAwait(false);
+        this._http.DefaultRequestHeaders.Clear();
+        this._http.DefaultRequestHeaders.Add("X-Api-Key", registrationKey);
     }
 }

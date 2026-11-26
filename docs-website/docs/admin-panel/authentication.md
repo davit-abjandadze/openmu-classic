@@ -218,13 +218,21 @@ cash
 shop endpoints — that's the right one for a payment provider. Administrators
 have this role implicitly.
 
+The role **Account registration (and viewer)** allows to create accounts and to
+read like a Viewer, but not to change, ban or disconnect accounts, to send
+messages or to operate the servers. That's the right one for the registration
+form of a website, which usually shows the server status and the rankings as
+well. Operators and Administrators have this role implicitly.
+
 | Endpoint | Needs |
 |---|---|
 | `GET /api/status` | Viewer |
 | `GET /api/is-online/{account}` | Viewer |
 | `POST /api/send/{server}?msg=` | Operator |
-| `POST /api/accounts` | Operator |
+| `POST /api/accounts` | Account registration |
 | `GET /api/accounts/{account}` | Viewer |
+| `GET /api/rankings/characters`, `/api/rankings/pvp`, `/api/rankings/minigames/{type}` | Viewer |
+| `GET /api/guide/exchange` | Viewer |
 | `GET /api/characters/{name}` | Viewer |
 | `PUT /api/accounts/{account}/password` | Operator, key only |
 | `PUT /api/accounts/{account}/state` | Operator, key only |
@@ -233,8 +241,9 @@ have this role implicitly.
 | `POST /api/accounts/{account}/cash-shop/grants` | Cash shop |
 | `GET /api/items/exchange` | Viewer, [key only](#items-for-the-client-editor) |
 
-So a status page gets a Viewer key and can only read, while an application which
-announces something in the game needs an Operator key. The role is chosen when
+So a status page gets a Viewer key and can only read, a registration website an
+Account registration key, while an application which announces something in the
+game needs an Operator key. The role is chosen when
 the key is created and can't be changed afterwards — create a new key with the
 role you need and delete the old one.
 

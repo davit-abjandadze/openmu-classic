@@ -17,10 +17,11 @@ using MUnique.OpenMU.Web.AdminPanel.Operations;
 /// API controller which creates accounts, e.g. for the registration form of a website.
 /// </summary>
 /// <remarks>
-/// Creating an account changes data, so it needs the operator role, like editing an account in
-/// the admin panel does. The caller is meant to be a server side application, which keeps the API
-/// key to itself and protects its form against abuse (a captcha, a rate limit per visitor): this
-/// server only sees that application, not the visitors behind it.
+/// Creating an account needs the registration role, which an operator has as well. The registration role
+/// allows nothing else that changes data, so the API key of a website should get only that role. The caller
+/// is meant to be a server side application, which keeps the API key to itself and protects its form against
+/// abuse (a captcha, a rate limit per visitor): this server only sees that application, not the visitors behind it.
+/// Changing the state or the password of an account still needs the operator role.
 /// </remarks>
 [ApiController]
 [Route("api/accounts")]
@@ -42,7 +43,7 @@ public class AccountController : ControllerBase
     /// registration is invalid, and <c>409</c> when the login name is already taken.
     /// </returns>
     [HttpPost]
-    [Authorize(AuthenticationSchemes = ApiKeyAuthenticationDefaults.ApiSchemes, Policy = AdminPolicies.AuthenticatedOperator)]
+    [Authorize(AuthenticationSchemes = ApiKeyAuthenticationDefaults.ApiSchemes, Policy = AdminPolicies.AuthenticatedRegistration)]
     public async Task<IActionResult> RegisterAsync([FromBody] AccountRegistration registration, CancellationToken cancellationToken)
     {
         var result = await this._operations.CreateAsync(registration.LoginName, registration.Password, registration.EMail, cancellationToken).ConfigureAwait(false);

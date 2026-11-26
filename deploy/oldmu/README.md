@@ -59,7 +59,10 @@ The website runs on port 80 (`WEBSITE_PORT`). Registration asks for a login and 
 only; it creates the account through the server's API (`POST /api/accounts`) with an API key:
 
 1. Log in to the admin panel (`OPENMU_ADMIN_USER`, see below), open the **API keys** page
-   (`/api-keys`) and create a key for the application "website" with the role **Operator**.
+   (`/api-keys`) and create a key for the application "website" with the role **Registration**
+   ("Account registration (and viewer)"). It can create accounts and read the status and the
+   rankings, but not change, ban or disconnect accounts like an Operator key, so a broken website
+   can't do more than that.
 2. Put the key into `.env` as `WEBSITE_API_KEY`, set `DOWNLOAD_URL` (and `DISCORD_URL`), and
    restart the site: `docker compose up -d website`.
 

@@ -7387,6 +7387,15 @@ namespace MUnique.OpenMU.Web.AdminPanel.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Account registration (and viewer).
+        /// </summary>
+        public static string RoleRegistration {
+            get {
+                return ResourceManager.GetString("RoleRegistration", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Operator.
         /// </summary>
         public static string RoleOperator {

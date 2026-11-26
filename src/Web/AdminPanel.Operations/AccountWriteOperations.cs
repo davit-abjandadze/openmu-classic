@@ -27,10 +27,14 @@ public sealed class AccountWriteOperations(IPersistenceContextProvider persisten
     /// <param name="email">The optional email address.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Whether the account was created or already exists.</returns>
-    [AdminOperation(AdminRole.Operator, ReadOnly = false)]
+    /// <remarks>
+    /// It needs only the <see cref="AdminRoles.Registration"/> role, which an operator has as well,
+    /// so that the API key of a registration website can't change anything else.
+    /// </remarks>
+    [AdminOperation("Registration", ReadOnly = false)]
     public ValueTask<JsonObject> CreateAsync(string loginName, string password, string? email, CancellationToken cancellationToken)
         => executor.ExecuteAsync(
-            AdminRoles.Operator,
+            AdminRoles.Registration,
             "accounts_create",
             new { loginName, email },
             async _ =>

@@ -18,6 +18,7 @@ public static class RoleCaption
         "Operator" => Resources.RoleOperator,
         "Viewer" => Resources.RoleViewer,
         "CashShop" => Resources.RoleCashShop,
+        "Registration" => Resources.RoleRegistration,
         var other => other,
     }));
 }

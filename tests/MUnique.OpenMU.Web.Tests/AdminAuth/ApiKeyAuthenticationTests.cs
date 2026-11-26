@@ -47,7 +47,7 @@ public class ApiKeyAuthenticationTests
 
         Assert.That(client, Is.Not.Null);
         Assert.That(client!.Name, Is.EqualTo("website"));
-        Assert.That(client.Roles, Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator }));
+        Assert.That(client.Roles, Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Registration }));
 
         var stored = (await this._repository.GetAllAsync().ConfigureAwait(false)).Single();
         Assert.That(stored.KeyHash, Is.Not.EqualTo(generatedKey));
@@ -83,7 +83,7 @@ public class ApiKeyAuthenticationTests
         var writer = await registry.FindAsync(writerKey).ConfigureAwait(false);
 
         Assert.That(reader!.Roles, Is.EquivalentTo(new[] { AdminRoles.Viewer }));
-        Assert.That(writer!.Roles, Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator }));
+        Assert.That(writer!.Roles, Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Registration }));
     }
 
     /// <summary>

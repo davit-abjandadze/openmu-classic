@@ -130,6 +130,9 @@ public static class AdminPanelAuthExtensions
             .SetDefaultPolicy(new AuthorizationPolicyBuilder().AddRequirements(new AdminAccessRequirement()).Build())
             .AddPolicy(AdminPolicies.AuthenticatedOperator, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.Operator))
             .AddPolicy(AdminPolicies.AuthenticatedCashShop, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.CashShop))
+
+            // The operator role is accepted as well, for principals whose roles aren't expanded, e.g. of a reverse proxy.
+            .AddPolicy(AdminPolicies.AuthenticatedRegistration, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.Registration, AdminRoles.Operator))
             .AddPolicy(AdminPolicies.Viewer, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Viewer)))
             .AddPolicy(AdminPolicies.Operator, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Operator)))
             .AddPolicy(AdminPolicies.Administrator, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Administrator)))

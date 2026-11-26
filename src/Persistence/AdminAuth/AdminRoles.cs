@@ -36,6 +36,18 @@ public static class AdminRoles
     public static string CashShop => "CashShop";
 
     /// <summary>
+    /// Gets the role which is allowed to create accounts and to see what a <see cref="Viewer"/> sees,
+    /// e.g. for the API key of the registration form of a website.
+    /// </summary>
+    /// <remarks>
+    /// It's not one of the <see cref="AdminRole"/>s which build up on each other, so that the key of a website can create
+    /// accounts without being able to edit or ban them, to disconnect players or to stop servers like an <see cref="Operator"/>.
+    /// It implies the <see cref="Viewer"/> role, because such a website usually shows the server status and the rankings as well.
+    /// An <see cref="Operator"/> and an <see cref="Administrator"/> have it implicitly.
+    /// </remarks>
+    public static string Registration => "Registration";
+
+    /// <summary>
     /// Gets all defined roles which build up on each other, from the least to the most privileged one.
     /// </summary>
     public static IReadOnlyList<string> All { get; } = Enum.GetNames<AdminRole>();
@@ -48,12 +60,20 @@ public static class AdminRoles
     /// <remarks>
     /// The roles build up on each other, so an <see cref="Administrator"/> is implicitly
     /// an <see cref="Operator"/> and a <see cref="Viewer"/> as well, and has the <see cref="CashShop"/> role.
+    /// An <see cref="Operator"/> has the <see cref="Registration"/> role, which itself implies the <see cref="Viewer"/> role.
     /// </remarks>
     public static IEnumerable<string> GetEffectiveRoles(string role)
     {
         if (string.Equals(role, CashShop, StringComparison.OrdinalIgnoreCase))
         {
             yield return CashShop;
+            yield break;
+        }
+
+        if (string.Equals(role, Registration, StringComparison.OrdinalIgnoreCase))
+        {
+            yield return Registration;
+            yield return Viewer;
             yield break;
         }
 
@@ -68,6 +88,11 @@ public static class AdminRoles
             {
                 yield return candidate.ToString();
             }
+        }
+
+        if (parsedRole >= AdminRole.Operator)
+        {
+            yield return Registration;
         }
 
         if (parsedRole == AdminRole.Administrator)

@@ -334,8 +334,8 @@ public class AdminAuthenticationTests
     [Test]
     public void EffectiveRolesIncludeTheLessPrivilegedOnes()
     {
-        Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.Administrator), Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Administrator, AdminRoles.CashShop }));
-        Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.Operator), Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator }));
+        Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.Administrator), Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Administrator, AdminRoles.CashShop, AdminRoles.Registration }));
+        Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.Operator), Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Registration }));
         Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.Viewer), Is.EquivalentTo(new[] { AdminRoles.Viewer }));
         Assert.That(AdminRoles.GetEffectiveRoles("Unknown"), Is.Empty);
     }
@@ -349,6 +349,17 @@ public class AdminAuthenticationTests
     {
         Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.CashShop), Is.EquivalentTo(new[] { AdminRoles.CashShop }));
         Assert.That(AdminRoles.All, Does.Not.Contain(AdminRoles.CashShop));
+    }
+
+    /// <summary>
+    /// Tests that the registration role, e.g. of the API key of a website, implies only the viewer role,
+    /// not the operator role which may change accounts.
+    /// </summary>
+    [Test]
+    public void RegistrationRoleImpliesOnlyTheViewerRole()
+    {
+        Assert.That(AdminRoles.GetEffectiveRoles(AdminRoles.Registration), Is.EquivalentTo(new[] { AdminRoles.Registration, AdminRoles.Viewer }));
+        Assert.That(AdminRoles.All, Does.Not.Contain(AdminRoles.Registration));
     }
 
     /// <summary>
@@ -503,7 +514,7 @@ public class AdminAuthenticationTests
             .Select(c => c.Value)
             .ToList();
 
-        Assert.That(roles, Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Administrator, AdminRoles.CashShop }));
+        Assert.That(roles, Is.EquivalentTo(new[] { AdminRoles.Viewer, AdminRoles.Operator, AdminRoles.Administrator, AdminRoles.CashShop, AdminRoles.Registration }));
         Assert.That(
             claims.Any(c => c.Type == AdminAuthenticationDefaults.AuthenticationMethodClaimType
                             && c.Value == AdminAuthenticationDefaults.MultiFactorAuthenticationMethod),

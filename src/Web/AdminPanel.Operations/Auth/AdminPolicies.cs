@@ -39,6 +39,12 @@ internal static class AdminPolicies
     internal const string AuthenticatedCashShop = "Admin.AuthenticatedCashShop";
 
     /// <summary>
+    /// Authenticated callers which may create accounts: the <see cref="MUnique.OpenMU.Persistence.AdminAuth.AdminRoles.Registration"/>
+    /// role, e.g. the API key of a website, or an operator.
+    /// </summary>
+    internal const string AuthenticatedRegistration = "Admin.AuthenticatedRegistration";
+
+    /// <summary>
     /// The policy which needs an API key with the viewer role.
     /// The login cookie of the admin panel isn't accepted: the policy names the API key
     /// scheme itself, so an endpoint only names the policy.
