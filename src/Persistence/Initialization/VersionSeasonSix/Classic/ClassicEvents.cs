@@ -13,12 +13,17 @@ using MUnique.OpenMU.GameLogic.TeamVsTeam;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
-/// The events of the classic server: free Devil Square and Blood Castle three times a day, in which every solo player
-/// or party enters its own instance of the tier of its level by /joinds and /joinbc, once per day and event;
+/// The events of the classic server: free Devil Square and Blood Castle three times a day, in which all solo players
+/// and parties of a tier share its room, entered by /joinds and /joinbc, once per day and event;
 /// the Golden Invasion and the Team vs Team in the night.
 /// </summary>
 public static class ClassicEvents
 {
+    /// <summary>
+    /// The maximum number of players in the shared room of a tier. When it's full, another room of the tier is opened.
+    /// </summary>
+    public const int MaximumPlayersPerRoom = 50;
+
     /// <summary>
     /// The duration in which the instances of a slot can be entered.
     /// </summary>
@@ -168,6 +173,7 @@ public static class ClassicEvents
         configuration.UpcomingMessage = $"{name} opens in {{0}} minute(s)! Join with {command} (once per day).";
         configuration.EntranceOpenedMessage = $"{name} is open for {{0}} minute(s)! Join with {command} (once per day).";
         configuration.EntranceClosedMessage = $"{name} entrance closed.";
+        configuration.IsSharedPerTier = true;
         configuration.IsLevelSyncEnabled = true;
         configuration.PartySizeScalings = InstancedMiniGameStartConfiguration.CreateDefaultPartySizeScalings();
     }
@@ -193,7 +199,7 @@ public static class ClassicEvents
             definition.MinimumSpecialCharacterLevel = minimumLevel;
             definition.MaximumSpecialCharacterLevel = maximumLevel;
             definition.MinimumPlayerCount = 1;
-            definition.MaximumPlayerCount = 10;
+            definition.MaximumPlayerCount = MaximumPlayersPerRoom;
             definition.MapCreationPolicy = MiniGameMapCreationPolicy.OnePerParty;
             definition.EnterDuration = EntranceDuration;
             definition.GameDuration = GameDuration;

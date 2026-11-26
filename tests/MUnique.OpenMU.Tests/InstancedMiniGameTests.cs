@@ -328,6 +328,23 @@ public class InstancedMiniGameTests
         Assert.That(slot.TryReserveInstance(), Is.True);
     }
 
+    /// <summary>
+    /// Tests that the members of a shared instance grow with every group which entered it, without duplicates.
+    /// </summary>
+    [Test]
+    public void SharedInstanceCollectsTheMembersOfAllGroups()
+    {
+        var slot = new InstancedMiniGameSlot(MiniGameType.DevilSquare, new DevilSquareStartConfiguration { IsSharedPerTier = true }, DateTime.UtcNow);
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        var settings = new InstancedMiniGameSettings(slot, [first], PartySizeScaling.Neutral, isShared: true);
+
+        settings.AddMembers([second, first]);
+
+        Assert.That(settings.IsShared, Is.True);
+        Assert.That(settings.MemberIds, Is.EquivalentTo(new[] { first, second }));
+    }
+
     private static IReadOnlyList<MiniGameDefinition> CreateTiers()
     {
         var windows = new[] { (10, 60), (61, 120), (121, 180), (181, 240), (241, 300), (301, 360), (361, 400) };

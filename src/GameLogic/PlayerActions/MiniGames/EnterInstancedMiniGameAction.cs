@@ -99,38 +99,54 @@ public class EnterInstancedMiniGameAction
             return true;
         }
 
-        if (!slot.TryReserveInstance())
+        var groupSize = humans.Count + bots.Count;
+        var memberIds = members.Select(m => m.SelectedCharacter?.Id).OfType<Guid>().ToList();
+        MiniGameContext game;
+        using (await slot.EntryLock.LockAsync().ConfigureAwait(false))
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.InstancedEventFullFormat), eventName).ConfigureAwait(false);
-            return true;
-        }
+            var isShared = slot.Configuration.IsSharedPerTier;
+            var sharedGame = isShared ? FindSharedInstance(gameContext, slot, tier, groupSize) : null;
+            if (sharedGame is null && !slot.TryReserveInstance())
+            {
+                await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.InstancedEventFullFormat), eventName).ConfigureAwait(false);
+                return true;
+            }
 
-        var scaling = PartySizeScaling.Find(slot.Configuration.PartySizeScalings, humans.Count + bots.Count);
-        var memberIds = members.Select(m => m.SelectedCharacter?.Id).OfType<Guid>();
-        var settings = new InstancedMiniGameSettings(slot, memberIds, scaling);
-        var game = await gameContext.MiniGames.CreateInstanceAsync(tier, settings).ConfigureAwait(false);
+            // A shared instance is scaled by all of its players when its game starts; until then, by the first group.
+            game = sharedGame ?? await gameContext.MiniGames.CreateInstanceAsync(
+                    tier,
+                    new InstancedMiniGameSettings(slot, memberIds, PartySizeScaling.Find(slot.Configuration.PartySizeScalings, groupSize), isShared))
+                .ConfigureAwait(false);
 
-        if (!await this.TryEnterAllAsync(player, game, humans, eventName).ConfigureAwait(false))
-        {
-            slot.ReleaseInstance();
-            await game.DisposeAsync().ConfigureAwait(false);
-            return true;
-        }
+            if (!await this.TryEnterAllAsync(player, game, humans, eventName).ConfigureAwait(false))
+            {
+                if (sharedGame is null)
+                {
+                    slot.ReleaseInstance();
+                    await game.DisposeAsync().ConfigureAwait(false);
+                }
 
-        // The attempt is used up as soon as the players entered, and saved right away,
-        // so that neither leaving the game nor a restart of the server gives it back.
-        foreach (var member in humans)
-        {
-            MiniGameDailyEntry.MarkEntered(member, type, utcNow);
+                return true;
+            }
+
+            // Members are only added when all of them entered, so that a refused party can't use the
+            // re-entry of members to enter without using up its attempt.
+            game.InstanceSettings?.AddMembers(memberIds);
+
+            // The attempt is used up as soon as the players entered, and saved right away,
+            // so that neither leaving the game nor a restart of the server gives it back.
+            foreach (var member in humans)
+            {
+                MiniGameDailyEntry.MarkEntered(member, type, utcNow);
+            }
         }
 
         player.Logger.LogInformation(
-            "{Leader} entered {Tier} with {Count} player(s) ({Members}), scaling: {Scaling}",
+            "{Leader} entered {Game} with {Count} player(s) ({Members})",
             player.Name,
-            tier.Name,
-            humans.Count + bots.Count,
-            string.Join(", ", members.Select(m => m.Name)),
-            scaling);
+            game,
+            groupSize,
+            string.Join(", ", members.Select(m => m.Name)));
 
         var secondsUntilStart = (int)Math.Max(0, Math.Ceiling((slot.EntranceClosesUtc - DateTime.UtcNow).TotalSeconds));
         foreach (var member in humans)
@@ -142,6 +158,24 @@ public class EnterInstancedMiniGameAction
 
         Bots.BotMiniGameHandler.BringPartyBotsAlong(player, bots, tier, game);
         return true;
+    }
+
+    /// <summary>
+    /// Finds the shared instance of the tier in the slot, which is still open and has room for the group.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    /// <param name="slot">The slot.</param>
+    /// <param name="tier">The tier.</param>
+    /// <param name="groupSize">The number of players of the group, including its bots.</param>
+    /// <returns>The shared instance; or <c>null</c>, if a new one has to be created.</returns>
+    private static MiniGameContext? FindSharedInstance(IGameContext gameContext, InstancedMiniGameSlot slot, MiniGameDefinition tier, int groupSize)
+    {
+        return gameContext.MiniGames.GetRunningMiniGames(tier.Type)
+            .FirstOrDefault(g => g.InstanceSettings is { IsShared: true } settings
+                                 && ReferenceEquals(settings.Slot, slot)
+                                 && Equals(g.Definition, tier)
+                                 && g.State == MiniGameState.Open
+                                 && g.PlayerCount + groupSize <= tier.MaximumPlayerCount);
     }
 
     private static InstancedEntryCandidate CreateCandidate(Player member, Player leader, IReadOnlyList<MiniGameDefinition> tiers, MiniGameType type, int maximumDistance, DateTime utcNow)

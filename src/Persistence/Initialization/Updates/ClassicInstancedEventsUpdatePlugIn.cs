@@ -13,7 +13,7 @@ using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// Replaces the nightly Devil Square and Blood Castle of an existing classic (Season 1 content) database by
-/// three slots a day, in which every solo player or party enters its own instance of the tier of its level,
+/// three slots a day, in which all solo players and parties of a tier share its room,
 /// once per day and event (see <see cref="ClassicEvents"/>).
 /// </summary>
 /// <remarks>
@@ -32,7 +32,7 @@ public class ClassicInstancedEventsUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Replaces the nightly Devil Square (21:00) and Blood Castle (22:00) by three slots a day (Devil Square 13:00, 19:00, 22:00; Blood Castle 13:30, 19:30, 22:30) in which every solo player or party enters its own instance of the tier of its level (6 Devil Square and 7 Blood Castle tiers), once per day and event. Overwrites the configuration of both start plugins and their mini game definitions. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Replaces the nightly Devil Square (21:00) and Blood Castle (22:00) by three slots a day (Devil Square 13:00, 19:00, 22:00; Blood Castle 13:30, 19:30, 22:30) in which all solo players and parties of a tier share its room (6 Devil Square and 7 Blood Castle tiers), once per day and event. Overwrites the configuration of both start plugins and their mini game definitions. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -48,6 +48,15 @@ public class ClassicInstancedEventsUpdatePlugIn : UpdatePlugInBase
 
     /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 11, 26, 0, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Version 2: all solo players and parties of a tier share one room per slot, with up to 50 players.
+    /// </remarks>
+    public override int Version => 2;
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 26, 12, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)

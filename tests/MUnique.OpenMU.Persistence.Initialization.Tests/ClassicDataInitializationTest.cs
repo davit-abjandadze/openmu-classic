@@ -780,6 +780,7 @@ internal class ClassicDataInitializationTest
             // The state of the former nightly events: one shared room for all levels.
             definition.IsActive = definition.GameLevel == 4;
             definition.MapCreationPolicy = MiniGameMapCreationPolicy.Shared;
+            definition.MaximumPlayerCount = 10;
             definition.MinimumCharacterLevel = 10;
             definition.MaximumCharacterLevel = 400;
         }
@@ -822,6 +823,7 @@ internal class ClassicDataInitializationTest
                 Assert.That(definition.MinimumCharacterLevel, Is.EqualTo(minimumLevel));
                 Assert.That(definition.MaximumCharacterLevel, Is.EqualTo(maximumLevel));
                 Assert.That(definition.MinimumPlayerCount, Is.EqualTo(1));
+                Assert.That(definition.MaximumPlayerCount, Is.EqualTo(ClassicEvents.MaximumPlayersPerRoom));
                 Assert.That(definition.MapCreationPolicy, Is.EqualTo(MiniGameMapCreationPolicy.OnePerParty));
                 Assert.That(definition.Entrance!.Map!.ExpMultiplier, Is.EqualTo(2));
             }
@@ -842,6 +844,7 @@ internal class ClassicDataInitializationTest
         Assert.That(bloodCastle.Timetable, Is.EqualTo(new[] { new TimeOnly(13, 30), new TimeOnly(19, 30), new TimeOnly(22, 30) }));
         foreach (var configuration in new MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.InstancedMiniGameStartConfiguration[] { devilSquare, bloodCastle })
         {
+            Assert.That(configuration.IsSharedPerTier, Is.True);
             Assert.That(configuration.EntranceDuration, Is.EqualTo(TimeSpan.FromMinutes(5)));
             Assert.That(configuration.GameDuration, Is.EqualTo(TimeSpan.FromMinutes(15)));
             Assert.That(configuration.AnnouncementLeadTimes, Is.EqualTo(new[] { TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2) }));

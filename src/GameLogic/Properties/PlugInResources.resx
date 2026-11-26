@@ -2268,4 +2268,7 @@
   <data name="InstancedMiniGameStartConfiguration_PartySizeScalings_Caption" xml:space="preserve">
     <value>Party Size Scalings</value>
   </data>
+  <data name="InstancedMiniGameStartConfiguration_IsSharedPerTier_Caption" xml:space="preserve">
+    <value>Shared Instance Per Tier</value>
+  </data>
 </root>

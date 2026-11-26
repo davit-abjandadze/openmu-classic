@@ -14,6 +14,7 @@ using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions.MiniGames;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Pathfinding;
@@ -432,8 +433,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
         }
 
         this.InstanceSettings = settings;
-        this.Map.SpawnQuantityFactor = settings.Scaling.MonsterCountFactor;
-        this._rewards.RewardFactor = settings.Scaling.RewardFactor;
+        this.ApplyScaling(settings.Scaling);
     }
 
     /// <summary>
@@ -901,6 +901,16 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     }
 
     /// <summary>
+    /// Applies the scaling by the number of players to the monster spawns and the rewards.
+    /// </summary>
+    /// <param name="scaling">The scaling.</param>
+    private void ApplyScaling(PartySizeScaling scaling)
+    {
+        this.Map.SpawnQuantityFactor = scaling.MonsterCountFactor;
+        this._rewards.RewardFactor = scaling.RewardFactor;
+    }
+
+    /// <summary>
     /// Scales the health of a non-player character of an instance by the number of its players.
     /// </summary>
     /// <param name="npc">The non-player character.</param>
@@ -970,6 +980,14 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     {
         await this._players.SetStateAsync(MiniGameState.Playing).ConfigureAwait(false);
         var players = await this._players.GetSnapshotAsync().ConfigureAwait(false);
+        if (this.InstanceSettings is { IsShared: true } sharedInstance)
+        {
+            // The players of a shared instance entered one after another, so it's scaled by all of them
+            // when the game starts, before its monsters spawn.
+            sharedInstance.Scaling = PartySizeScaling.Find(sharedInstance.Slot.Configuration.PartySizeScalings, players.Count);
+            this.ApplyScaling(sharedInstance.Scaling);
+            this.Logger.LogInformation("{context}: Started with {count} player(s), scaling: {scaling}", this, players.Count, sharedInstance.Scaling);
+        }
 
         await this.OnGameStartAsync(players).ConfigureAwait(false);
         await this._mapInitializer.InitializeNpcsOnEventStartAsync(this.Map, this).ConfigureAwait(false);

@@ -8979,5 +8979,14 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("InstancedMiniGameStartConfiguration_PartySizeScalings_Caption", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shared Instance Per Tier.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_IsSharedPerTier_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_IsSharedPerTier_Caption", resourceCulture);
+            }
+        }
     }
 }

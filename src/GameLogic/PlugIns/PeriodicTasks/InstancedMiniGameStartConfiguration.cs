@@ -72,6 +72,14 @@ public abstract class InstancedMiniGameStartConfiguration : MiniGameStartConfigu
     public int MaximumInstancesPerSlot { get; set; } = DefaultMaximumInstancesPerSlot;
 
     /// <summary>
+    /// Gets or sets a value indicating whether all solo players and parties of a tier share one instance per slot.
+    /// Otherwise, every solo player or party gets its own instance.
+    /// A full shared instance is followed by another one of the same tier.
+    /// </summary>
+    [Display(ResourceType = typeof(PlugInResources), Name = nameof(PlugInResources.InstancedMiniGameStartConfiguration_IsSharedPerTier_Caption), Order = 118)]
+    public bool IsSharedPerTier { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether party members above the maximum level of the entered tier are weakened to it (level sync).
     /// </summary>
     [Display(ResourceType = typeof(PlugInResources), Name = nameof(PlugInResources.InstancedMiniGameStartConfiguration_IsLevelSyncEnabled_Caption), Order = 116)]

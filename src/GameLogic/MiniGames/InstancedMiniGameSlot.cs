@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.GameLogic.MiniGames;
 
 using System.Threading;
 using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
+using Nito.AsyncEx;
 
 /// <summary>
 /// A time slot of an instanced mini game, which is opened by a start of its timetable.
@@ -60,6 +61,12 @@ public sealed class InstancedMiniGameSlot
     /// Gets the number of instances which were created in this slot.
     /// </summary>
     public int InstanceCount => Volatile.Read(ref this._instanceCount);
+
+    /// <summary>
+    /// Gets the lock which serializes the entries into the slot, so that two parties of the same tier
+    /// don't create two shared instances at the same time.
+    /// </summary>
+    internal AsyncLock EntryLock { get; } = new();
 
     /// <summary>
     /// Gets or sets a value indicating whether the closing of the entrance has been announced.
