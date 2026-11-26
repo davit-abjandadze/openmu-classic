@@ -64,6 +64,7 @@ public class ClassicDataInitialization : DataInitialization
         ClassicEvents.ApplyToMiniGames(this.GameConfiguration);
         await ClassicMerchantStores.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         await ClassicBoxes.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
+        ClassicJewelryDrops.Apply(this.Context, this.GameConfiguration);
         ClassicBosses.Apply(this.Context, this.GameConfiguration);
         ClassicIcarusMonsters.Apply(this.Context, this.GameConfiguration);
         ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);

@@ -983,6 +983,55 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that the rings and pendants don't drop randomly like other equipment, but with their own rarer drop groups
+    /// on all maps with the common jewel drop, and that the Box of Kundun +2 and +3 still drop them as excellent items.
+    /// </summary>
+    [Test]
+    public void RingsAndPendantsDropRarely()
+    {
+        this.AssertJewelryDrops();
+
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        var jewelry = this._gameConfiguration.Items.Where(i => ClassicJewelryDrops.Jewelry.Contains((i.Group, i.Number))).ToList();
+        var fromBoxes = ClassicBoxes.GetBoxOfKundunItemGroup(box, 9)!.PossibleItems
+            .Concat(ClassicBoxes.GetBoxOfKundunItemGroup(box, 10)!.PossibleItems);
+        Assert.That(fromBoxes.Intersect(jewelry), Is.EquivalentTo(jewelry));
+    }
+
+    /// <summary>
+    /// Tests that the update makes the rings and pendants rarer on an existing classic database, where they still drop
+    /// randomly and the jewelry drop groups are missing, and that applying it again doesn't add anything twice.
+    /// </summary>
+    [Test]
+    public async Task UpdateMakesRingsAndPendantsRarerAsync()
+    {
+        var jewelry = this._gameConfiguration.Items.Where(i => ClassicJewelryDrops.Jewelry.Contains((i.Group, i.Number))).ToList();
+        foreach (var item in jewelry)
+        {
+            item.DropsFromMonsters = true;
+        }
+
+        foreach (var id in new[] { ClassicJewelryDrops.GetNormalDropGroupId(), ClassicJewelryDrops.GetExcellentDropGroupId() })
+        {
+            var dropGroup = this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == id);
+            this._gameConfiguration.DropItemGroups.Remove(dropGroup);
+            foreach (var map in this._gameConfiguration.Maps)
+            {
+                map.DropItemGroups.Remove(dropGroup);
+            }
+        }
+
+        var update = new ClassicJewelryDropsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        this.AssertJewelryDrops();
+        var lorencia = this._gameConfiguration.Maps.First(m => m.Number == 0);
+        Assert.That(lorencia.DropItemGroups.Count(g => g.GetId() == ClassicJewelryDrops.GetNormalDropGroupId()), Is.EqualTo(1));
+        Assert.That(lorencia.DropItemGroups.Count(g => g.GetId() == ClassicJewelryDrops.GetExcellentDropGroupId()), Is.EqualTo(1));
+    }
+
+    /// <summary>
     /// Tests that Caren the Barmaid sells the Box of Kundun +1 to +4, without overlapping other items.
     /// </summary>
     [Test]
@@ -1579,5 +1628,28 @@ internal class ClassicDataInitializationTest
             Assert.That(dropGroups[0].PossibleItems.Single(), Is.SameAs(castleSiege.SignOfLordItemDefinition));
             Assert.That(lostTower.DropItemGroups.Count(g => g == dropGroups[0]), Is.EqualTo(1));
         });
+    }
+
+    private void AssertJewelryDrops()
+    {
+        var jewelry = this._gameConfiguration.Items.Where(i => ClassicJewelryDrops.Jewelry.Contains((i.Group, i.Number))).ToList();
+        Assert.That(jewelry, Has.Count.EqualTo(12));
+        Assert.That(jewelry, Has.All.Matches<ItemDefinition>(i => i.IsActive && !i.DropsFromMonsters));
+
+        var normal = this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == ClassicJewelryDrops.GetNormalDropGroupId());
+        Assert.That(normal.ItemType, Is.EqualTo(SpecialItemType.None));
+        Assert.That(normal.Chance, Is.EqualTo(ClassicJewelryDrops.JewelryDropChance));
+        Assert.That(normal.MinimumMonsterLevel, Is.Null);
+        Assert.That(normal.PossibleItems, Is.EquivalentTo(jewelry));
+
+        var excellent = this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == ClassicJewelryDrops.GetExcellentDropGroupId());
+        Assert.That(excellent.ItemType, Is.EqualTo(SpecialItemType.Excellent));
+        Assert.That(excellent.Chance, Is.EqualTo(ClassicJewelryDrops.ExcellentJewelryDropChance));
+        Assert.That(excellent.MinimumMonsterLevel, Is.EqualTo(50));
+        Assert.That(excellent.PossibleItems, Is.EquivalentTo(jewelry));
+
+        var mapsWithJewels = this._gameConfiguration.Maps.Where(m => m.DropItemGroups.Any(g => g.ItemType == SpecialItemType.Jewel)).ToList();
+        Assert.That(mapsWithJewels, Is.Not.Empty);
+        Assert.That(mapsWithJewels, Has.All.Matches<GameMapDefinition>(m => m.DropItemGroups.Contains(normal) && m.DropItemGroups.Contains(excellent)));
     }
 }

@@ -1268,6 +1268,12 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicIcarusMonsterHealthUpdatePlugIn_Name text.</summary>
         public static string ClassicIcarusMonsterHealthUpdatePlugIn_Name => ResourceManager.GetString("ClassicIcarusMonsterHealthUpdatePlugIn_Name", resourceCulture)!;
 
+        /// <summary>Gets the localized ClassicJewelryDropsUpdatePlugIn_Name text.</summary>
+        public static string ClassicJewelryDropsUpdatePlugIn_Name => ResourceManager.GetString("ClassicJewelryDropsUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicJewelryDropsUpdatePlugIn_Description text.</summary>
+        public static string ClassicJewelryDropsUpdatePlugIn_Description => ResourceManager.GetString("ClassicJewelryDropsUpdatePlugIn_Description", resourceCulture)!;
+
         /// <summary>Gets the localized ClassicIcarusMonsterHealthUpdatePlugIn_Description text.</summary>
         public static string ClassicIcarusMonsterHealthUpdatePlugIn_Description => ResourceManager.GetString("ClassicIcarusMonsterHealthUpdatePlugIn_Description", resourceCulture)!;
         
