@@ -88,7 +88,7 @@ public static class ClassicEvents
         if (Find<MiniGameMedalsPlugIn>(gameConfiguration) is { } medals)
         {
             medals.IsActive = true;
-            medals.SetConfiguration(MiniGameMedalsConfiguration.CreateDefault(), referenceHandler);
+            medals.SetConfiguration(new MiniGameMedalsConfiguration(), referenceHandler);
         }
 
         if (Find<TeamVsTeamPlugIn>(gameConfiguration) is { } teamVsTeam)

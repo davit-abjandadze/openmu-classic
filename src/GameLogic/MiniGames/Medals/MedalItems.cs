@@ -7,8 +7,8 @@ namespace MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
 
 /// <summary>
-/// The medal items (Box of Luck +5 and +6), which drop e.g. from bosses.
-/// They are added to the <see cref="MedalStats"/> of a character, so that they can be exchanged with /medals.
+/// The silver medal item (Box of Luck +5), which drops e.g. from bosses and is given for the results of the Devil Square and the Blood Castle.
+/// It pays at the <see cref="MedalMerchantPlugIn"/>, like the silver medals of the <see cref="MedalStats"/> of a character.
 /// </summary>
 public static class MedalItems
 {
@@ -28,37 +28,30 @@ public static class MedalItems
     public const byte SilverMedalLevel = 5;
 
     /// <summary>
-    /// The level of the Box of Luck which is the Gold Medal.
-    /// </summary>
-    public const byte GoldMedalLevel = 6;
-
-    /// <summary>
-    /// Removes the medal items from the inventory of the player and adds them to the medals of the character.
+    /// Awards silver medals to the player, e.g. for winning an event, and tells the player about it.
+    /// The silver medals are put into the inventory as items; the ones which don't fit are added to the
+    /// <see cref="MedalStats.SilverMedals"/> of the character, which pay at the merchant as well.
+    /// The progress of the player isn't saved.
     /// </summary>
     /// <param name="player">The player.</param>
-    /// <returns>The number of deposited gold and silver medals.</returns>
-    public static async ValueTask<(int Gold, int Silver)> DepositAsync(Player player)
+    /// <param name="silver">The number of silver medals.</param>
+    /// <returns>The task.</returns>
+    public static async ValueTask AwardSilverAsync(Player player, int silver)
     {
-        if (player.Inventory is not { } inventory || player.Attributes is not { } attributes)
+        if (silver <= 0 || player.Attributes is not { } attributes)
         {
-            return (0, 0);
+            return;
         }
 
-        var medals = inventory.Items.Where(IsMedal).ToList();
-        if (medals.Count == 0)
+        var credited = silver - await TryGiveSilverAsync(player, silver).ConfigureAwait(false);
+        attributes[MedalStats.SilverMedals] += credited;
+
+        var total = (int)attributes[MedalStats.SilverMedals] + CountSilver(player);
+        await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MedalsAwarded), silver, total).ConfigureAwait(false);
+        if (credited > 0)
         {
-            return (0, 0);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MedalsCreditedInventoryFull), credited).ConfigureAwait(false);
         }
-
-        var gold = medals.Count(m => m.Level == GoldMedalLevel);
-        var silver = medals.Count - gold;
-        await RemoveAsync(player, medals, () =>
-        {
-            attributes[MedalStats.GoldMedals] += gold;
-            attributes[MedalStats.SilverMedals] += silver;
-        }).ConfigureAwait(false);
-
-        return (gold, silver);
     }
 
     /// <summary>
@@ -84,31 +77,6 @@ public static class MedalItems
             return false;
         }
 
-        await RemoveAsync(player, medals, onRemoved).ConfigureAwait(false);
-        return true;
-    }
-
-    /// <summary>
-    /// Determines whether the item is a medal item in the inventory, not equipped and not in the personal store.
-    /// </summary>
-    /// <param name="item">The item.</param>
-    /// <returns><c>true</c>, if it's a medal.</returns>
-    internal static bool IsMedal(Item item)
-        => item.Definition is { Group: Group, Number: Number }
-           && item.Level is SilverMedalLevel or GoldMedalLevel
-           && item.ItemSlot > InventoryConstants.LastEquippableItemSlotIndex
-           && item.ItemSlot < InventoryConstants.FirstStoreItemSlotIndex;
-
-    /// <summary>
-    /// Determines whether the item is a silver medal item in the inventory, not equipped and not in the personal store.
-    /// Silver medals can't be dropped to the floor.
-    /// </summary>
-    /// <param name="item">The item.</param>
-    /// <returns><c>true</c>, if it's a silver medal.</returns>
-    internal static bool IsSilverMedal(Item item) => IsMedal(item) && item.Level == SilverMedalLevel;
-
-    private static async ValueTask RemoveAsync(Player player, IReadOnlyList<Item> medals, Action onRemoved)
-    {
         await player.RunPersistenceExclusiveAsync(async () =>
         {
             foreach (var medal in medals)
@@ -124,5 +92,41 @@ public static class MedalItems
         {
             await player.InvokeViewPlugInAsync<IItemRemovedPlugIn>(p => p.RemoveItemAsync(medal.ItemSlot)).ConfigureAwait(false);
         }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether the item is a silver medal item in the inventory, not equipped and not in the personal store.
+    /// Silver medals can't be dropped to the floor.
+    /// </summary>
+    /// <param name="item">The item.</param>
+    /// <returns><c>true</c>, if it's a silver medal.</returns>
+    internal static bool IsSilverMedal(Item item)
+        => item.Definition is { Group: Group, Number: Number }
+           && item.Level == SilverMedalLevel
+           && item.ItemSlot > InventoryConstants.LastEquippableItemSlotIndex
+           && item.ItemSlot < InventoryConstants.FirstStoreItemSlotIndex;
+
+    /// <summary>
+    /// Puts silver medal items into the inventory of the player, as long as it has free space.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <param name="count">The number of silver medal items to give.</param>
+    /// <returns>The number of silver medal items which were put into the inventory.</returns>
+    private static async ValueTask<int> TryGiveSilverAsync(Player player, int count)
+    {
+        if (RewardItems.FindDefinition(player, Group, Number) is not { } definition)
+        {
+            return 0;
+        }
+
+        var given = 0;
+        while (given < count && await RewardItems.TryGiveAsync(player, definition, SilverMedalLevel).ConfigureAwait(false) is not null)
+        {
+            given++;
+        }
+
+        return given;
     }
 }

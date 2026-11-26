@@ -197,7 +197,7 @@ public class ResetCharacterActionTest
             LevelAfterReset = 10,
             RequiredMoney = 0,
             ResetLimit = 55,
-            ServerResetLimitStart = DateTime.UtcNow.AddDays(-1).AddMinutes(-1),
+            ServerResetLimitStart = DateTime.UtcNow.Date.AddDays(-1),
             ServerResetLimitInitial = 1,
             ServerResetLimitIncreasePerDay = 1,
             MoveHome = false,

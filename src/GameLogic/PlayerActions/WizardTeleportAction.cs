@@ -17,7 +17,7 @@ public class WizardTeleportAction
     private const ushort TeleportSkillId = 6;
     private const ushort TeleportTargetSkillId = 15;
 
-    private static readonly TimeSpan TeleportCooldown = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan TeleportCooldown = TimeSpan.FromSeconds(5);
 
     private static readonly short[] PreventingMagicEffects =
     {

@@ -5236,7 +5236,7 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Limits the maximum number of parallel connections from the same IP address..
+        ///   Looks up a localized string similar to Limits the number of accounts which are logged in at the same time from the same IP address, over all game servers of the process. Accounts which play in the offline mode (/offlevel) count for the IP address they were started from..
         /// </summary>
         public static string MaximumConnectionsPerIpPlugIn_Description {
             get {
@@ -5261,7 +5261,34 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("MaximumConnectionsPerIpPlugInConfiguration_MaximumConnectionsPerIp_Caption", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Accounts Per IP in Events.
+        /// </summary>
+        public static string EventAccountsPerIpPlugIn_Name {
+            get {
+                return ResourceManager.GetString("EventAccountsPerIpPlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Limits the accounts of one IP address which take part in the same event..
+        /// </summary>
+        public static string EventAccountsPerIpPlugIn_Description {
+            get {
+                return ResourceManager.GetString("EventAccountsPerIpPlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum Accounts Per IP.
+        /// </summary>
+        public static string EventAccountsPerIpConfiguration_MaximumAccountsPerIp_Caption {
+            get {
+                return ResourceManager.GetString("EventAccountsPerIpConfiguration_MaximumAccountsPerIp_Caption", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Plugin which handles the medium complex potion consumption..
         /// </summary>
@@ -8761,6 +8788,87 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         public static string WorldChatChatCommandPlugIn_Name {
             get {
                 return ResourceManager.GetString("WorldChatChatCommandPlugIn_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent item drop levels per map.
+        /// </summary>
+        public static string MapExcellentDropLevelsPlugIn_Name {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsPlugIn_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sets the drop levels of the excellent weapons, shields, armor, rings and pendants which the monsters of a map drop, regardless of the monster level. Normal items still drop by the monster level.
+        /// </summary>
+        public static string MapExcellentDropLevelsPlugIn_Description {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsPlugIn_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maps.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_Maps_Name {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_Maps_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The maps with the drop levels of their excellent items. On other maps, the excellent items drop by the monster level.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_Maps_Description {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_Maps_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Map number.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_MapNumber_Name {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_MapNumber_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimum drop level.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_MinimumDropLevel_Name {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_MinimumDropLevel_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent items with a lower drop level don't drop on the map.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_MinimumDropLevel_Description {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_MinimumDropLevel_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum drop level.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_MaximumDropLevel_Name {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_MaximumDropLevel_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent items with a higher drop level don't drop on the map.
+        /// </summary>
+        public static string MapExcellentDropLevelsConfiguration_MaximumDropLevel_Description {
+            get {
+                return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_MaximumDropLevel_Description", resourceCulture);
             }
         }
     }

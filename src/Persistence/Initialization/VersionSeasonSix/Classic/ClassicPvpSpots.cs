@@ -11,8 +11,8 @@ using MUnique.OpenMU.GameLogic.PvP;
 /// Creates the default PvP spots of the classic server: two per map, from Lorencia to Icarus.
 /// </summary>
 /// <remarks>
-/// The spots are placed around the hunting areas with the most monsters, which are far enough from the safezone.
-/// They can be adjusted in the configuration of the <see cref="PvpSpotsPlugIn"/>.
+/// The spots are 25x25 squares around hunting areas which are far enough from the safezone.
+/// They are the spots which the server runs with; they can be adjusted in the configuration of the <see cref="PvpSpotsPlugIn"/>.
 /// </remarks>
 public static class ClassicPvpSpots
 {
@@ -21,68 +21,44 @@ public static class ClassicPvpSpots
     /// </summary>
     public static readonly IReadOnlyList<short> MapNumbers = [0, 1, 2, 3, 4, 7, 8, 10];
 
-    private const int SpotsPerMap = 2;
-    private const int HalfSize = 12;
-    private const int MinimumDistanceToSafezone = 35;
-    private const int MinimumDistanceBetweenSpots = 40;
+    private static readonly (string Name, short MapNumber, byte X1, byte Y1, byte X2, byte Y2)[] Spots =
+    [
+        ("Lorencia 1", 0, 39, 115, 63, 139),
+        ("Lorencia 2", 0, 191, 155, 215, 179),
+        ("Dungeon 1", 1, 157, 110, 181, 134),
+        ("Dungeon 2", 1, 231, 0, 255, 20),
+        ("Devias 1", 2, 95, 111, 119, 135),
+        ("Devias 2", 2, 195, 128, 219, 152),
+        ("Noria 1", 3, 164, 9, 188, 33),
+        ("Noria 2", 3, 81, 44, 105, 68),
+        ("Lost Tower 1", 4, 91, 188, 115, 212),
+        ("Lost Tower 2", 4, 13, 199, 37, 223),
+        ("Atlans 1", 7, 11, 218, 35, 242),
+        ("Atlans 2", 7, 107, 12, 131, 36),
+        ("Tarkan 1", 8, 123, 58, 147, 82),
+        ("Tarkan 2", 8, 172, 104, 196, 128),
+        ("Icarus 1", 10, 74, 29, 98, 53),
+        ("Icarus 2", 10, 41, 154, 65, 178),
+    ];
 
     /// <summary>
-    /// Creates the spots.
+    /// Creates the spots of the maps which exist in the game configuration.
     /// </summary>
     /// <param name="gameConfiguration">The game configuration.</param>
     /// <returns>The spots.</returns>
     public static IEnumerable<PvpSpotsConfiguration.PvpSpot> Create(GameConfiguration gameConfiguration)
     {
-        foreach (var mapNumber in MapNumbers)
+        foreach (var spot in Spots.Where(s => gameConfiguration.Maps.Any(m => m.Number == s.MapNumber && m.Discriminator == 0)))
         {
-            if (gameConfiguration.Maps.FirstOrDefault(m => m.Number == mapNumber && m.Discriminator == 0) is not { } map)
+            yield return new PvpSpotsConfiguration.PvpSpot
             {
-                continue;
-            }
-
-            var safezone = map.ExitGates.FirstOrDefault(g => g.IsSpawnGate);
-            var safeX = safezone is null ? -1000 : (safezone.X1 + safezone.X2) / 2;
-            var safeY = safezone is null ? -1000 : (safezone.Y1 + safezone.Y2) / 2;
-            var mapName = map.Name.ValueInNeutralLanguage ?? $"Map {mapNumber}";
-
-            var candidates = map.MonsterSpawns
-                .Where(s => s.MonsterDefinition is { ObjectKind: NpcObjectKind.Monster, IsActive: true })
-                .Select(s => (X: (s.X1 + s.X2) / 2, Y: (s.Y1 + s.Y2) / 2, s.Quantity))
-                .Where(c => Distance(c.X, c.Y, safeX, safeY) >= MinimumDistanceToSafezone)
-                .GroupBy(c => (c.X / 16, c.Y / 16))
-                .Select(g => (X: (int)g.Average(c => c.X), Y: (int)g.Average(c => c.Y), Quantity: g.Sum(c => c.Quantity)))
-                .OrderByDescending(c => c.Quantity)
-                .ToList();
-
-            var chosen = new List<(int X, int Y)>();
-            foreach (var candidate in candidates)
-            {
-                if (chosen.Count >= SpotsPerMap)
-                {
-                    break;
-                }
-
-                if (chosen.All(c => Distance(c.X, c.Y, candidate.X, candidate.Y) >= MinimumDistanceBetweenSpots))
-                {
-                    chosen.Add((candidate.X, candidate.Y));
-                }
-            }
-
-            var number = 1;
-            foreach (var (x, y) in chosen)
-            {
-                yield return new PvpSpotsConfiguration.PvpSpot
-                {
-                    Name = $"{mapName} {number++}",
-                    MapNumber = mapNumber,
-                    X1 = (byte)Math.Clamp(x - HalfSize, 0, 255),
-                    Y1 = (byte)Math.Clamp(y - HalfSize, 0, 255),
-                    X2 = (byte)Math.Clamp(x + HalfSize, 0, 255),
-                    Y2 = (byte)Math.Clamp(y + HalfSize, 0, 255),
-                };
-            }
+                Name = spot.Name,
+                MapNumber = spot.MapNumber,
+                X1 = spot.X1,
+                Y1 = spot.Y1,
+                X2 = spot.X2,
+                Y2 = spot.Y2,
+            };
         }
     }
-
-    private static double Distance(int x1, int y1, int x2, int y2) => Math.Sqrt(((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2)));
 }

@@ -7,7 +7,10 @@ namespace MUnique.OpenMU.GameLogic.TeamVsTeam;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.MiniGames;
+using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.NPC;
+using MUnique.OpenMU.GameLogic.PlayerActions;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
 using MUnique.OpenMU.PlugIns;
@@ -15,11 +18,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The Team vs Team event: players register with /jointvt during the registration time,
 /// then they are split into two balanced teams and warped to the battle map.
-/// Kills of the other team don't make the killer a player killer, and players can't damage their own team.
-/// When the time is over, the team with more kills wins: its best player (MVP) and the other members get points.
+/// On the battle map, kills of the other team don't make the killer a player killer, and players can't damage their own team.
+/// When the time is over, the team with more kills wins: its best player (MVP) and the other members get silver medals,
+/// see <see cref="MedalItems.AwardSilverAsync"/>.
 /// </summary>
 [PlugIn]
-[Display(Name = "Team vs Team", Description = "A scheduled battle of two balanced teams, joined with /jointvt. The winning team gets points.")]
+[Display(Name = "Team vs Team", Description = "A scheduled battle of two balanced teams, joined with /jointvt. The winning team gets silver medals.")]
 [Guid("D4C7A1E3-2B5F-4A86-9C30-6E8F1B2D7A10")]
 public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, TeamVsTeamState>,
     ISupportDefaultCustomConfiguration,
@@ -28,6 +32,8 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
     IPlayerAttackRestrictionPlugIn,
     IAttackableGotKilledPlugIn
 {
+    private static readonly CloseNpcDialogAction NpcDialogCloser = new();
+
     /// <summary>
     /// Gets the active instance of the plugin.
     /// </summary>
@@ -50,6 +56,13 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
         if (state.State != PeriodicTaskState.Prepared)
         {
             await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TeamVsTeamNotOpen)).ConfigureAwait(false);
+            return;
+        }
+
+        var run = state.Run;
+        if (EventAccountsPerIpPlugIn.GetActive(player.GameContext) is { } accountsPerIp
+            && !await accountsPerIp.TryAdmitAsync(player, typeof(TeamVsTeamPlugIn), run, () => state.Run == run && state.State is PeriodicTaskState.Prepared or PeriodicTaskState.Started).ConfigureAwait(false))
+        {
             return;
         }
 
@@ -88,7 +101,10 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
     /// <inheritdoc />
     public void CheckAttack(Player attacker, Player defender, CancelEventArgs eventArgs)
     {
-        if (attacker == defender || !this.IsEventRunning(attacker.GameContext, out var state))
+        if (attacker == defender
+            || !this.IsEventRunning(attacker.GameContext, out var state)
+            || !this.IsOnBattleMap(attacker)
+            || !this.IsOnBattleMap(defender))
         {
             return;
         }
@@ -140,8 +156,13 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
     /// </summary>
     /// <param name="teams">The teams.</param>
     /// <param name="kills">The kills.</param>
-    /// <returns>The winning team and its best player, or <c>null</c> if it's a draw.</returns>
-    internal static (int Team, Player MostValuablePlayer)? DetermineWinner(IReadOnlyDictionary<Player, int> teams, IReadOnlyDictionary<Player, int> kills)
+    /// <param name="canBeMostValuablePlayer">Determines if a player can be the best player, e.g. because it's still in the game. All can be, if it's <c>null</c>.</param>
+    /// <returns>The winning team and its best player, or <c>null</c> if it's a draw.
+    /// The best player is <c>null</c>, if no player of the winning team can be it.</returns>
+    /// <remarks>
+    /// The kills of all players count for their team, even if they left the game in the meantime.
+    /// </remarks>
+    internal static (int Team, Player? MostValuablePlayer)? DetermineWinner(IReadOnlyDictionary<Player, int> teams, IReadOnlyDictionary<Player, int> kills, Func<Player, bool>? canBeMostValuablePlayer = null)
     {
         var teamKills = new int[2];
         foreach (var (player, team) in teams)
@@ -157,10 +178,43 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
         var winningTeam = teamKills[0] > teamKills[1] ? 0 : 1;
         var mostValuablePlayer = teams.Where(t => t.Value == winningTeam)
             .Select(t => t.Key)
+            .Where(p => canBeMostValuablePlayer?.Invoke(p) ?? true)
             .OrderByDescending(p => kills.GetValueOrDefault(p))
-            .First();
+            .FirstOrDefault();
         return (winningTeam, mostValuablePlayer);
     }
+
+    /// <summary>
+    /// Awards a player of the winning team: counts the win (and the MVP) and gives the silver medals.
+    /// </summary>
+    /// <param name="player">The player of the winning team.</param>
+    /// <param name="isMostValuablePlayer">If set to <c>true</c>, the player is the best player (MVP) of the winning team.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The task.</returns>
+    internal static async ValueTask AwardWinnerAsync(Player player, bool isMostValuablePlayer, TeamVsTeamConfiguration configuration)
+    {
+        if (player.Attributes is not { } attributes)
+        {
+            return;
+        }
+
+        attributes[TeamVsTeamStats.Wins] += 1;
+        if (isMostValuablePlayer)
+        {
+            attributes[TeamVsTeamStats.MostValuablePlayer] += 1;
+        }
+
+        var silver = isMostValuablePlayer ? configuration.MostValuablePlayerSilverMedals : configuration.WinnerSilverMedals;
+        await MedalItems.AwardSilverAsync(player, silver).ConfigureAwait(false);
+        await player.SaveProgressAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the state of the event in the game context.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    /// <returns>The state.</returns>
+    internal TeamVsTeamState GetState(IGameContext gameContext) => this.GetStateByGameContext(gameContext);
 
     /// <inheritdoc />
     protected override TeamVsTeamState CreateState(IGameContext gameContext) => new(gameContext);
@@ -170,6 +224,7 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
     {
         lock (state.SyncRoot)
         {
+            state.StartNewRun();
             state.Registered.Clear();
             state.Teams.Clear();
             state.Kills.Clear();
@@ -192,7 +247,9 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
         List<Player> players;
         lock (state.SyncRoot)
         {
-            players = state.Registered.Where(IsAvailable).ToList();
+            // Registered players which are busy at the start (dead, trading, ...) still fight for their team,
+            // they just can't be warped and have to come to the battle map on their own.
+            players = state.Registered.Where(IsInGame).ToList();
             state.Registered.Clear();
         }
 
@@ -219,7 +276,11 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
 
         foreach (var (player, team) in teams)
         {
-            await player.WarpToAsync(gate).ConfigureAwait(false);
+            if (await CanBeWarpedAsync(player).ConfigureAwait(false))
+            {
+                await player.WarpToAsync(gate).ConfigureAwait(false);
+            }
+
             var teamMates = string.Join(", ", teams.Where(t => t.Value == team).Select(t => t.Key.Name));
             await player.ShowLocalizedGoldenMessageAsync(nameof(PlayerMessage.TeamVsTeamStarted), team + 1).ConfigureAwait(false);
             await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TeamVsTeamYourTeam), team + 1, teamMates).ConfigureAwait(false);
@@ -245,10 +306,11 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
             return;
         }
 
-        var result = DetermineWinner(teams, kills);
+        // Players which are dead, trading etc. at the end still get their reward, only those who left the game don't.
+        var result = DetermineWinner(teams, kills, IsInGame);
         foreach (var (player, team) in teams)
         {
-            if (!IsAvailable(player))
+            if (!IsInGame(player))
             {
                 continue;
             }
@@ -259,24 +321,16 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
             }
             else
             {
-                await player.ShowLocalizedGoldenMessageAsync(nameof(PlayerMessage.TeamVsTeamWinner), winner.Team + 1, winner.MostValuablePlayer.Name).ConfigureAwait(false);
-                if (team == winner.Team && player.Attributes is { } attributes)
+                await player.ShowLocalizedGoldenMessageAsync(nameof(PlayerMessage.TeamVsTeamWinner), winner.Team + 1, winner.MostValuablePlayer?.Name ?? "-").ConfigureAwait(false);
+                if (team == winner.Team)
                 {
-                    var isMostValuablePlayer = player == winner.MostValuablePlayer;
-                    var points = isMostValuablePlayer ? configuration.MostValuablePlayerPoints : configuration.WinnerPoints;
-                    attributes[TeamVsTeamStats.Points] += points;
-                    attributes[TeamVsTeamStats.Wins] += 1;
-                    if (isMostValuablePlayer)
-                    {
-                        attributes[TeamVsTeamStats.MostValuablePlayer] += 1;
-                    }
-
-                    await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TeamVsTeamPoints), points).ConfigureAwait(false);
-                    await player.SaveProgressAsync().ConfigureAwait(false);
+                    await AwardWinnerAsync(player, player == winner.MostValuablePlayer, configuration).ConfigureAwait(false);
                 }
             }
 
-            if (player.CurrentMap?.Definition.Number == configuration.MapNumber)
+            // A dead player respawns on the battle map and can leave it on its own.
+            if (player.CurrentMap?.Definition.Number == configuration.MapNumber
+                && await CanBeWarpedAsync(player).ConfigureAwait(false))
             {
                 await WarpHomeAsync(player).ConfigureAwait(false);
             }
@@ -289,8 +343,29 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
         return attributes is null ? 0 : attributes[Stats.Level] + (attributes[Stats.Resets] * player.GameContext.Configuration.MaximumLevel);
     }
 
-    private static bool IsAvailable(Player player)
-        => player.PlayerState.CurrentState == PlayerState.EnteredWorld && player.SelectedCharacter is not null;
+    /// <summary>
+    /// Determines whether the player is in the game with a character, in any state of it, e.g. also dead or trading.
+    /// </summary>
+    private static bool IsInGame(Player player)
+        => player.SelectedCharacter is not null
+           && player.PlayerState.CurrentState is var state
+           && state.IsLoggedIn()
+           && state != PlayerState.Authenticated
+           && state != PlayerState.CharacterSelection;
+
+    /// <summary>
+    /// Determines whether the player can be warped by the event now. An open NPC dialog is closed for it;
+    /// dead or trading players can't be warped.
+    /// </summary>
+    private static async ValueTask<bool> CanBeWarpedAsync(Player player)
+    {
+        if (player.PlayerState.CurrentState == PlayerState.NpcDialogOpened)
+        {
+            await NpcDialogCloser.CloseNpcDialogAsync(player).ConfigureAwait(false);
+        }
+
+        return player.PlayerState.CurrentState == PlayerState.EnteredWorld;
+    }
 
     private static async ValueTask WarpHomeAsync(Player player)
     {
@@ -306,10 +381,19 @@ public class TeamVsTeamPlugIn : PeriodicTaskBasePlugIn<TeamVsTeamConfiguration, 
         return state.State == PeriodicTaskState.Started;
     }
 
+    /// <summary>
+    /// Determines whether the player is on the battle map. The teams only matter there,
+    /// so that the event doesn't change the player killing rules on the other maps.
+    /// </summary>
+    private bool IsOnBattleMap(Player player)
+        => player.CurrentMap?.Definition.Number == (this.Configuration?.MapNumber ?? TeamVsTeamConfiguration.Default.MapNumber);
+
     private bool AreEnemies(Player attacker, Player defender)
     {
         return attacker != defender
                && this.IsEventRunning(attacker.GameContext, out var state)
+               && this.IsOnBattleMap(attacker)
+               && this.IsOnBattleMap(defender)
                && state.GetTeam(attacker) is { } attackerTeam
                && state.GetTeam(defender) is { } defenderTeam
                && attackerTeam != defenderTeam;

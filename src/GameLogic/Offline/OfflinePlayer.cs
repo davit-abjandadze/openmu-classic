@@ -80,12 +80,24 @@ public class OfflinePlayer : Player
     public OfflinePlayer(IGameContext gameContext)
         : base(gameContext)
     {
+        // The disconnect saves the progress first, so the account is released only afterward.
+        this.PlayerDisconnected += _ => this.LogOffFromLoginServerAsync();
     }
 
     /// <summary>
     /// Gets the login name this offline player belongs to.
     /// </summary>
     public string? AccountLoginName => this.Account?.LoginName;
+
+    /// <summary>
+    /// Gets the IP address of the game client which started this offline session,
+    /// or <c>null</c> if no game client started it, e.g. for bots.
+    /// </summary>
+    /// <remarks>
+    /// The session continues the play of that client, so it counts as a session of its IP address,
+    /// e.g. for the <see cref="PlugIns.MaximumConnectionsPerIpPlugIn"/>.
+    /// </remarks>
+    public string? ClientIpAddress { get; internal init; }
 
     /// <summary>
     /// Gets the start timestamp of the offline session.
@@ -474,6 +486,9 @@ public class OfflinePlayer : Player
     /// <inheritdoc />
     protected override async ValueTask DisposeAsyncCore()
     {
+        // A session which is disposed without a disconnect, e.g. because its start failed, still has to release the account.
+        await this.LogOffFromLoginServerAsync().ConfigureAwait(false);
+
         if (this._intelligenceDisposeTask is { } disposeTask)
         {
             await disposeTask.ConfigureAwait(false);
@@ -493,6 +508,28 @@ public class OfflinePlayer : Player
     {
         this._intelligence = new OfflinePlayerMuHelper(this);
         this._intelligence.Start();
+    }
+
+    /// <summary>
+    /// Logs the account of this session off at the login server, if the session holds its registration there,
+    /// see <see cref="OfflinePlayerManager.StartAsync"/>.
+    /// </summary>
+    private async ValueTask LogOffFromLoginServerAsync()
+    {
+        if (this.GameContext is not IGameServerContext gameServerContext
+            || this.ReleaseLoginServerRegistration() is not { } loginName)
+        {
+            return;
+        }
+
+        try
+        {
+            await gameServerContext.LoginServer.LogOffAsync(loginName, gameServerContext.Id).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Couldn't log off the offline session of [{LoginName}] at the login server.", loginName);
+        }
     }
 
     private async ValueTask AdvanceToCharacterSelectionStateAsync()

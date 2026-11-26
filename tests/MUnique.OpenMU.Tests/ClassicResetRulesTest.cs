@@ -54,7 +54,7 @@ public class ClassicResetRulesTest
     public void ServerResetLimitRisesDaily(double hoursAfterStart, int expectedLimit)
     {
         var configuration = CreateServerLimitConfiguration();
-        Assert.That(configuration.GetEffectiveResetLimit(Start.AddHours(hoursAfterStart)), Is.EqualTo(expectedLimit));
+        Assert.That(configuration.GetEffectiveResetLimit(Start.AddHours(hoursAfterStart), TimeZoneInfo.Utc), Is.EqualTo(expectedLimit));
     }
 
     /// <summary>
@@ -64,8 +64,25 @@ public class ClassicResetRulesTest
     public void NextServerResetLimitRise()
     {
         var configuration = CreateServerLimitConfiguration();
-        Assert.That(configuration.GetNextServerResetLimitRise(Start.AddHours(30)), Is.EqualTo(Start.AddDays(2)));
-        Assert.That(configuration.GetNextServerResetLimitRise(Start.AddDays(60)), Is.Null);
+        Assert.That(configuration.GetNextServerResetLimitRise(Start.AddHours(30), TimeZoneInfo.Utc), Is.EqualTo(Start.AddDays(2)));
+        Assert.That(configuration.GetNextServerResetLimitRise(Start.AddDays(60), TimeZoneInfo.Utc), Is.Null);
+    }
+
+    /// <summary>
+    /// Tests that the server reset limit rises at midnight in the time zone of the server (UTC+4), not at midnight UTC.
+    /// </summary>
+    [Test]
+    public void ServerResetLimitRisesAtLocalMidnight()
+    {
+        var timeZone = TimeZoneInfo.CreateCustomTimeZone("Test+4", TimeSpan.FromHours(4), "Test+4", "Test+4");
+        var configuration = CreateServerLimitConfiguration();
+
+        // Start is 2026-11-19 00:00 UTC = 04:00 local, so the first local midnight is 2026-11-19 20:00 UTC.
+        Assert.That(configuration.GetEffectiveResetLimit(Start.AddHours(19.9), timeZone), Is.EqualTo(1));
+        Assert.That(configuration.GetEffectiveResetLimit(Start.AddHours(20), timeZone), Is.EqualTo(2));
+        Assert.That(configuration.GetEffectiveResetLimit(Start.AddHours(24), timeZone), Is.EqualTo(2), "midnight UTC doesn't matter");
+        Assert.That(configuration.GetNextServerResetLimitRise(Start.AddHours(1), timeZone), Is.EqualTo(Start.AddHours(20)));
+        Assert.That(configuration.GetNextServerResetLimitRise(Start.AddHours(21), timeZone), Is.EqualTo(Start.AddHours(44)));
     }
 
     /// <summary>
@@ -74,8 +91,8 @@ public class ClassicResetRulesTest
     [Test]
     public void WithoutServerLimitOnlyResetLimitApplies()
     {
-        Assert.That(new ResetConfiguration { ResetLimit = 10 }.GetEffectiveResetLimit(Start), Is.EqualTo(10));
-        Assert.That(new ResetConfiguration().GetEffectiveResetLimit(Start), Is.Null);
+        Assert.That(new ResetConfiguration { ResetLimit = 10 }.GetEffectiveResetLimit(Start, TimeZoneInfo.Utc), Is.EqualTo(10));
+        Assert.That(new ResetConfiguration().GetEffectiveResetLimit(Start, TimeZoneInfo.Utc), Is.Null);
     }
 
     /// <summary>

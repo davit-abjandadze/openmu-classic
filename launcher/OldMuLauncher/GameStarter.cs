@@ -68,21 +68,21 @@ public static class GameStarter
 
     private static string? ResolveHost(string host)
     {
-        if (IPAddress.TryParse(host, out var parsed))
+        if (!IPAddress.TryParse(host, out var address))
         {
-            return parsed.ToString();
+            try
+            {
+                address = Dns.GetHostAddresses(host).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+            }
+            catch (SocketException)
+            {
+                return null;
+            }
         }
 
-        try
-        {
-            var address = Dns.GetHostAddresses(host).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork)?.ToString();
-
-            // The game client refuses 127.0.0.1, any other loopback address works.
-            return address == "127.0.0.1" ? "127.127.127.127" : address;
-        }
-        catch (SocketException)
-        {
-            return null;
-        }
+        // The game client refuses 127.0.0.1, any other loopback address works.
+        return address is null ? null
+            : address.Equals(IPAddress.Loopback) ? "127.127.127.127"
+            : address.ToString();
     }
 }

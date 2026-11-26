@@ -1403,7 +1403,9 @@
   <data name="BotFeaturePlugIn_Name" xml:space="preserve"><value>Bots</value></data>
   <data name="BotFeaturePlugIn_Description" xml:space="preserve"><value>Spawns server-side bots which hunt monsters on the maps. Configure the accounts to animate and enable the feature.</value></data>
   <data name="MaximumConnectionsPerIpPlugIn_Name" xml:space="preserve"><value>Maximum Connections Per IP</value></data>
-  <data name="MaximumConnectionsPerIpPlugIn_Description" xml:space="preserve"><value>Limits the maximum number of parallel connections from the same IP address.</value></data>
+  <data name="MaximumConnectionsPerIpPlugIn_Description" xml:space="preserve"><value>Limits the number of accounts which are logged in at the same time from the same IP address, over all game servers of the process. Accounts which play in the offline mode (/offlevel) count for the IP address they were started from.</value></data>
+  <data name="EventAccountsPerIpPlugIn_Name" xml:space="preserve"><value>Accounts Per IP in Events</value></data>
+  <data name="EventAccountsPerIpPlugIn_Description" xml:space="preserve"><value>Limits the accounts of one IP address which take part in the same event (Devil Square, Blood Castle, Chaos Castle, Team vs Team, ...), by default to one. As soon as an account entered an event, another account of the same IP address can't enter it anymore, even after the first one left it. The events of all game servers of the process count together.</value></data>
   <data name="LoginTimeoutPlugIn_Name" xml:space="preserve"><value>Login Timeout</value></data>
   <data name="LoginTimeoutPlugIn_Description" xml:space="preserve"><value>Disconnects clients which don't log in within the configured time after they connected.</value></data>
   <data name="SpeedHackDetectPlugIn_Name" xml:space="preserve"><value>Speedhack Anti-Cheat</value></data>
@@ -1468,6 +1470,7 @@
   <data name="MonsterAttributeScalerConfiguration_DamagePercentage_Caption" xml:space="preserve"><value>Damage Percentage</value></data>
   <data name="MonsterAttributeScalerConfiguration_ScaleAllPercentage_Caption" xml:space="preserve"><value>Scale All Percentage</value></data>
   <data name="MaximumConnectionsPerIpPlugInConfiguration_MaximumConnectionsPerIp_Caption" xml:space="preserve"><value>Maximum Connections Per Ip</value></data>
+  <data name="EventAccountsPerIpConfiguration_MaximumAccountsPerIp_Caption" xml:space="preserve"><value>Maximum Accounts Per IP</value></data>
   <data name="LoginTimeoutPlugInConfiguration_Timeout_Caption" xml:space="preserve"><value>Timeout</value></data>
   <data name="SpeedHackDetectConfiguration_AttackSpeedMinIntervalMs_Caption" xml:space="preserve"><value>Attack Speed Min Interval Ms</value></data>
   <data name="SpeedHackDetectConfiguration_AttackSpeedScalingFactor_Caption" xml:space="preserve"><value>Attack Speed Scaling Factor</value></data>
@@ -2220,4 +2223,13 @@
   <data name="BotMerchantConfiguration_CityMapNumbers_Description" xml:space="preserve"><value>The numbers of the city maps, separated by commas (0 = Lorencia, 2 = Devias, 3 = Noria, 51 = Elvenland). The bots open their store in the safezone near the spawn gate.</value></data>
   <data name="BotMerchantConfiguration_NewMerchantsPerCheck_Name" xml:space="preserve"><value>New merchants per 30 seconds</value></data>
   <data name="BotMerchantConfiguration_NewMerchantsPerCheck_Description" xml:space="preserve"><value>How many bots at most start a shift every 30 seconds. After a server start, the market fills up within minutes instead of all at once, and the parties of the bots don't fall apart together.</value></data>
+  <data name="MapExcellentDropLevelsPlugIn_Name" xml:space="preserve"><value>Excellent item drop levels per map</value></data>
+  <data name="MapExcellentDropLevelsPlugIn_Description" xml:space="preserve"><value>Sets the drop levels of the excellent weapons, shields, armor, rings and pendants which the monsters of a map drop, regardless of the monster level. Normal items still drop by the monster level.</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_Maps_Name" xml:space="preserve"><value>Maps</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_Maps_Description" xml:space="preserve"><value>The maps with the drop levels of their excellent items. On other maps, the excellent items drop by the monster level.</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_MapNumber_Name" xml:space="preserve"><value>Map number</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_MinimumDropLevel_Name" xml:space="preserve"><value>Minimum drop level</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_MinimumDropLevel_Description" xml:space="preserve"><value>Excellent items with a lower drop level don't drop on the map.</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_MaximumDropLevel_Name" xml:space="preserve"><value>Maximum drop level</value></data>
+  <data name="MapExcellentDropLevelsConfiguration_MaximumDropLevel_Description" xml:space="preserve"><value>Excellent items with a higher drop level don't drop on the map.</value></data>
 </root>

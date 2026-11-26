@@ -4,8 +4,10 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
+using System.Collections.Concurrent;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using Nito.AsyncEx;
 
 /// <summary>
@@ -43,6 +45,7 @@ public class DefaultDropGenerator : IDropGenerator
     private readonly IList<ItemDefinition> _droppableItems;
     private readonly IList<ItemDefinition>?[] _droppableItemsPerMonsterLevel = new IList<ItemDefinition>?[byte.MaxValue + 1];
     private readonly IList<ItemDefinition>?[] _droppableSocketItemsPerMonsterLevel = new IList<ItemDefinition>?[byte.MaxValue + 1];
+    private readonly ConcurrentDictionary<(int MonsterLevel, int MinimumDropLevel, int MaximumDropLevel), IList<ItemDefinition>> _excellentItemsWithMapDropLevels = new();
 
     private readonly byte _maxItemOptionLevelDrop;
     private readonly byte _excellentItemDropLevelDelta;
@@ -95,7 +98,8 @@ public class DefaultDropGenerator : IDropGenerator
 
         uint money = 0;
         var itemDropRate = 1.0 + (player.Attributes?[Stats.BonusItemDropRate] ?? 0);
-        var (droppedItems, moneyResult) = this.GenerateDrops(monster, gainedExperience, itemDropRate);
+        var excellentDropLevels = MapExcellentDropLevelsPlugIn.GetDropLevels(player.GameContext, map);
+        var (droppedItems, moneyResult) = this.GenerateDrops(monster, gainedExperience, itemDropRate, excellentDropLevels);
         if (moneyResult > 0)
         {
             money = moneyResult;
@@ -185,15 +189,16 @@ public class DefaultDropGenerator : IDropGenerator
     /// <param name="monsterLevel">The monster level, if it's a monster drop.</param>
     /// <param name="possibleItems">The possible items, if the drop is from an item box (e.g. box of kundun).</param>
     /// <param name="dropGroup">The drop group, which may override the chance and the maximum number of excellent options.</param>
+    /// <param name="mapDropLevels">The drop levels of the excellent items on the map, if it's a monster drop, see <see cref="MapExcellentDropLevelsPlugIn"/>.</param>
     /// <returns>A random excellent item.</returns>
-    protected Item? GenerateRandomExcellentItem(int monsterLevel = 0, ICollection<ItemDefinition>? possibleItems = null, DropItemGroup? dropGroup = null)
+    protected Item? GenerateRandomExcellentItem(int monsterLevel = 0, ICollection<ItemDefinition>? possibleItems = null, DropItemGroup? dropGroup = null, MapExcellentDropLevelsConfiguration.MapDropLevels? mapDropLevels = null)
     {
         if (monsterLevel < this._excellentItemDropLevelDelta && possibleItems is null)
         {
             return null;
         }
 
-        var possible = possibleItems ?? this.GetPossibleList(monsterLevel - this._excellentItemDropLevelDelta);
+        var possible = possibleItems ?? this.GetPossibleExcellentList(monsterLevel - this._excellentItemDropLevelDelta, mapDropLevels);
 
         // Socket items can't be excellent, so they are never selected for an excellent drop.
         var withoutSocketItems = possible?.Where(it => it.MaximumSockets == 0).ToList();
@@ -293,7 +298,7 @@ public class DefaultDropGenerator : IDropGenerator
         return group.ItemType == SpecialItemType.Money ? group.Chance : group.Chance * itemDropRate;
     }
 
-    private (IList<Item>? Items, uint Money) GenerateDrops(MonsterDefinition monster, int gainedExperience, double itemDropRate)
+    private (IList<Item>? Items, uint Money) GenerateDrops(MonsterDefinition monster, int gainedExperience, double itemDropRate, MapExcellentDropLevelsConfiguration.MapDropLevels? excellentDropLevels)
     {
         uint money = 0;
         List<Item>? droppedItems = null;
@@ -307,7 +312,7 @@ public class DefaultDropGenerator : IDropGenerator
                 break;
             }
 
-            var item = this.GenerateItemDropOrMoney(monster, group, gainedExperience, out var droppedMoney);
+            var item = this.GenerateItemDropOrMoney(monster, group, gainedExperience, excellentDropLevels, out var droppedMoney);
             if (item is not null)
             {
                 droppedItems ??= new List<Item>(monster.NumberOfMaximumItemDrops);
@@ -339,7 +344,7 @@ public class DefaultDropGenerator : IDropGenerator
                     continue;
                 }
 
-                var item = this.GenerateItemDropOrMoney(monster, group, gainedExperience, out var droppedMoney);
+                var item = this.GenerateItemDropOrMoney(monster, group, gainedExperience, excellentDropLevels, out var droppedMoney);
                 if (item is not null)
                 {
                     droppedItems ??= new List<Item>(monster.NumberOfMaximumItemDrops);
@@ -543,7 +548,7 @@ public class DefaultDropGenerator : IDropGenerator
         }
     }
 
-    private Item? GenerateItemDropOrMoney(MonsterDefinition monster, DropItemGroup selectedGroup, int gainedExperience, out uint? droppedMoney)
+    private Item? GenerateItemDropOrMoney(MonsterDefinition monster, DropItemGroup selectedGroup, int gainedExperience, MapExcellentDropLevelsConfiguration.MapDropLevels? excellentDropLevels, out uint? droppedMoney)
     {
         droppedMoney = null;
 
@@ -552,7 +557,7 @@ public class DefaultDropGenerator : IDropGenerator
             return this.GenerateItemFromGroup(monster, selectedGroup);
         }
 
-        var item = this.GenerateSpecialItem(monster, selectedGroup);
+        var item = this.GenerateSpecialItem(monster, selectedGroup, excellentDropLevels);
         if (item is null && selectedGroup.ItemType == SpecialItemType.Money)
         {
             droppedMoney = (uint)Math.Min((long)Math.Max(gainedExperience, 0) + BaseMoneyDrop, int.MaxValue);
@@ -579,13 +584,13 @@ public class DefaultDropGenerator : IDropGenerator
         return this.GenerateItemDrop(selectedGroup, filteredPossibleItems);
     }
 
-    private Item? GenerateSpecialItem(MonsterDefinition monster, DropItemGroup selectedGroup)
+    private Item? GenerateSpecialItem(MonsterDefinition monster, DropItemGroup selectedGroup, MapExcellentDropLevelsConfiguration.MapDropLevels? excellentDropLevels)
     {
         var monsterLevel = (int)monster[Stats.Level];
         return selectedGroup.ItemType switch
         {
             SpecialItemType.Ancient => this.GenerateRandomAncient(),
-            SpecialItemType.Excellent => this.GenerateRandomExcellentItem(monsterLevel, dropGroup: selectedGroup),
+            SpecialItemType.Excellent => this.GenerateRandomExcellentItem(monsterLevel, dropGroup: selectedGroup, mapDropLevels: excellentDropLevels),
             SpecialItemType.RandomItem => this.GenerateRandomItem(monsterLevel, false),
             SpecialItemType.SocketItem => this.GenerateRandomItem(monsterLevel, true),
             _ => null,
@@ -630,5 +635,37 @@ public class DefaultDropGenerator : IDropGenerator
                        && (it.DropLevel > monsterLevel - DropLevelMaxGap)
                        && (it.MaximumSockets > 0) == isSocketItem
                  select it).ToList();
+    }
+
+    /// <summary>
+    /// Gets the items which may be selected randomly for an excellent drop. When the map sets the drop levels
+    /// of the excellent items, the equipment (items which can be worn) is selected within these drop levels,
+    /// regardless of the monster level. Other items are selected by the monster level as usual.
+    /// </summary>
+    private IList<ItemDefinition>? GetPossibleExcellentList(int monsterLevel, MapExcellentDropLevelsConfiguration.MapDropLevels? mapDropLevels)
+    {
+        if (mapDropLevels is null)
+        {
+            return this.GetPossibleList(monsterLevel);
+        }
+
+        if (monsterLevel is < byte.MinValue or > byte.MaxValue)
+        {
+            return null;
+        }
+
+        var key = (monsterLevel, mapDropLevels.MinimumDropLevel, mapDropLevels.MaximumDropLevel);
+        return this._excellentItemsWithMapDropLevels.GetOrAdd(key, static (k, generator) => generator.CreatePossibleExcellentList(k), this);
+    }
+
+    private IList<ItemDefinition> CreatePossibleExcellentList((int MonsterLevel, int MinimumDropLevel, int MaximumDropLevel) key)
+    {
+        var otherItems = this.GetPossibleList(key.MonsterLevel)!.Where(it => it.ItemSlot is null);
+        var equipment = this._droppableItems.Where(it => it.ItemSlot is not null
+            && it.DropLevel >= key.MinimumDropLevel
+            && it.DropLevel <= key.MaximumDropLevel
+            && (it.MaximumDropLevel is not { } maximumMonsterLevel || key.MonsterLevel <= maximumMonsterLevel)
+            && it.MaximumSockets == 0);
+        return otherItems.Concat(equipment).ToList();
     }
 }

@@ -482,6 +482,146 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that at most 2 accounts can be logged in from one IP address.
+    /// </summary>
+    [Test]
+    public void MaximumAccountsPerIpIsActiveWithTwo()
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.MaximumConnectionsPerIpPlugIn).GUID);
+        Assert.That(plugIn.IsActive, Is.True);
+        var configuration = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.PlugIns.MaximumConnectionsPerIpPlugInConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+        Assert.That(configuration?.MaximumConnectionsPerIp, Is.EqualTo(2));
+    }
+
+    /// <summary>
+    /// Tests that the update activates the limit of 2 accounts per IP address on an existing classic database,
+    /// whose plugin configuration is still inactive with the former default of 3, and that applying it again doesn't add a second one.
+    /// </summary>
+    [Test]
+    public async Task UpdateActivatesMaximumAccountsPerIpAsync()
+    {
+        var typeId = typeof(MUnique.OpenMU.GameLogic.PlugIns.MaximumConnectionsPerIpPlugIn).GUID;
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        var existing = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId);
+        existing.IsActive = false;
+        existing.SetConfiguration(new MUnique.OpenMU.GameLogic.PlugIns.MaximumConnectionsPerIpPlugInConfiguration { MaximumConnectionsPerIp = 3 }, referenceHandler);
+
+        var update = new ClassicMaximumAccountsPerIpUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId);
+        Assert.That(plugIn.IsActive, Is.True);
+        Assert.That(plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.PlugIns.MaximumConnectionsPerIpPlugInConfiguration>(referenceHandler)?.MaximumConnectionsPerIp, Is.EqualTo(2));
+    }
+
+    /// <summary>
+    /// Tests that the update creates the plugin configuration of the account limit per IP address, when the database doesn't have it.
+    /// </summary>
+    [Test]
+    public async Task UpdateCreatesMaximumAccountsPerIpAsync()
+    {
+        var typeId = typeof(MUnique.OpenMU.GameLogic.PlugIns.MaximumConnectionsPerIpPlugIn).GUID;
+        this._gameConfiguration.PlugInConfigurations.Remove(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId));
+
+        await new ClassicMaximumAccountsPerIpUpdatePlugIn().ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId).IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that only one account of an IP address can take part in the same event.
+    /// </summary>
+    [Test]
+    public void EventAccountsPerIpIsActiveWithOne()
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.MiniGames.EventAccountsPerIpPlugIn).GUID);
+        Assert.That(plugIn.IsActive, Is.True);
+        var configuration = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.MiniGames.EventAccountsPerIpConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+        Assert.That(configuration?.MaximumAccountsPerIp, Is.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Tests that the update activates the limit of one account per IP address in events on an existing classic database,
+    /// whose plugin configuration is still inactive, and that applying it again doesn't add a second one.
+    /// </summary>
+    [Test]
+    public async Task UpdateActivatesEventAccountsPerIpAsync()
+    {
+        var typeId = typeof(MUnique.OpenMU.GameLogic.MiniGames.EventAccountsPerIpPlugIn).GUID;
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        var existing = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId);
+        existing.IsActive = false;
+        existing.SetConfiguration(new MUnique.OpenMU.GameLogic.MiniGames.EventAccountsPerIpConfiguration { MaximumAccountsPerIp = 3 }, referenceHandler);
+
+        var update = new ClassicEventAccountsPerIpUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId);
+        Assert.That(plugIn.IsActive, Is.True);
+        Assert.That(plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.MiniGames.EventAccountsPerIpConfiguration>(referenceHandler)?.MaximumAccountsPerIp, Is.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Tests that the update creates the plugin configuration of the account limit per IP address in events, when the database doesn't have it.
+    /// </summary>
+    [Test]
+    public async Task UpdateCreatesEventAccountsPerIpAsync()
+    {
+        var typeId = typeof(MUnique.OpenMU.GameLogic.MiniGames.EventAccountsPerIpPlugIn).GUID;
+        this._gameConfiguration.PlugInConfigurations.Remove(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId));
+
+        await new ClassicEventAccountsPerIpUpdatePlugIn().ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId).IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that the monsters of Tarkan and Icarus drop excellent items between the Legendary, Dragon and Guardian sets (50)
+    /// and below the Grand Soul and Dark Phoenix sets (69), and that these limits are really the borders of the named sets.
+    /// </summary>
+    [Test]
+    public void ExcellentDropLevelsOfTarkanAndIcarusAreActive()
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.MapExcellentDropLevelsPlugIn).GUID);
+        Assert.That(plugIn.IsActive, Is.True);
+        var configuration = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.PlugIns.MapExcellentDropLevelsConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!;
+        Assert.That(
+            configuration.Maps.Select(m => (m.MapNumber, m.MinimumDropLevel, m.MaximumDropLevel)),
+            Is.EquivalentTo(new (short, int, int)[] { (8, 50, 69), (10, 50, 69) }));
+
+        int DropLevel(byte group, short number) => this._gameConfiguration.Items.Single(i => i.Group == group && i.Number == number).DropLevel;
+        Assert.That(DropLevel(7, 3), Is.EqualTo(ClassicPlugInDefaults.HighMapsMinimumExcellentDropLevel), "Legendary Helm");
+        Assert.That(DropLevel(10, 14), Is.EqualTo(ClassicPlugInDefaults.HighMapsMinimumExcellentDropLevel), "Guardian Gloves");
+        Assert.That(DropLevel(10, 1), Is.GreaterThan(ClassicPlugInDefaults.HighMapsMinimumExcellentDropLevel), "Dragon Gloves");
+        Assert.That(DropLevel(8, 9), Is.LessThan(ClassicPlugInDefaults.HighMapsMinimumExcellentDropLevel), "Plate Armor");
+        Assert.That(DropLevel(10, 18), Is.EqualTo(ClassicPlugInDefaults.HighMapsMaximumExcellentDropLevel + 1), "Grand Soul Gloves");
+        Assert.That(DropLevel(10, 17), Is.GreaterThan(ClassicPlugInDefaults.HighMapsMaximumExcellentDropLevel), "Dark Phoenix Gloves");
+        Assert.That(DropLevel(8, 1), Is.LessThanOrEqualTo(ClassicPlugInDefaults.HighMapsMaximumExcellentDropLevel), "Dragon Armor");
+    }
+
+    /// <summary>
+    /// Tests that the update activates the excellent item drop levels of Tarkan and Icarus on an existing classic database
+    /// which doesn't have the plugin configuration yet, and that applying it again doesn't add a second one.
+    /// </summary>
+    [Test]
+    public async Task UpdateActivatesExcellentDropLevelsAsync()
+    {
+        var typeId = typeof(MUnique.OpenMU.GameLogic.PlugIns.MapExcellentDropLevelsPlugIn).GUID;
+        this._gameConfiguration.PlugInConfigurations.Remove(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId));
+
+        var update = new ClassicExcellentDropLevelsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId);
+        Assert.That(plugIn.IsActive, Is.True);
+        var configuration = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.PlugIns.MapExcellentDropLevelsConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!;
+        Assert.That(configuration.Maps, Has.Count.EqualTo(2));
+    }
+
+    /// <summary>
     /// Tests that the update replaces the former absolute experience rates by resets (540 at zero resets)
     /// by the relative ones, and that it keeps a configuration which was changed by hand.
     /// </summary>
@@ -506,6 +646,60 @@ internal class ClassicDataInitializationTest
         plugIn.SetConfiguration(custom, new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
         Assert.That(plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetExperienceRateConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!.GetMultiplier(0), Is.EqualTo(3));
+    }
+
+    /// <summary>
+    /// Tests that the classic reset configuration gives 500 points per reset count: 500 after the first reset,
+    /// 1000 after the second and 1500 after the third one.
+    /// </summary>
+    /// <param name="currentResetCount">The reset count before the reset.</param>
+    /// <param name="expectedPoints">The expected points after the reset.</param>
+    [TestCase(0, 500)]
+    [TestCase(1, 1000)]
+    [TestCase(2, 1500)]
+    [TestCase(54, 27500)]
+    public void ResetPointsRiseBy500PerReset(int currentResetCount, int expectedPoints)
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.Resets.ResetFeaturePlugIn).GUID);
+        var configuration = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!;
+
+        var progression = MUnique.OpenMU.GameLogic.Resets.ResetProgressionCalculator.Calculate(currentResetCount, 0, configuration);
+
+        Assert.That(configuration.ReplacePointsPerReset, Is.True);
+        Assert.That(progression.TotalPointsAfterReset, Is.EqualTo(expectedPoints));
+    }
+
+    /// <summary>
+    /// Tests that the update replaces the former tiered reset points (2000, 1500, 1000) by 500 points per reset count,
+    /// keeps the other reset settings, and keeps points which were changed by hand.
+    /// </summary>
+    [Test]
+    public async Task UpdateReplacesTieredResetPointsAsync()
+    {
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.Resets.ResetFeaturePlugIn).GUID);
+        var former = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetConfiguration>(referenceHandler)!;
+        former.MultiplyPointsByResetCount = false;
+        former.PointsPerReset = 1000;
+        former.RequiredLevel = 360;
+        former.PointsTiers.Add(new() { MinimumResetCount = 1, PointsGranted = 2000 });
+        former.PointsTiers.Add(new() { MinimumResetCount = 2, PointsGranted = 1500 });
+        former.PointsTiers.Add(new() { MinimumResetCount = 5, PointsGranted = 1000 });
+        plugIn.SetConfiguration(former, referenceHandler);
+
+        var update = new ClassicResetPointsPerResetCountUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        var updated = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetConfiguration>(referenceHandler)!;
+        Assert.That(updated.PointsTiers, Is.Empty);
+        Assert.That(updated.RequiredLevel, Is.EqualTo(360));
+        Assert.That(MUnique.OpenMU.GameLogic.Resets.ResetProgressionCalculator.Calculate(2, 0, updated).TotalPointsAfterReset, Is.EqualTo(1500));
+
+        var custom = plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetConfiguration>(referenceHandler)!;
+        custom.PointsTiers.Add(new() { MinimumResetCount = 1, PointsGranted = 700 });
+        plugIn.SetConfiguration(custom, referenceHandler);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        Assert.That(plugIn.GetConfiguration<MUnique.OpenMU.GameLogic.Resets.ResetConfiguration>(referenceHandler)!.PointsTiers, Has.Count.EqualTo(1));
     }
 
     /// <summary>
@@ -536,7 +730,7 @@ internal class ClassicDataInitializationTest
 
     /// <summary>
     /// Tests that there is only one free Devil Square and Blood Castle room for all levels, with double experience,
-    /// and that the events and the jewels for hunting are active.
+    /// and that the events are active, but not the hunting rewards.
     /// </summary>
     [Test]
     public void EventsAreConfigured()
@@ -554,13 +748,37 @@ internal class ClassicDataInitializationTest
             Assert.That(definition.Entrance!.Map!.ExpMultiplier, Is.EqualTo(2));
         }
 
-        foreach (var plugInType in new[] { typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.GoldenInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingJewelPlugIn), typeof(MUnique.OpenMU.GameLogic.MiniGames.Medals.MiniGameMedalsPlugIn), typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingPointsPlugIn), typeof(MUnique.OpenMU.GameLogic.ItemExchange.ItemExchangeChatCommandPlugIn), typeof(MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamPlugIn) })
+        foreach (var plugInType in new[] { typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.GoldenInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.MiniGames.Medals.MiniGameMedalsPlugIn), typeof(MUnique.OpenMU.GameLogic.ItemExchange.ItemExchangeChatCommandPlugIn), typeof(MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamPlugIn) })
         {
             Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == plugInType.GUID).IsActive, Is.True, plugInType.Name);
         }
 
+        foreach (var plugInType in new[] { typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingJewelPlugIn), typeof(MUnique.OpenMU.GameLogic.HuntingRewards.HuntingPointsPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.ChaosCastleStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.RedDragonInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.WhiteWizardInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.HappyHourPlugIn) })
+        {
+            Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == plugInType.GUID).IsActive, Is.False, plugInType.Name);
+        }
+
         var devilSquare = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn).GUID);
         Assert.That(devilSquare.CustomConfiguration, Does.Contain("21:00"));
+    }
+
+    /// <summary>
+    /// Tests that the classic data gets the rates which the server runs with: experience, money and the drop chances.
+    /// </summary>
+    [Test]
+    public void RatesAreConfigured()
+    {
+        Assert.That(this._gameConfiguration.ExperienceRate, Is.EqualTo(ClassicRates.ExperienceRate));
+        Assert.That(this._gameConfiguration.ItemDropDuration, Is.EqualTo(TimeSpan.FromSeconds(50)));
+        Assert.That(this._gameConfiguration.GlobalBaseAttributeValues.Single(a => a.Definition?.Id == Stats.MoneyAmountRate.Id).Value, Is.EqualTo(500));
+
+        double ChanceOf(Guid id) => this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == id).Chance;
+        Assert.That(ChanceOf(GuidHelper.CreateGuid<DropItemGroup>(4)), Is.EqualTo(0.02), "jewels");
+        Assert.That(ChanceOf(GuidHelper.CreateGuid<DropItemGroup>(3)), Is.EqualTo(0.01), "excellent items");
+        Assert.That(ChanceOf(GuidHelper.CreateGuid<DropItemGroup>(10, 1)), Is.EqualTo(0.05), "Loch's Feather");
+        Assert.That(ChanceOf(GuidHelper.CreateGuid<DropItemGroup>(0, 23, 4)), Is.EqualTo(0.5), "Scroll of Emperor (Dark Knight)");
+        Assert.That(ChanceOf(GuidHelper.CreateGuid<DropItemGroup>(1, 26, 0)), Is.EqualTo(0.5), "Soul Shard of Wizard");
+        Assert.That(ChanceOf(GuidHelper.CreateGuid<DropItemGroup>(14, 11, 7)), Is.EqualTo(0.01), "Box of Heaven");
     }
 
     /// <summary>
@@ -621,7 +839,7 @@ internal class ClassicDataInitializationTest
 
         Assert.That(dropGroup.PossibleItems, Is.EquivalentTo(new[] { box }));
         Assert.That(dropGroup.ItemLevel, Is.EqualTo(ClassicBoxes.BoxOfHeavenLevel));
-        Assert.That(dropGroup.Chance, Is.EqualTo(0.001));
+        Assert.That(dropGroup.Chance, Is.EqualTo(ClassicBoxes.BoxOfHeavenDropChance));
         Assert.That(dropGroup.MinimumMonsterLevel, Is.EqualTo(30));
 
         var mapsWithJewels = this._gameConfiguration.Maps.Where(m => m.DropItemGroups.Any(g => g.ItemType == SpecialItemType.Jewel)).ToList();
@@ -740,6 +958,27 @@ internal class ClassicDataInitializationTest
         Assert.That(plus5.PossibleItems, Is.SupersetOf(weapons));
         Assert.That(plus4.PossibleItems, Has.Count.EqualTo(plus4Count - weapons.Count));
         Assert.That(plus5.PossibleItems, Has.Count.EqualTo(plus5Count + weapons.Count));
+    }
+
+    /// <summary>
+    /// Tests that the boss list update removes the configuration of the former "/bosses" chat command plugin,
+    /// and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateRemovesFormerBossStatusChatCommandAsync()
+    {
+        var removed = this._context.CreateNew<PlugInConfiguration>();
+        removed.TypeId = ClassicBossListsUpdatePlugIn.RemovedBossStatusChatCommandPlugInId;
+        removed.IsActive = true;
+        this._gameConfiguration.PlugInConfigurations.Add(removed);
+        var count = this._gameConfiguration.PlugInConfigurations.Count;
+
+        var update = new ClassicBossListsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(this._gameConfiguration.PlugInConfigurations, Does.Not.Contain(removed));
+        Assert.That(this._gameConfiguration.PlugInConfigurations, Has.Count.EqualTo(count - 1));
     }
 
     /// <summary>
@@ -874,8 +1113,42 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that Phantom Knight, Drakan, Alpha Crust and Great Drakan are four times as strong as in the original data,
+    /// and that the update repairs an existing database, also when it's applied twice, without duplicating the attributes.
+    /// </summary>
+    [Test]
+    public async Task IcarusMonstersAreFourTimesStrongerAsync()
+    {
+        var greatDrakan = this._gameConfiguration.Monsters.Single(m => m.Number == 75);
+        Assert.That(GetValue(greatDrakan, Stats.MaximumHealth), Is.EqualTo(50_000 * ClassicIcarusMonsters.StrengthFactor));
+        Assert.That(GetValue(greatDrakan, Stats.DefenseBase), Is.EqualTo(495 * ClassicIcarusMonsters.StrengthFactor));
+        Assert.That(GetValue(greatDrakan, Stats.Level), Is.EqualTo(100));
+        foreach (var (number, name, strength) in ClassicIcarusMonsters.Monsters)
+        {
+            var monster = this._gameConfiguration.Monsters.Single(m => m.Number == number);
+            Assert.That(GetValue(monster, Stats.MaximumHealth), Is.EqualTo(strength.Health), name);
+            Assert.That(GetValue(monster, Stats.MaximumPhysBaseDmg), Is.EqualTo(strength.MaximumDamage), name);
+            Assert.That(GetValue(monster, Stats.DefenseRatePvm), Is.EqualTo(strength.DefenseRate), name);
+        }
+
+        var drakan = this._gameConfiguration.Monsters.Single(m => m.Number == 73);
+        drakan.Attributes.Single(a => a.AttributeDefinition == Stats.MaximumHealth.GetPersistent(this._gameConfiguration)).Value = 29_000;
+        var attributeCount = drakan.Attributes.Count;
+
+        var update = new ClassicIcarusMonsterStrengthUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(GetValue(drakan, Stats.MaximumHealth), Is.EqualTo(116_000));
+        Assert.That(drakan.Attributes.Count, Is.EqualTo(attributeCount));
+
+        float GetValue(MonsterDefinition monster, AttributeSystem.AttributeDefinition attribute)
+            => monster.Attributes.Single(a => a.AttributeDefinition == attribute.GetPersistent(this._gameConfiguration)).Value;
+    }
+
+    /// <summary>
     /// Tests that Thompson the Merchant stands on a walkable safezone tile next to the fountain of Lorencia,
-    /// sells only the Box of Kundun +4 and +5, and that the medal merchant plugin is active with their prices.
+    /// sells only the Box of Kundun +3, +4 and +5, and that the medal merchant plugin is active with their prices.
     /// </summary>
     [Test]
     public void MedalMerchantSellsBoxesOfKundun()
@@ -894,13 +1167,13 @@ internal class ClassicDataInitializationTest
 
         var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
         Assert.That(merchant.MerchantStore!.Items.All(i => i.Definition == box), Is.True);
-        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 11, 12 }));
+        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 10, 11, 12 }));
 
         var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MedalMerchantPlugIn).GUID);
         var configuration = plugIn.GetConfiguration<MedalMerchantConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
         Assert.That(plugIn.IsActive, Is.True);
         Assert.That(configuration!.MerchantNumber, Is.EqualTo(merchant.Number));
-        Assert.That(merchant.MerchantStore.Items.Select(i => configuration.GetPrice(i)?.SilverMedals).Order(), Is.EqualTo(new int?[] { 10, 15 }));
+        Assert.That(merchant.MerchantStore.Items.Select(i => configuration.GetPrice(i)?.SilverMedals).Order(), Is.EqualTo(new int?[] { 5, 10, 15 }));
     }
 
     /// <summary>
@@ -925,8 +1198,101 @@ internal class ClassicDataInitializationTest
 
         Assert.That(merchant.IsActive, Is.True);
         Assert.That(lorencia.MonsterSpawns.Count(s => s.MonsterDefinition == merchant), Is.EqualTo(1));
-        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 11, 12 }));
+        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 10, 11, 12 }));
         Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MedalMerchantPlugIn).GUID).IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that the Devil Square, the Blood Castle and the Team vs Team give only silver medals: 4 for the 1st place of the
+    /// Devil Square, 3 for the winner of the Blood Castle and the best player of the winning Team vs Team team,
+    /// and that there is no "/medals" chat command.
+    /// </summary>
+    [Test]
+    public void EventsGiveSilverMedalsOnly()
+    {
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MiniGameMedalsPlugIn).GUID);
+        var configuration = plugIn.GetConfiguration<MiniGameMedalsConfiguration>(referenceHandler)!;
+        var teamVsTeam = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamPlugIn).GUID)
+            .GetConfiguration<MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamConfiguration>(referenceHandler)!;
+
+        Assert.That(configuration.DevilSquareWinnerSilverMedals, Is.EqualTo(4));
+        Assert.That(configuration.DevilSquareRunnerUpSilverMedals, Is.EqualTo(2));
+        Assert.That(configuration.BloodCastleWinnerSilverMedals, Is.EqualTo(3));
+        Assert.That(configuration.BloodCastlePartySilverMedals, Is.EqualTo(1));
+        Assert.That(teamVsTeam.MostValuablePlayerSilverMedals, Is.EqualTo(3));
+        Assert.That(teamVsTeam.WinnerSilverMedals, Is.EqualTo(1));
+        Assert.That(this._gameConfiguration.PlugInConfigurations.Any(c => c.TypeId == ClassicSilverMedalRewardsUpdatePlugIn.RemovedMedalsChatCommandPlugInId), Is.False);
+    }
+
+    /// <summary>
+    /// Tests that the silver medal rewards update sets the winner rewards of a configuration from before the update,
+    /// keeps its other rewards, replaces the points of the Team vs Team by silver medals and keeps its other settings,
+    /// removes the configuration of the former "/medals" chat command plugin, and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task SilverMedalRewardsUpdateIsRepeatableAsync()
+    {
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        var teamVsTeamPlugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamPlugIn).GUID);
+        var originalTeamVsTeam = teamVsTeamPlugIn.CustomConfiguration;
+        var teamVsTeam = teamVsTeamPlugIn.GetConfiguration<MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamConfiguration>(referenceHandler)!;
+
+        // The silver medals of the Team vs Team read as 0 in a configuration from before the update.
+        teamVsTeam.MostValuablePlayerSilverMedals = 0;
+        teamVsTeam.WinnerSilverMedals = 0;
+        teamVsTeam.MinimumPlayers = 6;
+        teamVsTeamPlugIn.SetConfiguration(teamVsTeam, referenceHandler);
+
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MiniGameMedalsPlugIn).GUID);
+        var original = plugIn.CustomConfiguration;
+        plugIn.CustomConfiguration = """
+            {
+              "$id": "",
+              "DevilSquareRunnerUpSilverMedals": 5,
+              "BloodCastlePartySilverMedals": 1,
+              "KillsForSilverMedal": 50,
+              "Offers": {
+                "$id": "",
+                "$values": [
+                  { "$id": "", "Key": "box", "Name": "Box of Kundun +2", "GoldMedals": 1, "SilverMedals": 0, "ItemGroup": 14, "ItemNumber": 11, "ItemLevel": 9 }
+                ]
+              }
+            }
+            """;
+        var removed = this._context.CreateNew<PlugInConfiguration>();
+        removed.TypeId = ClassicSilverMedalRewardsUpdatePlugIn.RemovedMedalsChatCommandPlugInId;
+        removed.IsActive = true;
+        this._gameConfiguration.PlugInConfigurations.Add(removed);
+        var count = this._gameConfiguration.PlugInConfigurations.Count;
+
+        try
+        {
+            var update = new ClassicSilverMedalRewardsUpdatePlugIn();
+            await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+            var afterFirst = plugIn.CustomConfiguration;
+            await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+            var configuration = plugIn.GetConfiguration<MiniGameMedalsConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler())!;
+            Assert.That(configuration.DevilSquareWinnerSilverMedals, Is.EqualTo(4));
+            Assert.That(configuration.BloodCastleWinnerSilverMedals, Is.EqualTo(3));
+            Assert.That(configuration.DevilSquareRunnerUpSilverMedals, Is.EqualTo(5), "a customized reward is kept");
+            Assert.That(plugIn.CustomConfiguration, Does.Not.Contain("Offers"));
+            Assert.That(plugIn.CustomConfiguration, Is.EqualTo(afterFirst));
+            Assert.That(this._gameConfiguration.PlugInConfigurations, Does.Not.Contain(removed));
+            Assert.That(this._gameConfiguration.PlugInConfigurations, Has.Count.EqualTo(count - 1));
+
+            var updatedTeamVsTeam = teamVsTeamPlugIn.GetConfiguration<MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamConfiguration>(referenceHandler)!;
+            Assert.That(updatedTeamVsTeam.MostValuablePlayerSilverMedals, Is.EqualTo(3));
+            Assert.That(updatedTeamVsTeam.WinnerSilverMedals, Is.EqualTo(1));
+            Assert.That(updatedTeamVsTeam.MinimumPlayers, Is.EqualTo(6), "a customized setting is kept");
+            Assert.That(updatedTeamVsTeam.Timetable, Is.EqualTo(new[] { ClassicEvents.TeamVsTeamTime }));
+        }
+        finally
+        {
+            plugIn.CustomConfiguration = original;
+            teamVsTeamPlugIn.CustomConfiguration = originalTeamVsTeam;
+        }
     }
 
     /// <summary>

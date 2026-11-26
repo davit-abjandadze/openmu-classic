@@ -17,6 +17,11 @@ using MUnique.OpenMU.Persistence.Initialization.Skills;
 internal class Tarkan : BaseMapInitializer
 {
     /// <summary>
+    /// The Number of the Map.
+    /// </summary>
+    internal const byte Number = 8;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Tarkan"/> class.
     /// </summary>
     /// <param name="context">The context.</param>
@@ -27,7 +32,7 @@ internal class Tarkan : BaseMapInitializer
     }
 
     /// <inheritdoc/>
-    protected override byte MapNumber => 8;
+    protected override byte MapNumber => Number;
 
     /// <inheritdoc/>
     protected override LocalizedString MapName => LocalizedString.FromResource(() => MapNames.Tarkan);

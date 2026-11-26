@@ -97,6 +97,30 @@ public class OfflinePlayerManagerTests
     }
 
     /// <summary>
+    /// Tests that the offline session takes over the registration of the account at the login server from the real player,
+    /// so the account stays reserved while the session runs, and the disconnect of the real player doesn't log it off.
+    /// </summary>
+    [Test]
+    public async ValueTask StartAsync_TakesOverLoginServerRegistrationAsync()
+    {
+        // Arrange
+        var manager = new OfflinePlayerManager();
+        var realPlayer = await this.CreatePlayerWithPersistedAccountAsync().ConfigureAwait(false);
+        realPlayer.TryAddMoney(1_000_000);
+        realPlayer.Attributes![Stats.Level] = 100;
+        realPlayer.SetLoginServerRegistration(TestUserLoginName);
+
+        // Act
+        var started = await manager.StartAsync(realPlayer, TestUserLoginName).ConfigureAwait(false);
+
+        // Assert
+        Assert.That(started, Is.True);
+        Assert.That(manager.TryGetPlayer(TestUserLoginName, out var offlinePlayer), Is.True);
+        Assert.That(offlinePlayer!.ReleaseLoginServerRegistration(), Is.EqualTo(TestUserLoginName));
+        Assert.That(realPlayer.ReleaseLoginServerRegistration(), Is.Null);
+    }
+
+    /// <summary>
     /// Creates a player whose account is stored in the in-memory repository,
     /// so that <see cref="OfflinePlayer.InitializeAsync"/> can find it.
     /// </summary>

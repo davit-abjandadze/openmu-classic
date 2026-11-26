@@ -1,4 +1,4 @@
-// <copyright file="MedalMerchantConfiguration.cs" company="MUnique">
+﻿// <copyright file="MedalMerchantConfiguration.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -38,13 +38,13 @@ public class MedalMerchantConfiguration
     public ICollection<MedalPrice> Prices { get; set; } = [];
 
     /// <summary>
-    /// Creates the default configuration, in which Thompson the Merchant sells the Box of Kundun +4 for 10
-    /// and the Box of Kundun +5 for 15 silver medals.
+    /// Creates the default configuration, in which Thompson the Merchant sells the Box of Kundun +3 for 5,
+    /// the Box of Kundun +4 for 10 and the Box of Kundun +5 for 15 silver medals.
     /// </summary>
     /// <remarks>
     /// A boss drops its box and one silver medal (the Dark Phoenix three), so the medals of 10 Zaikan or Death Beam Knight kills
     /// buy one more Box of Kundun +4, and of 5 Dark Phoenix kills one more +5.
-    /// The lower boxes aren't sold, they come from the bosses, the hunting points and the gold medals.
+    /// The lower boxes aren't sold.
     /// </remarks>
     /// <returns>The default configuration.</returns>
     public static MedalMerchantConfiguration CreateDefault()
@@ -52,6 +52,7 @@ public class MedalMerchantConfiguration
         var configuration = new MedalMerchantConfiguration();
         configuration.Prices.Add(CreateBoxOfKundunPrice(4, 10));
         configuration.Prices.Add(CreateBoxOfKundunPrice(5, 15));
+        configuration.Prices.Add(CreateBoxOfKundunPrice(3, 5));
         return configuration;
     }
 

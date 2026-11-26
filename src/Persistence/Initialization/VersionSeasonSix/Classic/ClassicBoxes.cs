@@ -59,6 +59,16 @@ public static class ClassicBoxes
     public const byte BoxOfKundunPlus4Level = 11;
 
     /// <summary>
+    /// The chance that a monster drops the Box of Heaven (1 %).
+    /// </summary>
+    public const double BoxOfHeavenDropChance = 0.01;
+
+    /// <summary>
+    /// The minimum level of the monsters which drop the Box of Heaven, so that it doesn't drop in the beginner areas.
+    /// </summary>
+    public const byte BoxOfHeavenMinimumMonsterLevel = 30;
+
+    /// <summary>
     /// The Archangel weapons (group, number) which drop from the Box of Kundun +5 instead of the +4.
     /// </summary>
     public static readonly IReadOnlyList<(byte Group, short Number)> ArchangelWeapons =
@@ -68,16 +78,6 @@ public static class ClassicBoxes
         (4, 18), // Divine Crossbow of Archangel
         (5, 10), // Divine Staff of Archangel
     ];
-
-    /// <summary>
-    /// The chance that a monster drops the Box of Heaven. It's the same as the chance of the common jewel drop.
-    /// </summary>
-    public const double BoxOfHeavenDropChance = 0.001;
-
-    /// <summary>
-    /// The minimum level of the monsters which drop the Box of Heaven, so that it doesn't drop in the beginner areas.
-    /// </summary>
-    public const byte BoxOfHeavenMinimumMonsterLevel = 30;
 
     /// <summary>
     /// The number of the common jewel drop group (see <see cref="GameConfigurationInitializerBase"/>),

@@ -78,7 +78,7 @@ internal static class BotResetHandler
             return false;
         }
 
-        return configuration.GetEffectiveResetLimit(DateTime.UtcNow) is not { } limit || resets + 1 <= limit;
+        return configuration.GetEffectiveResetLimit(DateTime.UtcNow, player.GameContext.ServerTimeZone) is not { } limit || resets + 1 <= limit;
     }
 
     /// <summary>

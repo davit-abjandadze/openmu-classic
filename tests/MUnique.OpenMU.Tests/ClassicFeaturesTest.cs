@@ -135,10 +135,94 @@ public class ClassicFeaturesTest
 
         var result = TeamVsTeamPlugIn.DetermineWinner(teams, kills);
         Assert.That(result?.Team, Is.EqualTo(winningTeam));
-        Assert.That(teams[result!.Value.MostValuablePlayer], Is.EqualTo(winningTeam));
-        Assert.That(kills[result.Value.MostValuablePlayer], Is.EqualTo(4));
+        Assert.That(teams[result!.Value.MostValuablePlayer!], Is.EqualTo(winningTeam));
+        Assert.That(kills[result.Value.MostValuablePlayer!], Is.EqualTo(4));
 
         Assert.That(TeamVsTeamPlugIn.DetermineWinner(teams, new Dictionary<Player, int>()), Is.Null, "draw");
+
+        var bestWinner = result.Value.MostValuablePlayer;
+        var withoutBest = TeamVsTeamPlugIn.DetermineWinner(teams, kills, p => p != bestWinner);
+        Assert.That(withoutBest?.Team, Is.EqualTo(winningTeam), "the kills of a player who left still count for the team");
+        Assert.That(withoutBest!.Value.MostValuablePlayer, Is.Not.Null.And.Not.EqualTo(bestWinner), "a player who left can't be the best player");
+        Assert.That(teams[withoutBest.Value.MostValuablePlayer!], Is.EqualTo(winningTeam));
+        Assert.That(TeamVsTeamPlugIn.DetermineWinner(teams, kills, _ => false)?.MostValuablePlayer, Is.Null);
+    }
+
+    /// <summary>
+    /// Tests that the best player (MVP) of the winning Team vs Team team gets three silver medals into the inventory,
+    /// the other members one, and that the wins are counted.
+    /// </summary>
+    [Test]
+    public async Task TeamVsTeamWinnersGetSilverMedalsAsync()
+    {
+        var mostValuablePlayer = await CreatePlayerAsync(MedalStats.All.Concat(TeamVsTeamStats.All)).ConfigureAwait(false);
+        var teamMate = await CreatePlayerAsync(MedalStats.All.Concat(TeamVsTeamStats.All)).ConfigureAwait(false);
+        foreach (var player in new[] { mostValuablePlayer, teamMate })
+        {
+            var boxOfLuck = new Mock<ItemDefinition>();
+            boxOfLuck.SetupAllProperties();
+            boxOfLuck.Setup(d => d.PossibleItemOptions).Returns(new List<ItemOptionDefinition>());
+            boxOfLuck.Setup(d => d.PossibleItemSetGroups).Returns(new List<ItemSetGroup>());
+            boxOfLuck.Object.Group = MedalItems.Group;
+            boxOfLuck.Object.Number = MedalItems.Number;
+            boxOfLuck.Object.Width = 1;
+            boxOfLuck.Object.Height = 1;
+            boxOfLuck.Object.Durability = 1;
+            player.GameContext.Configuration.Items.Add(boxOfLuck.Object);
+        }
+
+        var configuration = TeamVsTeamConfiguration.Default;
+        await TeamVsTeamPlugIn.AwardWinnerAsync(mostValuablePlayer, true, configuration).ConfigureAwait(false);
+        await TeamVsTeamPlugIn.AwardWinnerAsync(teamMate, false, configuration).ConfigureAwait(false);
+
+        Assert.That(mostValuablePlayer.Inventory!.Items.Count(MedalItems.IsSilverMedal), Is.EqualTo(3));
+        Assert.That(mostValuablePlayer.Attributes![TeamVsTeamStats.Wins], Is.EqualTo(1));
+        Assert.That(mostValuablePlayer.Attributes[TeamVsTeamStats.MostValuablePlayer], Is.EqualTo(1));
+        Assert.That(teamMate.Inventory!.Items.Count(MedalItems.IsSilverMedal), Is.EqualTo(1));
+        Assert.That(teamMate.Attributes![TeamVsTeamStats.Wins], Is.EqualTo(1));
+        Assert.That(teamMate.Attributes[TeamVsTeamStats.MostValuablePlayer], Is.EqualTo(0));
+    }
+
+    /// <summary>
+    /// Tests that the teams of a running Team vs Team only matter on the battle map:
+    /// there, kills of the other team are exempted from the player killer penalty and the own team can't be attacked.
+    /// </summary>
+    [Test]
+    public async Task TeamVsTeamOnlyAppliesOnBattleMapAsync()
+    {
+        var first = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var teamMate = await PlayerTestHelper.CreatePlayerAsync(first.GameContext).ConfigureAwait(false);
+        var enemy = await PlayerTestHelper.CreatePlayerAsync(first.GameContext).ConfigureAwait(false);
+        var mapNumber = first.CurrentMap!.Definition.Number;
+        var plugIn = new TeamVsTeamPlugIn { Configuration = new TeamVsTeamConfiguration { MapNumber = mapNumber } };
+        var state = plugIn.GetState(first.GameContext);
+        state.State = MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.PeriodicTaskState.Started;
+        state.Teams[first] = 0;
+        state.Teams[teamMate] = 0;
+        state.Teams[enemy] = 1;
+
+        Assert.That(IsExempted(plugIn, first, enemy), Is.True, "enemy on the battle map");
+        Assert.That(IsExempted(plugIn, first, teamMate), Is.False, "team mate");
+        Assert.That(IsAttackCancelled(plugIn, first, teamMate), Is.True, "team mate on the battle map");
+        Assert.That(IsAttackCancelled(plugIn, first, enemy), Is.False, "enemy");
+
+        plugIn.Configuration.MapNumber = (short)(mapNumber + 1);
+        Assert.That(IsExempted(plugIn, first, enemy), Is.False, "enemy on another map");
+        Assert.That(IsAttackCancelled(plugIn, first, teamMate), Is.False, "team mate on another map");
+
+        static bool IsExempted(TeamVsTeamPlugIn plugIn, Player attacker, Player defender)
+        {
+            var args = new MUnique.OpenMU.GameLogic.PlugIns.PlayerKillPenaltyExemptionArgs();
+            plugIn.CheckExemption(attacker, defender, args);
+            return args.IsExempted;
+        }
+
+        static bool IsAttackCancelled(TeamVsTeamPlugIn plugIn, Player attacker, Player defender)
+        {
+            var args = new System.ComponentModel.CancelEventArgs();
+            plugIn.CheckAttack(attacker, defender, args);
+            return args.Cancel;
+        }
     }
 
     /// <summary>
@@ -149,6 +233,7 @@ public class ClassicFeaturesTest
     {
         var winner = await CreatePlayerAsync(PvpStats.All).ConfigureAwait(false);
         var loser = await PlayerTestHelper.CreatePlayerAsync(winner.GameContext).ConfigureAwait(false);
+        loser.Attributes![Stats.Level] = 100;
         var plugIn = new PvpSpotsPlugIn { Configuration = new PvpSpotsConfiguration { MaximumKillsOfSameVictim = 2 } };
 
         for (var i = 0; i < 4; i++)
@@ -158,37 +243,11 @@ public class ClassicFeaturesTest
 
         Assert.That(winner.Attributes![PvpStats.WeeklyPrestige], Is.EqualTo(20));
         Assert.That(winner.Attributes[PvpStats.TotalPrestige], Is.EqualTo(20));
-    }
 
-    /// <summary>
-    /// Tests that the medal items in the inventory, e.g. dropped by bosses, are added to the medals,
-    /// while other levels of the Box of Luck stay in the inventory.
-    /// </summary>
-    [Test]
-    public async ValueTask MedalItemsAreDepositedAsync()
-    {
-        var player = await CreatePlayerAsync(MedalStats.All).ConfigureAwait(false);
-        var definition = new Mock<ItemDefinition>();
-        definition.SetupAllProperties();
-        definition.Setup(d => d.PossibleItemOptions).Returns(new List<ItemOptionDefinition>());
-        definition.Object.Group = MedalItems.Group;
-        definition.Object.Number = MedalItems.Number;
-        definition.Object.Width = 1;
-        definition.Object.Height = 1;
-        byte slot = 12;
-        foreach (var level in new byte[] { MedalItems.SilverMedalLevel, MedalItems.SilverMedalLevel, MedalItems.SilverMedalLevel, MedalItems.GoldMedalLevel, 12 })
-        {
-            var item = CreateItem(definition.Object);
-            item.Level = level;
-            await player.Inventory!.AddItemAsync(slot++, item).ConfigureAwait(false);
-        }
-
-        var (gold, silver) = await MedalItems.DepositAsync(player).ConfigureAwait(false);
-
-        Assert.That((gold, silver), Is.EqualTo((1, 3)));
-        Assert.That(player.Attributes![MedalStats.GoldMedals], Is.EqualTo(1));
-        Assert.That(player.Attributes[MedalStats.SilverMedals], Is.EqualTo(3));
-        Assert.That(player.Inventory!.Items.Select(i => (int)i.Level), Is.EqualTo(new[] { 12 }));
+        var lowLevelLoser = await PlayerTestHelper.CreatePlayerAsync(winner.GameContext).ConfigureAwait(false);
+        lowLevelLoser.Attributes![Stats.Level] = plugIn.Configuration.MinimumVictimLevel - 1;
+        await plugIn.DuelWonAsync(winner, lowLevelLoser).ConfigureAwait(false);
+        Assert.That(winner.Attributes[PvpStats.WeeklyPrestige], Is.EqualTo(20), "a low level loser gives no prestige");
     }
 
     private static void Hunt(HuntingPointsPlugIn plugIn, Player player, HuntingPointsConfiguration configuration, DateTime from, int minutes)

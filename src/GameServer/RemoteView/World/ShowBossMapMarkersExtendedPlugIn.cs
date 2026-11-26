@@ -21,6 +21,11 @@ using MUnique.OpenMU.PlugIns;
 [MinimumClient(106, 3, ClientLanguage.Invariant)]
 public class ShowBossMapMarkersExtendedPlugIn : IShowBossMapMarkersPlugIn
 {
+    /// <summary>
+    /// The length in bytes (UTF-8) of the name field of a marker. Has to match the BossMarker structure of the packet definition.
+    /// </summary>
+    internal const int NameLength = 20;
+
     private readonly RemotePlayer _player;
 
     /// <summary>
@@ -43,6 +48,9 @@ public class ShowBossMapMarkersExtendedPlugIn : IShowBossMapMarkersPlugIn
         {
             var size = BossMapMarkersExtendedRef.GetRequiredSize(markers.Count);
             var span = connection.Output.GetSpan(size)[..size];
+
+            // The buffer is pooled, and the markers have an unused byte, which shouldn't contain old data.
+            span.Clear();
             var packet = new BossMapMarkersExtendedRef(span)
             {
                 MapNumber = (byte)mapNumber,
@@ -57,12 +65,34 @@ public class ShowBossMapMarkersExtendedPlugIn : IShowBossMapMarkersPlugIn
                 block.PositionY = marker.Position.Y;
                 block.IsAlive = marker.IsAlive;
                 block.RespawnSeconds = (uint)Math.Ceiling(Math.Max(0, marker.RespawnIn.TotalSeconds));
-                block.Name = marker.Name;
+                block.Name = FitName(marker.Name);
             }
 
             return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Cuts the name to the size of the name field of a marker. Writing a longer name would throw
+    /// and the markers of the whole map wouldn't be sent.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <returns>The name, which fits into <see cref="NameLength"/> bytes.</returns>
+    internal static string FitName(string name)
+    {
+        var length = name.Length;
+        while (length > 0 && Encoding.UTF8.GetByteCount(name.AsSpan(0, length)) > NameLength)
+        {
+            length--;
+        }
+
+        if (length > 0 && length < name.Length && char.IsHighSurrogate(name[length - 1]))
+        {
+            length--;
+        }
+
+        return length == name.Length ? name : name[..length];
     }
 }

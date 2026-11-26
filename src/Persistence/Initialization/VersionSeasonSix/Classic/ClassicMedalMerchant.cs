@@ -10,7 +10,7 @@ using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 
 /// <summary>
 /// Adds the medal merchant to the classic server: Thompson the Merchant stands next to the fountain of Lorencia
-/// and sells the Box of Kundun +4 and +5 for silver medals, see <see cref="MedalMerchantPlugIn"/>.
+/// and sells the Box of Kundun +3, +4 and +5 for silver medals, see <see cref="MedalMerchantPlugIn"/>.
 /// </summary>
 /// <remarks>
 /// Thompson the Merchant is an NPC of the original game which the Season 6 data defines, but doesn't place on any map.

@@ -5,7 +5,9 @@
 namespace MUnique.OpenMU.GameLogic.PvP;
 
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
@@ -22,9 +24,15 @@ using MUnique.OpenMU.PlugIns;
 [Guid("2D7E5B1A-4F3C-4E8B-A6D2-9C1F0E3B7A51")]
 public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotHitPlugIn, IAttackableGotKilledPlugIn, IDuelWonPlugIn, ISupportCustomConfiguration<PvpSpotsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
 {
-    private readonly ConcurrentDictionary<Player, ConcurrentDictionary<Player, DateTime>> _recentHits = new();
+    /// <summary>
+    /// The recent hits on a victim per attacker, to determine the assistants of a kill.
+    /// A weak table, so that it doesn't keep victims alive which left the game without dying.
+    /// </summary>
+    private readonly ConditionalWeakTable<Player, ConcurrentDictionary<Player, DateTime>> _recentHits = new();
 
     private readonly ConcurrentDictionary<(Guid Killer, Guid Victim), List<DateTime>> _recentKills = new();
+
+    private long _nextRecentKillsCleanupTicks;
 
     /// <inheritdoc />
     public PvpSpotsConfiguration? Configuration { get; set; }
@@ -102,7 +110,20 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
             return;
         }
 
-        this._recentHits.GetOrAdd(victim, _ => new ConcurrentDictionary<Player, DateTime>())[attackerPlayer] = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        var hits = this._recentHits.GetValue(victim, _ => new ConcurrentDictionary<Player, DateTime>());
+        hits[attackerPlayer] = now;
+
+        // Hits older than the assist time don't count anymore. Removing them keeps attackers
+        // from being referenced after they left the game, as long as the victim stays alive.
+        var assistTime = this.Configuration?.AssistTime ?? TimeSpan.Zero;
+        foreach (var hit in hits)
+        {
+            if (hit.Value + assistTime < now)
+            {
+                hits.TryRemove(hit);
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -113,7 +134,8 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
             return;
         }
 
-        this._recentHits.TryRemove(victim, out var hits);
+        this._recentHits.TryGetValue(victim, out var hits);
+        this._recentHits.Remove(victim);
         if ((killer as Player ?? (killer as Monster)?.SummonedBy) is not { } killerPlayer
             || killerPlayer == victim
             || killerPlayer.DuelRoom is not null
@@ -121,12 +143,14 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
             || killerPlayer.SelectedCharacter is not { } killerCharacter
             || victim.SelectedCharacter is not { } victimCharacter
             || killerPlayer.Attributes is null
-            || victim.Attributes is null)
+            || victim.Attributes is null
+            || !CountsAsOpponent(killerPlayer, victim, configuration))
         {
             return;
         }
 
-        var isInSpot = GetSpotOf(victim, configuration) is not null;
+        // Like the exemption of the player killer penalty, a spot kill requires both players in a spot.
+        var isInSpot = GetSpotOf(victim, configuration) is not null && GetSpotOf(killerPlayer, configuration) is not null;
         var isPlayerKillerVictim = victimCharacter.State >= HeroState.PlayerKiller1stStage;
         if (!isInSpot && !isPlayerKillerVictim)
         {
@@ -176,7 +200,9 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
         if (this.Configuration is not { PrestigePerDuelVictory: > 0 } configuration
             || winner.SelectedCharacter is not { } winnerCharacter
             || loser.SelectedCharacter is not { } loserCharacter
-            || winner.Attributes is not { } attributes)
+            || winner.Attributes is not { } attributes
+            || loser.Attributes is null
+            || !CountsAsOpponent(winner, loser, configuration))
         {
             return;
         }
@@ -222,6 +248,26 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
         return (int)Math.Round(prestige);
     }
 
+    /// <summary>
+    /// Determines whether the victim counts as an opponent of the killer, for the statistics and the prestige.
+    /// Members of the same party and characters below the <see cref="PvpSpotsConfiguration.MinimumVictimLevel"/>
+    /// without resets don't count, so that they can't be farmed for prestige.
+    /// </summary>
+    /// <param name="killer">The killer.</param>
+    /// <param name="victim">The victim.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns><c>true</c>, if the victim counts as an opponent.</returns>
+    internal static bool CountsAsOpponent(Player killer, Player victim, PvpSpotsConfiguration configuration)
+    {
+        if (killer.Party is { } party && ReferenceEquals(party, victim.Party))
+        {
+            return false;
+        }
+
+        return victim.Attributes is { } attributes
+               && (attributes[Stats.Level] >= configuration.MinimumVictimLevel || attributes[Stats.Resets] > 0);
+    }
+
     private static float GetStrength(Player player)
     {
         var attributes = player.Attributes!;
@@ -251,12 +297,49 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
             return false;
         }
 
-        var kills = this._recentKills.GetOrAdd((killerId, victimId), _ => []);
-        lock (kills)
+        this.RemoveExpiredKills(configuration, now);
+        var key = (killerId, victimId);
+        while (true)
         {
-            kills.RemoveAll(time => time + configuration.SameVictimTime < now);
-            kills.Add(now);
-            return kills.Count > configuration.MaximumKillsOfSameVictim;
+            var kills = this._recentKills.GetOrAdd(key, _ => []);
+            lock (kills)
+            {
+                if (!this._recentKills.TryGetValue(key, out var current) || !ReferenceEquals(current, kills))
+                {
+                    // The list was removed by the cleanup in the meantime.
+                    continue;
+                }
+
+                kills.RemoveAll(time => time + configuration.SameVictimTime < now);
+                kills.Add(now);
+                return kills.Count > configuration.MaximumKillsOfSameVictim;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes the expired kills of all pairs, at most once per <see cref="PvpSpotsConfiguration.SameVictimTime"/>,
+    /// so that the remembered pairs don't grow endlessly.
+    /// </summary>
+    private void RemoveExpiredKills(PvpSpotsConfiguration configuration, DateTime now)
+    {
+        var next = Interlocked.Read(ref this._nextRecentKillsCleanupTicks);
+        if (now.Ticks < next
+            || Interlocked.CompareExchange(ref this._nextRecentKillsCleanupTicks, (now + configuration.SameVictimTime).Ticks, next) != next)
+        {
+            return;
+        }
+
+        foreach (var (key, kills) in this._recentKills)
+        {
+            lock (kills)
+            {
+                kills.RemoveAll(time => time + configuration.SameVictimTime < now);
+                if (kills.Count == 0)
+                {
+                    this._recentKills.TryRemove(new KeyValuePair<(Guid Killer, Guid Victim), List<DateTime>>(key, kills));
+                }
+            }
         }
     }
 }

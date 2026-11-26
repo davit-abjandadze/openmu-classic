@@ -59,10 +59,12 @@ public class ClassicDataInitialization : DataInitialization
     {
         await base.OnGameConfigurationInitializedAsync().ConfigureAwait(false);
         ClassicContentRestriction.Apply(this.GameConfiguration);
+        await ClassicRates.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         ClassicEvents.ApplyToMiniGames(this.GameConfiguration);
         await ClassicMerchantStores.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         await ClassicBoxes.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         ClassicBosses.Apply(this.Context, this.GameConfiguration);
+        ClassicIcarusMonsters.Apply(this.Context, this.GameConfiguration);
         ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);
         await ClassicMedalMerchant.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All).Concat(HuntingPointStats.All).Concat(TeamVsTeamStats.All));
@@ -72,7 +74,7 @@ public class ClassicDataInitialization : DataInitialization
     protected override void OnPlugInsConfigured(ReferenceHandler referenceHandler)
     {
         base.OnPlugInsConfigured(referenceHandler);
-        ClassicPlugInDefaults.Apply(this.GameConfiguration, referenceHandler, DateTime.UtcNow);
+        ClassicPlugInDefaults.Apply(this.GameConfiguration, referenceHandler);
         ClassicEvents.ApplyToPlugIns(this.GameConfiguration, referenceHandler);
     }
 

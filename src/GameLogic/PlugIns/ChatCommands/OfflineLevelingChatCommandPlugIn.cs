@@ -13,10 +13,10 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handles the <c>/offlevel</c> chat command.
 /// <list type="bullet">
-///   <item>Logs the login-server entry off so the real player can re-connect at any time.</item>
+///   <item>Hands the login-server entry over to the ghost, so no other game server can log into the account meanwhile.</item>
 ///   <item>Disconnects the real client connection.</item>
 ///   <item>Creates a silent ghost player on the current map using the character's MU Helper config.</item>
-///   <item>On next login the ghost is automatically stopped before character selection.</item>
+///   <item>On the next login on the same game server, the ghost is automatically stopped before character selection.</item>
 /// </list>
 /// </summary>
 [Guid("A1C4E7F2-3B8D-4A09-8E5C-2D6F0B3A7E14")]

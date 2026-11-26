@@ -37,7 +37,10 @@ public sealed class OfflinePlayerManager
             return false;
         }
 
-        var sentinel = new OfflinePlayer(realPlayer.GameContext);
+        var sentinel = new OfflinePlayer(realPlayer.GameContext)
+        {
+            ClientIpAddress = (realPlayer as IHasIpAddress)?.IpAddress,
+        };
 
         // Atomically claim the slot to prevent racing during initialization.
         if (!this._activePlayers.TryAdd(loginName, sentinel))
@@ -54,7 +57,7 @@ public sealed class OfflinePlayerManager
 
         try
         {
-            await this.TransitionToOfflineAsync(realPlayer).ConfigureAwait(false);
+            await this.TransitionToOfflineAsync(realPlayer, sentinel).ConfigureAwait(false);
 
             if (!await sentinel.InitializeAsync(loginName, characterName).ConfigureAwait(false))
             {
@@ -126,9 +129,16 @@ public sealed class OfflinePlayerManager
     internal bool TryAdd(string loginName, OfflinePlayer offlinePlayer)
         => this._activePlayers.TryAdd(loginName, offlinePlayer);
 
-    private async ValueTask TransitionToOfflineAsync(Player realPlayer)
+    private async ValueTask TransitionToOfflineAsync(Player realPlayer, OfflinePlayer offlinePlayer)
     {
-        await this.LogOffFromLoginServerAsync(realPlayer).ConfigureAwait(false);
+        // The offline session takes over the registration of the account at the login server, so no other game server
+        // can log into the account while the session runs: the session saves its progress only when it ends, and a second
+        // session of the account would diverge from it, e.g. duplicate items. A login on this game server takes the
+        // session over (see LoginAction). It's taken over before the disconnect, so that the disconnect doesn't log off.
+        if (realPlayer.ReleaseLoginServerRegistration() is { } loginName)
+        {
+            offlinePlayer.SetLoginServerRegistration(loginName);
+        }
 
         // Send a close-game packet so the client exits cleanly without auto-reconnecting.
         // DisconnectAsync will then fire PlayerDisconnected, which triggers
@@ -174,36 +184,11 @@ public sealed class OfflinePlayerManager
     }
 
     /// <summary>
-    /// Attempts to log the player off from the login server so the account slot is freed
-    /// for reconnection while the ghost session is running. Failures are logged and swallowed
-    /// because the offline session can still proceed without this step.
-    /// </summary>
-    /// <param name="player">The player being transitioned to offline.</param>
-    private async ValueTask LogOffFromLoginServerAsync(Player player)
-    {
-        // The registration is released here, so that the following disconnect of the player doesn't log off again.
-        if (player.GameContext is not IGameServerContext gsCtx
-            || player.ReleaseLoginServerRegistration() is not { } loginName)
-        {
-            return;
-        }
-
-        try
-        {
-            await gsCtx.LoginServer.LogOffAsync(loginName, gsCtx.Id).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            player.Logger.LogWarning(ex, "Could not log off from login server during offline player start.");
-        }
-    }
-
-    /// <summary>
     /// Removes the sentinel entry from the active players dictionary and disposes the ghost.
     /// Used when startup fails before the ghost is fully initialized. The ghost is already part of the
     /// game context when the failure happened after <see cref="Player.SetSelectedCharacterAsync"/> was
     /// reached, and it is never disconnected on this path - the disposal takes it out of the player
-    /// list (see <see cref="Player.DisposeAsyncCore"/>).
+    /// list (see <see cref="Player.DisposeAsyncCore"/>) and logs the account off at the login server.
     /// </summary>
     /// <param name="loginName">The account login name.</param>
     /// <param name="sentinel">The ghost player to dispose.</param>

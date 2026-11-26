@@ -37,9 +37,10 @@ public sealed class LauncherSettings
     {
         get
         {
-            if (this.Servers.Count == 0)
+            // "Servers": null in the file deserializes to null.
+            if (this.Servers is not { Count: > 0 })
             {
-                this.Servers.Add(new ServerEntry());
+                this.Servers = [new ServerEntry()];
             }
 
             return this.Servers[Math.Clamp(this.SelectedServer, 0, this.Servers.Count - 1)];
@@ -63,6 +64,9 @@ public sealed class LauncherSettings
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
             MessageBox.Show($"launcher.json could not be read, defaults are used.{Environment.NewLine}{ex.Message}", "Old MU");
+
+            // The file isn't overwritten with the defaults, so that a typo doesn't wipe the configured servers.
+            return new LauncherSettings();
         }
 
         var settings = new LauncherSettings();

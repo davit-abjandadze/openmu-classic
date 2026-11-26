@@ -1175,11 +1175,29 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicRelativeResetExperienceRatesUpdatePlugIn_Description text.</summary>
         public static string ClassicRelativeResetExperienceRatesUpdatePlugIn_Description => ResourceManager.GetString("ClassicRelativeResetExperienceRatesUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized ClassicResetPointsPerResetCountUpdatePlugIn_Name text.</summary>
+        public static string ClassicResetPointsPerResetCountUpdatePlugIn_Name => ResourceManager.GetString("ClassicResetPointsPerResetCountUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicResetPointsPerResetCountUpdatePlugIn_Description text.</summary>
+        public static string ClassicResetPointsPerResetCountUpdatePlugIn_Description => ResourceManager.GetString("ClassicResetPointsPerResetCountUpdatePlugIn_Description", resourceCulture)!;
+
         /// <summary>Gets the localized ClassicItemLevelLimitUpdatePlugIn_Name text.</summary>
         public static string ClassicItemLevelLimitUpdatePlugIn_Name => ResourceManager.GetString("ClassicItemLevelLimitUpdatePlugIn_Name", resourceCulture)!;
 
         /// <summary>Gets the localized ClassicItemLevelLimitUpdatePlugIn_Description text.</summary>
         public static string ClassicItemLevelLimitUpdatePlugIn_Description => ResourceManager.GetString("ClassicItemLevelLimitUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicMaximumAccountsPerIpUpdatePlugIn_Name text.</summary>
+        public static string ClassicMaximumAccountsPerIpUpdatePlugIn_Name => ResourceManager.GetString("ClassicMaximumAccountsPerIpUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicMaximumAccountsPerIpUpdatePlugIn_Description text.</summary>
+        public static string ClassicMaximumAccountsPerIpUpdatePlugIn_Description => ResourceManager.GetString("ClassicMaximumAccountsPerIpUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicEventAccountsPerIpUpdatePlugIn_Name text.</summary>
+        public static string ClassicEventAccountsPerIpUpdatePlugIn_Name => ResourceManager.GetString("ClassicEventAccountsPerIpUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicEventAccountsPerIpUpdatePlugIn_Description text.</summary>
+        public static string ClassicEventAccountsPerIpUpdatePlugIn_Description => ResourceManager.GetString("ClassicEventAccountsPerIpUpdatePlugIn_Description", resourceCulture)!;
 
         /// <summary>Gets the localized ClassicMagicGladiatorUpdatePlugIn_Name text.</summary>
         public static string ClassicMagicGladiatorUpdatePlugIn_Name => ResourceManager.GetString("ClassicMagicGladiatorUpdatePlugIn_Name", resourceCulture)!;
@@ -1229,10 +1247,40 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicMedalMerchantUpdatePlugIn_Description text.</summary>
         public static string ClassicMedalMerchantUpdatePlugIn_Description => ResourceManager.GetString("ClassicMedalMerchantUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized ClassicSilverMedalRewardsUpdatePlugIn_Name text.</summary>
+        public static string ClassicSilverMedalRewardsUpdatePlugIn_Name => ResourceManager.GetString("ClassicSilverMedalRewardsUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicSilverMedalRewardsUpdatePlugIn_Description text.</summary>
+        public static string ClassicSilverMedalRewardsUpdatePlugIn_Description => ResourceManager.GetString("ClassicSilverMedalRewardsUpdatePlugIn_Description", resourceCulture)!;
+
         /// <summary>Gets the localized ClassicFarmSpotsUpdatePlugIn_Name text.</summary>
         public static string ClassicFarmSpotsUpdatePlugIn_Name => ResourceManager.GetString("ClassicFarmSpotsUpdatePlugIn_Name", resourceCulture)!;
 
         /// <summary>Gets the localized ClassicFarmSpotsUpdatePlugIn_Description text.</summary>
         public static string ClassicFarmSpotsUpdatePlugIn_Description => ResourceManager.GetString("ClassicFarmSpotsUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicIcarusMonsterStrengthUpdatePlugIn_Name text.</summary>
+        public static string ClassicIcarusMonsterStrengthUpdatePlugIn_Name => ResourceManager.GetString("ClassicIcarusMonsterStrengthUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicIcarusMonsterStrengthUpdatePlugIn_Description text.</summary>
+        public static string ClassicIcarusMonsterStrengthUpdatePlugIn_Description => ResourceManager.GetString("ClassicIcarusMonsterStrengthUpdatePlugIn_Description", resourceCulture)!;
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Classic: excellent item drop levels of Tarkan and Icarus.
+        /// </summary>
+        public static string ClassicExcellentDropLevelsUpdatePlugIn_Name {
+            get {
+                return ResourceManager.GetString("ClassicExcellentDropLevelsUpdatePlugIn_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The monsters of Tarkan and Icarus drop excellent weapons, armor and jewelry with a drop level between 50 (Legendary, Dragon and Guardian sets) and 69, so nothing lower and nothing of the Grand Soul, Dark Phoenix, Black Dragon, Divine and Storm Crow level. Normal items still drop by the monster level. Overwrites the configuration of the excellent item drop levels plugin. Only applies to the classic (Season 1 content) data.
+        /// </summary>
+        public static string ClassicExcellentDropLevelsUpdatePlugIn_Description {
+            get {
+                return ResourceManager.GetString("ClassicExcellentDropLevelsUpdatePlugIn_Description", resourceCulture);
+            }
+        }
     }
 }

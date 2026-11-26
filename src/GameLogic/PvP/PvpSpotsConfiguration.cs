@@ -63,6 +63,13 @@ public class PvpSpotsConfiguration
     public int MaximumKillsOfSameVictim { get; set; } = 3;
 
     /// <summary>
+    /// Gets or sets the minimum level of a victim (or loser of a duel) without resets. Kills of lower characters don't count,
+    /// so that low level characters can't be farmed for prestige. Characters with resets always count.
+    /// </summary>
+    [Display(Name = "Minimum victim level", Description = "Kills of characters (and duel victories over characters) below this level don't count, unless they have resets. Prevents farming low level characters for prestige.")]
+    public int MinimumVictimLevel { get; set; } = 50;
+
+    /// <summary>
     /// Gets or sets the time for <see cref="MaximumKillsOfSameVictim"/>.
     /// </summary>
     [Display(Name = "Same victim time")]

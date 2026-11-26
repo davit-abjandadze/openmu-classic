@@ -57,6 +57,13 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     public override DateTime UpdatedAt => new(2026, 11, 20, 18, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The Box of Heaven drops only active items, so the Magic Gladiator items have to be activated first.
+    /// Both updates have the same <see cref="UpdatedAt"/>, so without the dependency their order would depend on their keys.
+    /// </remarks>
+    public override IEnumerable<UpdateDependency> DependsOn => [typeof(ClassicMagicGladiatorUpdatePlugIn).GUID];
+
+    /// <inheritdoc />
     protected override async ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
     {
         if (ClassicContentRestriction.IsClassic(gameConfiguration))

@@ -3434,95 +3434,23 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         }
             
         /// <summary>
-        ///   Looks up a localized string similar to Bosses alive: {0}.
-        /// </summary>
-        public static string BossesHeader {
-            get {
-                return ResourceManager.GetString("BossesHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0}: {1} ({2},{3}).
-        /// </summary>
-        public static string BossesEntry {
-            get {
-                return ResourceManager.GetString("BossesEntry", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No boss is alive right now..
-        /// </summary>
-        public static string BossesNoneAlive {
-            get {
-                return ResourceManager.GetString("BossesNoneAlive", resourceCulture);
-            }
-        }
-            
-        /// <summary>
-        ///   Looks up a localized string similar to You won {0} gold and {1} silver medal(s)! Exchange them with /medals..
+        ///   Looks up a localized string similar to You won {0} silver medal(s)! Silver medals: {1}..
         /// </summary>
         public static string MedalsAwarded {
             get {
                 return ResourceManager.GetString("MedalsAwarded", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to {0} gold and {1} silver medal item(s) of your inventory were added to your medals..
+        ///   Looks up a localized string similar to Your inventory is full, so {0} silver medal(s) were added to your character. They pay at the medal merchant as well..
         /// </summary>
-        public static string MedalsItemsDeposited {
+        public static string MedalsCreditedInventoryFull {
             get {
-                return ResourceManager.GetString("MedalsItemsDeposited", resourceCulture);
+                return ResourceManager.GetString("MedalsCreditedInventoryFull", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Medals are not active..
-        /// </summary>
-        public static string MedalsNotActive {
-            get {
-                return ResourceManager.GetString("MedalsNotActive", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your medals: {0} gold, {1} silver. Exchange with /medals &lt;offer&gt;:.
-        /// </summary>
-        public static string MedalsOverview {
-            get {
-                return ResourceManager.GetString("MedalsOverview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0}: {1} for {2} gold, {3} silver.
-        /// </summary>
-        public static string MedalsOffer {
-            get {
-                return ResourceManager.GetString("MedalsOffer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown offer '{0}'. See /medals..
-        /// </summary>
-        public static string MedalsUnknownOffer {
-            get {
-                return ResourceManager.GetString("MedalsUnknownOffer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not enough medals: {0} gold and {1} silver are required..
-        /// </summary>
-        public static string MedalsNotEnough {
-            get {
-                return ResourceManager.GetString("MedalsNotEnough", resourceCulture);
-            }
-        }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Boss information is not available..
         /// </summary>
@@ -3568,15 +3496,6 @@ namespace MUnique.OpenMU.GameLogic.Properties {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to You received {0}. Medals left: {1} gold, {2} silver..
-        /// </summary>
-        public static string MedalsExchanged {
-            get {
-                return ResourceManager.GetString("MedalsExchanged", resourceCulture);
-            }
-        }
-            
         /// <summary>
         ///   Looks up a localized string similar to Hunting points are not active..
         /// </summary>
@@ -3765,16 +3684,16 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("TeamVsTeamWinner", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to You received {0} Team vs Team points..
+        ///   Looks up a localized string similar to Another account of your IP address already entered this event..
         /// </summary>
-        public static string TeamVsTeamPoints {
+        public static string EventEnteredByOtherAccountOfIp {
             get {
-                return ResourceManager.GetString("TeamVsTeamPoints", resourceCulture);
+                return ResourceManager.GetString("EventEnteredByOtherAccountOfIp", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Not enough silver medals for {0}: {1} are required, you have {2}..
         /// </summary>

@@ -1,4 +1,4 @@
-// <copyright file="MedalMerchantPlugInTest.cs" company="MUnique">
+﻿// <copyright file="MedalMerchantPlugInTest.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -34,18 +34,23 @@ public class MedalMerchantPlugInTest
 
     private const long Money = 1_000;
 
+    /// <summary>
+    /// The level of the Box of Luck which is the Gold Medal item of the original game. It doesn't pay at the merchant.
+    /// </summary>
+    private const byte GoldMedalItemLevel = 6;
+
     private MedalMerchantPlugIn _plugIn = null!;
 
     /// <summary>
-    /// Tests that the merchant sells only the Box of Kundun +4 for 10 and the +5 for 15 silver medals.
+    /// Tests that the merchant sells only the Box of Kundun +4 for 10, the +5 for 15 and the +3 for 5 silver medals.
     /// </summary>
     [Test]
     public void DefaultPricesOfBoxesOfKundun()
     {
         var prices = MedalMerchantConfiguration.CreateDefault().Prices;
 
-        Assert.That(prices.Select(p => (int)p.ItemLevel), Is.EqualTo(new[] { 11, 12 }));
-        Assert.That(prices.Select(p => p.SilverMedals), Is.EqualTo(new[] { 10, 15 }));
+        Assert.That(prices.Select(p => (int)p.ItemLevel), Is.EqualTo(new[] { 11, 12, 10 }));
+        Assert.That(prices.Select(p => p.SilverMedals), Is.EqualTo(new[] { 10, 15, 5 }));
         Assert.That(prices.All(p => p.ItemGroup == MedalItems.Group && p.ItemNumber == MedalItems.Number), Is.True);
     }
 
@@ -88,15 +93,14 @@ public class MedalMerchantPlugInTest
     {
         var player = await CreatePlayerAsync(silverMedals: 5).ConfigureAwait(false);
         await AddMedalItemsAsync(player, MedalItems.SilverMedalLevel, 3).ConfigureAwait(false);
-        await AddMedalItemsAsync(player, MedalItems.GoldMedalLevel, 1).ConfigureAwait(false);
+        await AddMedalItemsAsync(player, GoldMedalItemLevel, 1).ConfigureAwait(false);
 
         await new BuyNpcItemAction().BuyItemAsync(player, StoreSlot).ConfigureAwait(false);
 
         Assert.That(player.Inventory!.Items.Count(i => i.Level == MedalItems.SilverMedalLevel), Is.EqualTo(3));
-        Assert.That(player.Inventory.Items.Count(i => i.Level == MedalItems.GoldMedalLevel), Is.EqualTo(1));
+        Assert.That(player.Inventory.Items.Count(i => i.Level == GoldMedalItemLevel), Is.EqualTo(1));
         Assert.That(player.Inventory.Items.Any(i => i.Level == BoxOfKundun5Level), Is.False);
         Assert.That(player.Attributes![MedalStats.SilverMedals], Is.EqualTo(5));
-        Assert.That(player.Attributes[MedalStats.GoldMedals], Is.EqualTo(0));
     }
 
     /// <summary>
@@ -107,13 +111,13 @@ public class MedalMerchantPlugInTest
     {
         var player = await CreatePlayerAsync(silverMedals: 10).ConfigureAwait(false);
         await AddMedalItemsAsync(player, MedalItems.SilverMedalLevel, 7).ConfigureAwait(false);
-        await AddMedalItemsAsync(player, MedalItems.GoldMedalLevel, 1).ConfigureAwait(false);
+        await AddMedalItemsAsync(player, GoldMedalItemLevel, 1).ConfigureAwait(false);
 
         await new BuyNpcItemAction().BuyItemAsync(player, StoreSlot).ConfigureAwait(false);
 
         Assert.That(player.Inventory!.Items.Count(i => i.Level == BoxOfKundun5Level), Is.EqualTo(1));
         Assert.That(player.Inventory.Items.Count(i => i.Level == MedalItems.SilverMedalLevel), Is.EqualTo(2));
-        Assert.That(player.Inventory.Items.Count(i => i.Level == MedalItems.GoldMedalLevel), Is.EqualTo(1));
+        Assert.That(player.Inventory.Items.Count(i => i.Level == GoldMedalItemLevel), Is.EqualTo(1));
         Assert.That(player.Attributes![MedalStats.SilverMedals], Is.EqualTo(0));
     }
 
@@ -128,7 +132,7 @@ public class MedalMerchantPlugInTest
 
         var items = player.GetOfferedItems(player.OpenedNpc!)!;
 
-        Assert.That(items.Select(i => ((int)i.ItemSlot, (int)i.Level)), Is.EqualTo(new[] { (0, 11), (1, 12) }));
+        Assert.That(items.Select(i => ((int)i.ItemSlot, (int)i.Level)), Is.EqualTo(new[] { (0, 11), (1, 12), (2, 10) }));
     }
 
     /// <summary>
@@ -148,9 +152,9 @@ public class MedalMerchantPlugInTest
 
         plugIn.Configuration = configuration;
         var items = player.GetOfferedItems(player.OpenedNpc!)!;
-        await new BuyNpcItemAction().BuyItemAsync(player, 2).ConfigureAwait(false);
+        await new BuyNpcItemAction().BuyItemAsync(player, 3).ConfigureAwait(false);
 
-        Assert.That(items.Select(i => (int)i.ItemSlot), Is.EqualTo(new[] { 0, 1, 2 }));
+        Assert.That(items.Select(i => (int)i.ItemSlot), Is.EqualTo(new[] { 0, 1, 2, 3 }));
         Assert.That(player.Inventory!.Items.Single().Definition, Is.SameAs(sword));
         Assert.That(player.Inventory.Items.Single().Level, Is.EqualTo(9));
         Assert.That(player.Attributes![MedalStats.SilverMedals], Is.EqualTo(5));
@@ -171,7 +175,7 @@ public class MedalMerchantPlugInTest
 
         var items = player.GetOfferedItems(player.OpenedNpc!)!;
 
-        Assert.That(items, Has.Count.EqualTo(2));
+        Assert.That(items, Has.Count.EqualTo(3));
     }
 
     /// <summary>
@@ -213,9 +217,9 @@ public class MedalMerchantPlugInTest
     {
         var player = await CreatePlayerAsync(silverMedals: 0).ConfigureAwait(false);
         await AddMedalItemsAsync(player, MedalItems.SilverMedalLevel, 1).ConfigureAwait(false);
-        await AddMedalItemsAsync(player, MedalItems.GoldMedalLevel, 1).ConfigureAwait(false);
+        await AddMedalItemsAsync(player, GoldMedalItemLevel, 1).ConfigureAwait(false);
         var silver = player.Inventory!.Items.Single(i => i.Level == MedalItems.SilverMedalLevel);
-        var gold = player.Inventory.Items.Single(i => i.Level == MedalItems.GoldMedalLevel);
+        var gold = player.Inventory.Items.Single(i => i.Level == GoldMedalItemLevel);
         var target = player.Position;
         player.CurrentMap!.Terrain.WalkMap[target.X, target.Y] = true;
 

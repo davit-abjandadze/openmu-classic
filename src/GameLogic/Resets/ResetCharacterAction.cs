@@ -71,7 +71,7 @@ public class ResetCharacterAction
             return;
         }
 
-        if (configuration.GetEffectiveResetLimit(DateTime.UtcNow) is { } resetLimit && resetProgression.NextResetCount > resetLimit)
+        if (configuration.GetEffectiveResetLimit(DateTime.UtcNow, this._player.GameContext.ServerTimeZone) is { } resetLimit && resetProgression.NextResetCount > resetLimit)
         {
             await this.ShowMessageAsync(nameof(PlayerMessage.MaximumResetsReached), resetLimit).ConfigureAwait(false);
             return;

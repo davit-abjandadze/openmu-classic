@@ -37,8 +37,9 @@ internal static class LoginTestSetup
     /// <param name="loginServer">The login server.</param>
     /// <param name="eventPublisher">The event publisher; a mock, when it's <c>null</c>.</param>
     /// <param name="maximumPlayers">The maximum players of the game server.</param>
+    /// <param name="serverId">The id of the game server.</param>
     /// <returns>The game server context.</returns>
-    public static GameServerContext CreateGameServerContext(IPersistenceContextProvider persistence, ILoginServer loginServer, IEventPublisher? eventPublisher = null, short maximumPlayers = 10)
+    public static GameServerContext CreateGameServerContext(IPersistenceContextProvider persistence, ILoginServer loginServer, IEventPublisher? eventPublisher = null, short maximumPlayers = 10, byte serverId = 0)
     {
         var gameConfiguration = new Persistence.BasicModel.GameConfiguration();
         gameConfiguration.Maps.Add(new Persistence.BasicModel.GameMapDefinition { TerrainData = new byte[ushort.MaxValue + 3] });
@@ -46,6 +47,7 @@ internal static class LoginTestSetup
         var gameServerContext = new GameServerContext(
             new Persistence.BasicModel.GameServerDefinition
             {
+                ServerID = serverId,
                 GameConfiguration = gameConfiguration,
                 ServerConfiguration = new Persistence.BasicModel.GameServerConfiguration { MaximumPlayers = maximumPlayers },
             },

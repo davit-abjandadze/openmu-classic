@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
@@ -110,6 +111,50 @@ public class PvpSpotsPlugInTest
         await this._plugIn.AttackableGotKilledAsync(this._victim, this._killer).ConfigureAwait(false);
         Assert.That(this._killer.Attributes[PvpStats.WeeklyKills], Is.EqualTo(1));
         Assert.That(this._killer.Attributes[PvpStats.WeeklyPrestige], Is.EqualTo(20));
+    }
+
+    /// <summary>
+    /// Tests that a killer outside of the spot doesn't get a spot kill, like it doesn't get the exemption of the player killer penalty.
+    /// </summary>
+    [Test]
+    public async Task KillerOutsideSpotCountsNothingAsync()
+    {
+        this._killer.Position = OutsideSpot;
+        await this._plugIn.AttackableGotKilledAsync(this._victim, this._killer).ConfigureAwait(false);
+
+        Assert.That(this._killer.Attributes![PvpStats.WeeklyKills], Is.EqualTo(0));
+        Assert.That(this._killer.Attributes[PvpStats.WeeklyPrestige], Is.EqualTo(0));
+        Assert.That(this._victim.Attributes![PvpStats.WeeklyDeaths], Is.EqualTo(0));
+    }
+
+    /// <summary>
+    /// Tests that killing a member of the own party counts nothing.
+    /// </summary>
+    [Test]
+    public async Task KillOfPartyMemberCountsNothingAsync()
+    {
+        var party = new Party(new PartyManager(5, new NullLogger<Party>()), 5, new NullLogger<Party>());
+        this._killer.Party = party;
+        this._victim.Party = party;
+        await this._plugIn.AttackableGotKilledAsync(this._victim, this._killer).ConfigureAwait(false);
+
+        Assert.That(this._killer.Attributes![PvpStats.WeeklyKills], Is.EqualTo(0));
+        Assert.That(this._killer.Attributes[PvpStats.WeeklyPrestige], Is.EqualTo(0));
+    }
+
+    /// <summary>
+    /// Tests that killing a low level character without resets counts nothing, but with resets it counts.
+    /// </summary>
+    [Test]
+    public async Task KillOfLowLevelCharacterCountsOnlyWithResetsAsync()
+    {
+        this._victim.Attributes![Stats.Level] = this._plugIn.Configuration!.MinimumVictimLevel - 1;
+        await this._plugIn.AttackableGotKilledAsync(this._victim, this._killer).ConfigureAwait(false);
+        Assert.That(this._killer.Attributes![PvpStats.WeeklyKills], Is.EqualTo(0));
+
+        this._victim.Attributes[Stats.Resets] = 1;
+        await this._plugIn.AttackableGotKilledAsync(this._victim, this._killer).ConfigureAwait(false);
+        Assert.That(this._killer.Attributes[PvpStats.WeeklyKills], Is.EqualTo(1));
     }
 
     /// <summary>

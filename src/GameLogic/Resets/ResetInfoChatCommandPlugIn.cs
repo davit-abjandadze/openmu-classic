@@ -77,10 +77,11 @@ public class ResetInfoChatCommandPlugIn : IChatCommandPlugIn
     private static async ValueTask ShowServerLimitAndExperienceRateAsync(Player player, ResetConfiguration configuration)
     {
         var now = DateTime.UtcNow;
-        if (configuration.ServerResetLimitStart is not null && configuration.GetEffectiveResetLimit(now) is { } limit)
+        var timeZone = player.GameContext.ServerTimeZone;
+        if (configuration.ServerResetLimitStart is not null && configuration.GetEffectiveResetLimit(now, timeZone) is { } limit)
         {
-            if (configuration.GetNextServerResetLimitRise(now) is { } nextRise
-                && configuration.GetEffectiveResetLimit(nextRise) is { } nextLimit)
+            if (configuration.GetNextServerResetLimitRise(now, timeZone) is { } nextRise
+                && configuration.GetEffectiveResetLimit(nextRise, timeZone) is { } nextLimit)
             {
                 var remaining = nextRise - now;
                 await player.ShowLocalizedBlueMessageAsync(

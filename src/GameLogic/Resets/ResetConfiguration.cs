@@ -125,10 +125,10 @@ public class ResetConfiguration
     /// </summary>
     /// <remarks>
     /// The server reset limit is the same for every character: it starts with <see cref="ServerResetLimitInitial"/>
-    /// and rises by <see cref="ServerResetLimitIncreasePerDay"/> every 24 hours after this point in time,
-    /// up to the <see cref="ResetLimit"/>, if one is defined.
+    /// on the day of this point in time and rises by <see cref="ServerResetLimitIncreasePerDay"/> at every following
+    /// midnight in the time zone of the server, up to the <see cref="ResetLimit"/>, if one is defined.
     /// </remarks>
-    [Display(Name = "Server reset limit start (UTC)", Description = "The point in time from which the reset limit of the whole server rises every 24 hours. Empty means no rising server limit.")]
+    [Display(Name = "Server reset limit start (UTC)", Description = "The point in time from which the reset limit of the whole server rises every day, at midnight in the time zone of the server. Empty means no rising server limit.")]
     public DateTime? ServerResetLimitStart { get; set; }
 
     /// <summary>
@@ -164,8 +164,9 @@ public class ResetConfiguration
     /// the <see cref="ResetLimit"/> and the rising server reset limit.
     /// </summary>
     /// <param name="utcNow">The current point in time (UTC).</param>
+    /// <param name="timeZone">The time zone of the server, at whose midnight the server reset limit rises.</param>
     /// <returns>The effective reset limit, or <c>null</c> if there is no limit.</returns>
-    public int? GetEffectiveResetLimit(DateTime utcNow)
+    public int? GetEffectiveResetLimit(DateTime utcNow, TimeZoneInfo timeZone)
     {
         int? limit = this.ResetLimit is > 0 ? this.ResetLimit : null;
         if (this.ServerResetLimitStart is not { } start)
@@ -173,8 +174,7 @@ public class ResetConfiguration
             return limit;
         }
 
-        start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
-        var days = utcNow < start ? 0 : (long)(utcNow - start).TotalDays;
+        long days = Math.Max(0, (ToLocalDate(utcNow, timeZone) - ToLocalDate(start, timeZone)).Days);
         var serverLimit = (int)Math.Clamp(this.ServerResetLimitInitial + (days * this.ServerResetLimitIncreasePerDay), 0, int.MaxValue);
         return limit is { } l ? Math.Min(l, serverLimit) : serverLimit;
     }
@@ -183,28 +183,34 @@ public class ResetConfiguration
     /// Gets the point in time (UTC) when the server reset limit rises next, if it rises.
     /// </summary>
     /// <param name="utcNow">The current point in time (UTC).</param>
-    /// <returns>The point in time of the next rise, or <c>null</c> if it doesn't rise anymore.</returns>
-    public DateTime? GetNextServerResetLimitRise(DateTime utcNow)
+    /// <param name="timeZone">The time zone of the server, at whose midnight the server reset limit rises.</param>
+    /// <returns>The point in time (UTC) of the next rise, or <c>null</c> if it doesn't rise anymore.</returns>
+    public DateTime? GetNextServerResetLimitRise(DateTime utcNow, TimeZoneInfo timeZone)
     {
         if (this.ServerResetLimitStart is not { } start || this.ServerResetLimitIncreasePerDay <= 0)
         {
             return null;
         }
 
-        if (this.ResetLimit is > 0 && this.GetEffectiveResetLimit(utcNow) >= this.ResetLimit)
+        if (this.ResetLimit is > 0 && this.GetEffectiveResetLimit(utcNow, timeZone) >= this.ResetLimit)
         {
             return null;
         }
 
         start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
-        if (utcNow < start)
+        var nextMidnight = ToLocalDate(utcNow < start ? start : utcNow, timeZone).AddDays(1);
+
+        // In time zones which switch to daylight saving time at midnight, the midnight doesn't exist on that day.
+        while (timeZone.IsInvalidTime(nextMidnight))
         {
-            return start.AddDays(1);
+            nextMidnight = nextMidnight.AddHours(1);
         }
 
-        var days = (long)(utcNow - start).TotalDays;
-        return start.AddDays(days + 1);
+        return TimeZoneInfo.ConvertTimeToUtc(nextMidnight, timeZone);
     }
+
+    private static DateTime ToLocalDate(DateTime utc, TimeZoneInfo timeZone)
+        => DateTime.SpecifyKind(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), timeZone).Date, DateTimeKind.Unspecified);
 
     /// <summary>
     /// Tier definition for the points which are granted when resetting.

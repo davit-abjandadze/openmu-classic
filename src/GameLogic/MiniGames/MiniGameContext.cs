@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.MiniGames;
 
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using MUnique.OpenMU.GameLogic.NPC;
@@ -230,7 +231,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     /// <returns>A value indicating whether entering had success.</returns>
     public async ValueTask<EnterResult> TryEnterAsync(Player player)
     {
-        var result = await this._players.TryEnterAsync(player, this.AreEquippedItemsAllowedAsync, () => this.AllowEnterWhilePlaying).ConfigureAwait(false);
+        var result = await this._players.TryEnterAsync(player, this.IsEnteringAllowedAsync, () => this.AllowEnterWhilePlaying).ConfigureAwait(false);
         if (result != EnterResult.Success)
         {
             return result;
@@ -925,6 +926,23 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
                 player.PlayerPickedUpItem -= this.OnPlayerPickedUpItemAsync;
             }
         }
+    }
+
+    private async ValueTask<bool> IsEnteringAllowedAsync(Player player)
+    {
+        if (!await this.AreEquippedItemsAllowedAsync(player).ConfigureAwait(false))
+        {
+            return false;
+        }
+
+        if (this._gameContext.PlugInManager.GetPlugInPoint<IMiniGameEnteringPlugIn>() is not { } plugInPoint)
+        {
+            return true;
+        }
+
+        var eventArgs = new CancelEventArgs();
+        await plugInPoint.MiniGameEnteringAsync(player, this, eventArgs).ConfigureAwait(false);
+        return !eventArgs.Cancel;
     }
 
     private async ValueTask<bool> AreEquippedItemsAllowedAsync(Player player)

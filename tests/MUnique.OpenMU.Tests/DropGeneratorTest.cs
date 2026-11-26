@@ -11,6 +11,7 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using BasicModel = MUnique.OpenMU.Persistence.BasicModel;
 
 /// <summary>
@@ -458,6 +459,113 @@ public class DropGeneratorTest
 
         Assert.That(bossItems.Select(i => (i.Definition, (int)i.Level)), Is.EqualTo(new[] { (box, 12), (box, 5), (box, 5) }));
         Assert.That(otherItems, Is.Empty);
+    }
+
+    /// <summary>
+    /// Tests that an excellent drop selects the equipment by the drop levels of the map, when they're configured,
+    /// instead of the monster level minus the excellent item drop level delta. A Death Beam Knight (93) would
+    /// otherwise drop excellent items between 57 and 68 only.
+    /// </summary>
+    [Test]
+    public async ValueTask TestExcellentEquipmentDropsWithinMapDropLevelsAsync()
+    {
+        var excellentItem = this.CreateExcellentEquipmentDefinition(0, 11, 44);
+        var monster = this.GetMonster(1, 93);
+        monster.DropItemGroups.Add(10000, SpecialItemType.Excellent, false);
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        AddExcellentDropLevels(player, player.CurrentMap!.Definition.Number, 40, 50);
+
+        var generator = new DefaultDropGenerator(this.GetGameConfigWithExcellentDelta(excellentItem), this.GetRandomizer(0));
+        var (items, _) = await generator.GenerateItemDropsAsync(monster, 1, player).ConfigureAwait(false);
+
+        AssertExcellentWithoutSockets(items.FirstOrDefault(), excellentItem);
+    }
+
+    /// <summary>
+    /// Tests that an excellent drop doesn't select equipment outside the drop levels of the map,
+    /// even if the monster level would allow it, e.g. no excellent Grand Soul Gloves (70) in Icarus.
+    /// </summary>
+    [Test]
+    public async ValueTask TestExcellentEquipmentOutsideMapDropLevelsIsNotDroppedAsync()
+    {
+        var excellentItem = this.CreateExcellentEquipmentDefinition(10, 18, 70);
+        var monster = this.GetMonster(1, 96);
+        monster.DropItemGroups.Add(10000, SpecialItemType.Excellent, false);
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        AddExcellentDropLevels(player, player.CurrentMap!.Definition.Number, 50, 69);
+
+        var generator = new DefaultDropGenerator(this.GetGameConfigWithExcellentDelta(excellentItem), this.GetRandomizer(0));
+        var (items, _) = await generator.GenerateItemDropsAsync(monster, 1, player).ConfigureAwait(false);
+
+        Assert.That(items, Is.Empty);
+    }
+
+    /// <summary>
+    /// Tests that the excellent drop levels of another map don't change the excellent drops, which then depend on the monster level.
+    /// </summary>
+    [Test]
+    public async ValueTask TestExcellentEquipmentDropsByMonsterLevelOnOtherMapsAsync()
+    {
+        var excellentItem = this.CreateExcellentEquipmentDefinition(10, 18, 70);
+        var monster = this.GetMonster(1, 96);
+        monster.DropItemGroups.Add(10000, SpecialItemType.Excellent, false);
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        AddExcellentDropLevels(player, (short)(player.CurrentMap!.Definition.Number + 1), 50, 69);
+
+        var generator = new DefaultDropGenerator(this.GetGameConfigWithExcellentDelta(excellentItem), this.GetRandomizer(0));
+        var (items, _) = await generator.GenerateItemDropsAsync(monster, 1, player).ConfigureAwait(false);
+
+        AssertExcellentWithoutSockets(items.FirstOrDefault(), excellentItem);
+    }
+
+    /// <summary>
+    /// Tests that normal items still drop by the monster level, when the map has drop levels for the excellent items,
+    /// e.g. a normal Grand Soul Armor (91) from a Death Beam Knight (93) in Tarkan.
+    /// </summary>
+    [Test]
+    public async ValueTask TestRandomItemDropsByMonsterLevelWithExcellentDropLevelsAsync()
+    {
+        var highItem = this.CreateItemDefinition(8, 18, 91);
+        var fittingItem = this.CreateItemDefinition(8, 3, 56);
+        highItem.DropsFromMonsters = true;
+        fittingItem.DropsFromMonsters = true;
+        highItem.ItemSlot = new BasicModel.ItemSlotType();
+        fittingItem.ItemSlot = new BasicModel.ItemSlotType();
+        var monster = this.GetMonster(1, 93);
+        monster.DropItemGroups.Add(10000, SpecialItemType.RandomItem, false);
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        AddExcellentDropLevels(player, player.CurrentMap!.Definition.Number, 50, 69);
+
+        var generator = new DefaultDropGenerator(this.GetGameConfig(fittingItem, highItem), this.GetRandomizer(0));
+        var (items, _) = await generator.GenerateItemDropsAsync(monster, 1, player).ConfigureAwait(false);
+
+        Assert.That(items.FirstOrDefault()?.Definition, Is.EqualTo(highItem));
+    }
+
+    private static void AddExcellentDropLevels(Player player, short mapNumber, int minimumDropLevel, int maximumDropLevel)
+    {
+        var configuration = new MapExcellentDropLevelsConfiguration();
+        configuration.Maps.Add(new() { MapNumber = mapNumber, MinimumDropLevel = minimumDropLevel, MaximumDropLevel = maximumDropLevel });
+        player.GameContext.FeaturePlugIns.AddPlugIn(new MapExcellentDropLevelsPlugIn { Configuration = configuration }, true);
+    }
+
+    /// <summary>
+    /// Gets a game configuration with the excellent item drop level delta of the initialization data (25),
+    /// so that a monster drops excellent items 25 levels below its own level.
+    /// </summary>
+    private GameConfiguration GetGameConfigWithExcellentDelta(params ItemDefinition[] items)
+    {
+        var gameConfiguration = this.GetGameConfig(items);
+        gameConfiguration.ExcellentItemDropLevelDelta = 25;
+        return gameConfiguration;
+    }
+
+    private ItemDefinition CreateExcellentEquipmentDefinition(byte group, short number, byte dropLevel)
+    {
+        var itemDefinition = this.CreateExcellentCapableItemDefinition(group, number, 0);
+        itemDefinition.DropLevel = dropLevel;
+        itemDefinition.ItemSlot = new BasicModel.ItemSlotType();
+        return itemDefinition;
     }
 
     private IRandomizer GetRandomizerWithIncreasingInts()

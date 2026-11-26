@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic.HuntingRewards;
 
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Configuration.Items;
@@ -24,7 +23,7 @@ public class HuntingJewelPlugIn : IAttackableGotKilledPlugIn, ISupportCustomConf
 {
     private static readonly DateTime DayZero = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
 
-    private readonly ConcurrentDictionary<Player, DateTime> _lastKills = new();
+    private readonly LastKillTimes _lastKills = new();
 
     /// <inheritdoc />
     public HuntingJewelConfiguration? Configuration { get; set; }
@@ -98,9 +97,12 @@ public class HuntingJewelPlugIn : IAttackableGotKilledPlugIn, ISupportCustomConf
     /// <param name="now">The current point in time.</param>
     internal async ValueTask AddHuntingTimeAsync(Player player, IAttributeSystem attributes, HuntingJewelConfiguration configuration, DateTime now)
     {
-        var previousKill = this._lastKills.GetValueOrDefault(player, now);
-        this._lastKills[player] = now;
-        var huntingTime = now - previousKill;
+        if (player.SelectedCharacter is not { } character)
+        {
+            return;
+        }
+
+        var huntingTime = this._lastKills.GetTimeSinceLastKill(character, now);
         if (huntingTime > configuration.MaximumTimeBetweenKills)
         {
             huntingTime = configuration.MaximumTimeBetweenKills;

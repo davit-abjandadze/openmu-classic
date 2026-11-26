@@ -26,6 +26,11 @@ public class TeamVsTeamState : PeriodicTaskGameServerState
     public object SyncRoot { get; } = new();
 
     /// <summary>
+    /// Gets the object which identifies the current run of the event. It's renewed when the registration opens.
+    /// </summary>
+    public object Run { get; private set; } = new();
+
+    /// <summary>
     /// Gets the registered players.
     /// </summary>
     public List<Player> Registered { get; } = [];
@@ -42,6 +47,14 @@ public class TeamVsTeamState : PeriodicTaskGameServerState
 
     /// <inheritdoc />
     public override string Description => "Team vs Team";
+
+    /// <summary>
+    /// Starts a new run of the event, see <see cref="Run"/>.
+    /// </summary>
+    public void StartNewRun()
+    {
+        this.Run = new object();
+    }
 
     /// <summary>
     /// Gets the team of the player in the running battle.

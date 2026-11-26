@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic.HuntingRewards;
 
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.Attributes;
@@ -22,7 +21,7 @@ using MUnique.OpenMU.PlugIns;
 [Guid("5A1E7C33-9D2B-4F6A-8E41-7B3C2D1F0A30")]
 public class HuntingPointsPlugIn : IAttackableGotKilledPlugIn, ISupportCustomConfiguration<HuntingPointsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
 {
-    private readonly ConcurrentDictionary<Player, DateTime> _lastKills = new();
+    private readonly LastKillTimes _lastKills = new();
 
     /// <inheritdoc />
     public HuntingPointsConfiguration? Configuration { get; set; }
@@ -81,14 +80,17 @@ public class HuntingPointsPlugIn : IAttackableGotKilledPlugIn, ISupportCustomCon
     /// <param name="now">The current point in time.</param>
     internal void AddHuntingTime(Player player, IAttributeSystem attributes, HuntingPointsConfiguration configuration, DateTime now)
     {
-        var previousKill = this._lastKills.GetValueOrDefault(player, now);
-        this._lastKills[player] = now;
+        if (player.SelectedCharacter is not { } character)
+        {
+            return;
+        }
+
+        var huntingTime = this._lastKills.GetTimeSinceLastKill(character, now);
         if (attributes[Stats.Level] < configuration.MinimumLevel || configuration.HuntingTimePerPoint <= TimeSpan.Zero)
         {
             return;
         }
 
-        var huntingTime = now - previousKill;
         if (huntingTime > configuration.MaximumTimeBetweenKills)
         {
             huntingTime = configuration.MaximumTimeBetweenKills;

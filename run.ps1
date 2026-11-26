@@ -2,9 +2,13 @@
 #   .\run.ps1            build + start
 #   .\run.ps1 -NoBuild   start the last build
 #   .\run.ps1 -Reinit    build + start with a freshly initialized database
+#   .\run.ps1 -ResolveIp 26.1.2.3   address the clients get for the game servers:
+#                        local (default, home network), public (internet, needs port forwarding),
+#                        loopback (this PC only) or an IP address, e.g. the one of a VPN like Radmin VPN
 param(
     [switch]$NoBuild,
-    [switch]$Reinit
+    [switch]$Reinit,
+    [string]$ResolveIp = 'local'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -50,7 +54,7 @@ $env:DB_ADMIN_PW = 'openmu_dev'
 $env:ASPNETCORE_ENVIRONMENT = 'Development'
 $env:ASPNETCORE_URLS = 'http://+:80'
 
-$serverArgs = @('-autostart', '-resolveIp:local')
+$serverArgs = @('-autostart', "-resolveIp:$ResolveIp")
 if ($Reinit) { $serverArgs += '-reinit' }
 
 Write-Host "Starting server ($($serverArgs -join ' ')). Admin panel: http://localhost" -ForegroundColor Green

@@ -43,6 +43,23 @@ public class BossMapMarkersPlugInTest
     }
 
     /// <summary>
+    /// Tests that a boss name is cut to the 20 bytes (UTF-8) of the name field of a marker, without splitting a character.
+    /// </summary>
+    /// <param name="name">The name of the boss.</param>
+    /// <param name="expected">The expected name in the marker.</param>
+    [TestCase("Hydra", "Hydra")]
+    [TestCase("Death Spirit (Trainee Soldier)", "Death Spirit (Traine")]
+    [TestCase("ÄÄÄÄÄÄÄÄÄÄÄÄ", "ÄÄÄÄÄÄÄÄÄÄ")]
+    [TestCase("abcdefghijklmnopqrs😀", "abcdefghijklmnopqrs")]
+    public void BossNameIsCutToTheNameField(string name, string expected)
+    {
+        var result = MUnique.OpenMU.GameServer.RemoteView.World.ShowBossMapMarkersExtendedPlugIn.FitName(name);
+
+        Assert.That(result, Is.EqualTo(expected));
+        Assert.That(Encoding.UTF8.GetByteCount(result), Is.LessThanOrEqualTo(MUnique.OpenMU.GameServer.RemoteView.World.ShowBossMapMarkersExtendedPlugIn.NameLength));
+    }
+
+    /// <summary>
     /// An alive boss is shown at its position.
     /// </summary>
     [Test]

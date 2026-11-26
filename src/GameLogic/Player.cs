@@ -273,6 +273,16 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     public Views.Login.LoginResult? LoginResultOverride { get; set; }
 
     /// <summary>
+    /// Gets the login name of the account which this player is logging into, while the login is in progress.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="IPlayerStateChangingPlugIn"/>s see it when the player changes to <see cref="GameLogic.PlayerState.Authenticated"/>,
+    /// before the <see cref="Account"/> is assigned. E.g. a login takes over the offline session of its own account,
+    /// so that session shouldn't count as another session of the player.
+    /// </remarks>
+    public string? LoginNameInProgress { get; internal set; }
+
+    /// <summary>
     /// Gets the point in time (UTC) when the client of this player reported the last time that it's alive,
     /// e.g. by its periodic ping, while the player is in the world. It's <c>null</c>, if the client didn't report
     /// it since the player entered the world, e.g. because it doesn't support it, or because this player has no

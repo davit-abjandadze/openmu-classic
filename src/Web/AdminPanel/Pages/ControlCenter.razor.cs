@@ -16,6 +16,7 @@ using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
 using MUnique.OpenMU.GameLogic.ItemExchange;
+using MUnique.OpenMU.GameLogic.MiniGames;
 using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlugIns;
@@ -47,13 +48,17 @@ using MUnique.OpenMU.Web.Shared.Services;
 /// </remarks>
 public partial class ControlCenter : ComponentBase, IDisposable
 {
+    /// <summary>
+    /// The feature groups. A plugin may be listed in more than one group, e.g. the Team vs Team is a PvP event
+    /// and its settings hold its rewards; all groups then show the same item.
+    /// </summary>
     private static readonly FeatureGroup[] FeatureGroups =
     [
         new(() => Resources.ControlCenterResets, [typeof(ResetFeaturePlugIn), typeof(ResetExperienceRatePlugIn), typeof(StatResetFeaturePlugIn)]),
-        new(() => Resources.ControlCenterRewards, [typeof(HuntingJewelPlugIn), typeof(HuntingPointsPlugIn), typeof(ItemExchangeChatCommandPlugIn), typeof(MiniGameMedalsPlugIn)]),
+        new(() => Resources.ControlCenterRewards, [typeof(HuntingJewelPlugIn), typeof(HuntingPointsPlugIn), typeof(ItemExchangeChatCommandPlugIn), typeof(MiniGameMedalsPlugIn), typeof(TeamVsTeamPlugIn)]),
         new(() => Resources.ControlCenterPvp, [typeof(PvpSpotsPlugIn), typeof(TeamVsTeamPlugIn)]),
-        new(() => Resources.ControlCenterEvents, [typeof(DevilSquareStartPlugIn), typeof(BloodCastleStartPlugIn), typeof(GoldenInvasionPlugIn), typeof(RedDragonInvasionPlugIn), typeof(WhiteWizardInvasionPlugIn)]),
-        new(() => Resources.ControlCenterOther, [typeof(ItemLevelLimitPlugIn), typeof(UnlockedCharacterClassesPlugIn), typeof(BossStatusChatCommandPlugIn), typeof(PeriodicSaveProgressPlugIn)]),
+        new(() => Resources.ControlCenterEvents, [typeof(DevilSquareStartPlugIn), typeof(BloodCastleStartPlugIn), typeof(GoldenInvasionPlugIn), typeof(RedDragonInvasionPlugIn), typeof(WhiteWizardInvasionPlugIn), typeof(EventAccountsPerIpPlugIn)]),
+        new(() => Resources.ControlCenterOther, [typeof(ItemLevelLimitPlugIn), typeof(MapExcellentDropLevelsPlugIn), typeof(UnlockedCharacterClassesPlugIn), typeof(BossMapMarkersPlugIn), typeof(PeriodicSaveProgressPlugIn), typeof(MaximumConnectionsPerIpPlugIn)]),
     ];
 
     private IList<IManageableServer> _servers = [];
@@ -202,15 +207,24 @@ public partial class ControlCenter : ComponentBase, IDisposable
             var gameConfiguration = await this.GameConfigurationSource.GetOwnerAsync().ConfigureAwait(true);
             using var context = this.PersistenceContextProvider.CreateNewTypedContext(typeof(PlugInConfiguration), false);
             var features = new List<(FeatureGroup Group, List<PlugInConfigurationViewItem> Items)>();
+
+            // A plugin which is listed in several groups gets one item, so that a change shows in all of them.
+            var viewItems = new Dictionary<Type, PlugInConfigurationViewItem>();
             foreach (var group in FeatureGroups)
             {
                 var items = new List<PlugInConfigurationViewItem>();
                 foreach (var plugInType in group.PlugInTypes)
                 {
-                    if (gameConfiguration.PlugInConfigurations.FirstOrDefault(c => c.TypeId == plugInType.GUID) is { } cached
+                    if (viewItems.TryGetValue(plugInType, out var viewItem))
+                    {
+                        items.Add(viewItem);
+                    }
+                    else if (gameConfiguration.PlugInConfigurations.FirstOrDefault(c => c.TypeId == plugInType.GUID) is { } cached
                         && await context.GetByIdAsync<PlugInConfiguration>(cached.GetId()).ConfigureAwait(true) is { } persisted)
                     {
-                        items.Add(CreateViewItem(plugInType, persisted));
+                        viewItem = CreateViewItem(plugInType, persisted);
+                        viewItems.Add(plugInType, viewItem);
+                        items.Add(viewItem);
                     }
                 }
 

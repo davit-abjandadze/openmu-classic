@@ -115,6 +115,34 @@ public class LoginAction
     }
 
     /// <summary>
+    /// Takes over the registration of the account at the login server from its offline session, which holds it while
+    /// it runs (see <see cref="Offline.OfflinePlayerManager.StartAsync"/>). This way, the account stays reserved for
+    /// this game server until the offline session saved its progress and the account is loaded again.
+    /// </summary>
+    /// <param name="player">The player which logs in.</param>
+    /// <param name="offlinePlayer">The offline session of the account on this game server.</param>
+    /// <param name="gameServerContext">The game server context.</param>
+    /// <param name="username">The username.</param>
+    /// <returns><c>true</c>, if the player holds the registration of the account now.</returns>
+    private static async ValueTask<bool> TryTakeOverLoginServerRegistrationAsync(Player player, Offline.OfflinePlayer offlinePlayer, IGameServerContext gameServerContext, string username)
+    {
+        // The session doesn't hold it when it just ended, e.g. after its character died.
+        if (offlinePlayer.ReleaseLoginServerRegistration() is not { } loginName)
+        {
+            if (!await gameServerContext.LoginServer.TryLoginAsync(username, gameServerContext.Id).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            loginName = username;
+        }
+
+        // Remembered while the state change is in progress, which a disconnect waits for.
+        player.SetLoginServerRegistration(loginName);
+        return true;
+    }
+
+    /// <summary>
     /// Notifies the game servers and external systems, that somebody tried to log into an account which is already logged in.
     /// </summary>
     private static async ValueTask NotifyAlreadyLoggedInAsync(IGameServerContext gameServerContext, string username)
@@ -167,6 +195,7 @@ public class LoginAction
         IDisposable? reservedPlace = null;
         try
         {
+            player.LoginNameInProgress = username;
             await using var context = await player.PlayerState.TryBeginAdvanceToAsync(PlayerState.Authenticated).ConfigureAwait(false);
             if (!context.Allowed)
             {
@@ -191,27 +220,20 @@ public class LoginAction
                     return await RefuseBecauseFullAsync(player, context).ConfigureAwait(false);
                 }
 
-                var isTemplateOffline = offlinePlayer!.IsTemplatePlayer;
-                if (!isTemplateOffline)
-                {
-                    if (!await gameServerContext.LoginServer.TryLoginAsync(username, gameServerContext.Id).ConfigureAwait(false))
-                    {
-                        context.Allowed = false;
-                        await player.InvokeViewPlugInAsync<IShowLoginResultPlugIn>(p => p.ShowLoginResultAsync(LoginResult.AccountAlreadyConnected)).ConfigureAwait(false);
-                        await NotifyAlreadyLoggedInAsync(gameServerContext, username).ConfigureAwait(false);
-                        return (false, null);
-                    }
-
-                    // Remembered while the state change is in progress, which a disconnect waits for.
-                    player.SetLoginServerRegistration(username);
-                }
-
                 // Checked before the offline session is stopped, so that it keeps running when the account is rejected.
-                if (offlinePlayer.Account is { } runningAccount
+                if (offlinePlayer!.Account is { } runningAccount
                     && !await this.CheckJoinRequirementsAsync(player, runningAccount, gameServerContext).ConfigureAwait(false))
                 {
-                    await ReleaseLoginServerRegistrationAsync(player).ConfigureAwait(false);
                     context.Allowed = false;
+                    return (false, null);
+                }
+
+                if (!offlinePlayer.IsTemplatePlayer
+                    && !await TryTakeOverLoginServerRegistrationAsync(player, offlinePlayer, gameServerContext, username).ConfigureAwait(false))
+                {
+                    context.Allowed = false;
+                    await player.InvokeViewPlugInAsync<IShowLoginResultPlugIn>(p => p.ShowLoginResultAsync(LoginResult.AccountAlreadyConnected)).ConfigureAwait(false);
+                    await NotifyAlreadyLoggedInAsync(gameServerContext, username).ConfigureAwait(false);
                     return (false, null);
                 }
 
@@ -300,6 +322,7 @@ public class LoginAction
         {
             // After the state change: the context is disposed when the try block is left.
             reservedPlace?.Dispose();
+            player.LoginNameInProgress = null;
         }
     }
 

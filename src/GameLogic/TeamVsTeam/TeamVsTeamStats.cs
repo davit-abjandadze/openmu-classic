@@ -10,13 +10,12 @@ using MUnique.OpenMU.AttributeSystem;
 /// The attributes of a character which hold its results of the <see cref="TeamVsTeamPlugIn"/>.
 /// To be persisted, they need to be stat attributes of the character classes.
 /// </summary>
+/// <remarks>
+/// The GUID D4C7A1E3-2B5F-4A86-9C30-6E8F1B2D7A01 belonged to the former Team vs Team points, which were replaced
+/// by silver medals, and must not be reused, because existing databases still hold it.
+/// </remarks>
 public static class TeamVsTeamStats
 {
-    /// <summary>
-    /// Gets the points of won Team vs Team events (e.g. 30 for the best player of the winning team, 10 for the others).
-    /// </summary>
-    public static AttributeDefinition Points { get; } = new(new Guid("D4C7A1E3-2B5F-4A86-9C30-6E8F1B2D7A01"), "TvT Points", "The points of won Team vs Team events.");
-
     /// <summary>
     /// Gets the number of won Team vs Team events.
     /// </summary>
@@ -30,5 +29,5 @@ public static class TeamVsTeamStats
     /// <summary>
     /// Gets all attributes.
     /// </summary>
-    public static IReadOnlyList<AttributeDefinition> All { get; } = [Points, Wins, MostValuablePlayer];
+    public static IReadOnlyList<AttributeDefinition> All { get; } = [Wins, MostValuablePlayer];
 }

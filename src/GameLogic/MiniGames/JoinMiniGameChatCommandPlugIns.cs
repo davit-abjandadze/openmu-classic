@@ -42,7 +42,12 @@ public abstract class JoinMiniGameChatCommandPlugInBase : IChatCommandPlugIn
             .Where(d => d.Type == this.MiniGameType && d.IsAvailable())
             .OrderBy(d => d.GameLevel)
             .ToList();
-        var definition = definitions.FirstOrDefault(d => level >= d.MinimumCharacterLevel && level <= d.MaximumCharacterLevel)
+
+        // Like the entrance itself, special characters (e.g. the Magic Gladiator) use their own level ranges.
+        var isSpecialCharacter = player.SelectedCharacter.IsSpecialCharacter();
+        var definition = definitions.FirstOrDefault(d => isSpecialCharacter
+                             ? level >= d.MinimumSpecialCharacterLevel && level <= d.MaximumSpecialCharacterLevel
+                             : level >= d.MinimumCharacterLevel && level <= d.MaximumCharacterLevel)
                          ?? definitions.FirstOrDefault();
         if (definition is null)
         {

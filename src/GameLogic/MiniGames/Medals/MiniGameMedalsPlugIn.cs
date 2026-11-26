@@ -6,22 +6,22 @@ namespace MUnique.OpenMU.GameLogic.MiniGames.Medals;
 
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
-/// Gives medals for the results of the Devil Square and the Blood Castle:
+/// Gives silver medals for the results of the Devil Square and the Blood Castle:
 /// <list type="bullet">
-///   <item>Devil Square: a gold medal for the 1st place, silver medals for the 2nd and 3rd place.</item>
-///   <item>Blood Castle: a gold medal for the winner, a silver medal for the other members of its party.</item>
-///   <item>Both: a silver medal for each player who killed at least a number of monsters.</item>
+///   <item>Devil Square: for the 1st, 2nd and 3rd place.</item>
+///   <item>Blood Castle: for the winner and the other members of its party.</item>
+///   <item>Both: one for each player who killed at least a number of monsters.</item>
 /// </list>
-/// The medals can be exchanged with the /medals command.
+/// The silver medals are put into the inventory as items (see <see cref="MedalItems"/>) and pay at the <see cref="MedalMerchantPlugIn"/>.
+/// The 1st place of the Devil Square and the winner of the Blood Castle also count as a win, see <see cref="MedalStats"/>.
 /// </summary>
 [PlugIn]
-[Display(Name = "Medals for Devil Square and Blood Castle", Description = "Gives gold and silver medals for the results of the Devil Square and the Blood Castle, which can be exchanged with /medals.")]
+[Display(Name = "Medals for Devil Square and Blood Castle", Description = "Gives silver medals for the results of the Devil Square and the Blood Castle. They're put into the inventory, or added to the character when it's full, and pay at the medal merchant.")]
 [Guid("3E9D4B27-6C1A-4D85-B0F3-8A2E5C7D1B10")]
 public class MiniGameMedalsPlugIn : IMiniGameEndedPlugIn, IAttackableGotKilledPlugIn, ISupportCustomConfiguration<MiniGameMedalsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
 {
@@ -29,14 +29,6 @@ public class MiniGameMedalsPlugIn : IMiniGameEndedPlugIn, IAttackableGotKilledPl
 
     /// <inheritdoc />
     public MiniGameMedalsConfiguration? Configuration { get; set; }
-
-    /// <summary>
-    /// Gets the active instance of the plugin.
-    /// </summary>
-    /// <param name="gameContext">The game context.</param>
-    /// <returns>The active instance, or <c>null</c>.</returns>
-    public static MiniGameMedalsPlugIn? GetActive(IGameContext gameContext)
-        => gameContext.PlugInManager.GetActivePlugInsOf<IMiniGameEndedPlugIn>().OfType<MiniGameMedalsPlugIn>().FirstOrDefault();
 
     /// <inheritdoc />
     public ValueTask AttackableGotKilledAsync(IAttackable killed, IAttacker? killer)
@@ -65,18 +57,34 @@ public class MiniGameMedalsPlugIn : IMiniGameEndedPlugIn, IAttackableGotKilledPl
             return;
         }
 
-        var medals = CalculateMedals(miniGame.Definition.Type, miniGame.RankedFinishers, winner, finishers, kills, configuration);
-        foreach (var (player, (gold, silver)) in medals)
+        var type = miniGame.Definition.Type;
+        var gameWinner = GetWinner(type, miniGame.RankedFinishers, winner);
+        var medals = CalculateMedals(type, miniGame.RankedFinishers, winner, finishers, kills, configuration);
+        foreach (var player in medals.Keys.Append(gameWinner).OfType<Player>().Distinct())
         {
-            await AwardAsync(player, miniGame.Definition.Type, gold, silver).ConfigureAwait(false);
+            await AwardAsync(player, type, medals.GetValueOrDefault(player), player == gameWinner).ConfigureAwait(false);
         }
     }
 
     /// <inheritdoc />
-    public object CreateDefaultConfig() => MiniGameMedalsConfiguration.CreateDefault();
+    public object CreateDefaultConfig() => new MiniGameMedalsConfiguration();
 
     /// <summary>
-    /// Calculates the medals of the players.
+    /// Gets the winner of the mini game, which is the 1st place of the Devil Square or the winner of the Blood Castle.
+    /// </summary>
+    /// <param name="type">The type of the mini game.</param>
+    /// <param name="rankedFinishers">The finishers, ordered by their rank.</param>
+    /// <param name="winner">The winner, if there is one.</param>
+    /// <returns>The winner, or <c>null</c>.</returns>
+    internal static Player? GetWinner(MiniGameType type, IReadOnlyList<Player> rankedFinishers, Player? winner) => type switch
+    {
+        MiniGameType.DevilSquare => rankedFinishers.FirstOrDefault(),
+        MiniGameType.BloodCastle => winner,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Calculates the silver medals of the players.
     /// </summary>
     /// <param name="type">The type of the mini game.</param>
     /// <param name="rankedFinishers">The finishers, ordered by their rank.</param>
@@ -84,8 +92,8 @@ public class MiniGameMedalsPlugIn : IMiniGameEndedPlugIn, IAttackableGotKilledPl
     /// <param name="finishers">The finishers.</param>
     /// <param name="kills">The monster kills by character name.</param>
     /// <param name="configuration">The configuration.</param>
-    /// <returns>The gold and silver medals by player.</returns>
-    internal static Dictionary<Player, (int Gold, int Silver)> CalculateMedals(
+    /// <returns>The silver medals by player.</returns>
+    internal static Dictionary<Player, int> CalculateMedals(
         MiniGameType type,
         IReadOnlyList<Player> rankedFinishers,
         Player? winner,
@@ -93,35 +101,30 @@ public class MiniGameMedalsPlugIn : IMiniGameEndedPlugIn, IAttackableGotKilledPl
         IReadOnlyDictionary<string, int> kills,
         MiniGameMedalsConfiguration configuration)
     {
-        var medals = new Dictionary<Player, (int Gold, int Silver)>();
-        void Add(Player player, int gold, int silver)
+        var medals = new Dictionary<Player, int>();
+        void Add(Player player, int silver)
         {
-            var (g, s) = medals.GetValueOrDefault(player);
-            medals[player] = (g + gold, s + silver);
+            if (silver > 0)
+            {
+                medals[player] = medals.GetValueOrDefault(player) + silver;
+            }
         }
 
         if (type == MiniGameType.DevilSquare)
         {
             for (var i = 0; i < rankedFinishers.Count && i < 3; i++)
             {
-                if (i == 0)
-                {
-                    Add(rankedFinishers[i], 1, 0);
-                }
-                else
-                {
-                    Add(rankedFinishers[i], 0, configuration.DevilSquareRunnerUpSilverMedals);
-                }
+                Add(rankedFinishers[i], i == 0 ? configuration.DevilSquareWinnerSilverMedals : configuration.DevilSquareRunnerUpSilverMedals);
             }
         }
         else if (type == MiniGameType.BloodCastle && winner is not null)
         {
-            Add(winner, 1, 0);
+            Add(winner, configuration.BloodCastleWinnerSilverMedals);
             if (winner.Party is { } party)
             {
                 foreach (var member in finishers.Where(f => f != winner && f.Party == party))
                 {
-                    Add(member, 0, configuration.BloodCastlePartySilverMedals);
+                    Add(member, configuration.BloodCastlePartySilverMedals);
                 }
             }
         }
@@ -130,29 +133,35 @@ public class MiniGameMedalsPlugIn : IMiniGameEndedPlugIn, IAttackableGotKilledPl
         {
             foreach (var finisher in finishers.Where(f => kills.GetValueOrDefault(f.Name) >= configuration.KillsForSilverMedal))
             {
-                Add(finisher, 0, 1);
+                Add(finisher, 1);
             }
         }
 
         return medals;
     }
 
-    private static async ValueTask AwardAsync(Player player, MiniGameType type, int gold, int silver)
+    /// <summary>
+    /// Awards the silver medals to the player (see <see cref="MedalItems.AwardSilverAsync"/>) and counts the win.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <param name="type">The type of the mini game.</param>
+    /// <param name="silver">The number of silver medals.</param>
+    /// <param name="isWinner">If set to <c>true</c>, the player won the mini game.</param>
+    /// <returns>The task.</returns>
+    internal static async ValueTask AwardAsync(Player player, MiniGameType type, int silver, bool isWinner)
     {
-        if (player.Attributes is not { } attributes || (gold == 0 && silver == 0))
+        if (player.Attributes is not { } attributes || (silver == 0 && !isWinner))
         {
             return;
         }
 
-        attributes[MedalStats.GoldMedals] += gold;
-        attributes[MedalStats.SilverMedals] += silver;
-        if (gold > 0)
+        await MedalItems.AwardSilverAsync(player, silver).ConfigureAwait(false);
+        if (isWinner)
         {
             var wins = type == MiniGameType.DevilSquare ? MedalStats.DevilSquareWins : MedalStats.BloodCastleWins;
             attributes[wins] += 1;
         }
 
-        await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MedalsAwarded), gold, silver).ConfigureAwait(false);
         await player.SaveProgressAsync().ConfigureAwait(false);
     }
 }

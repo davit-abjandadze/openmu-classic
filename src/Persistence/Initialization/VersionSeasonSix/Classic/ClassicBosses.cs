@@ -29,7 +29,7 @@ using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 /// doesn't drop them somewhere else, e.g. the Hydra in the Devil Square.
 /// </summary>
 /// <remarks>
-/// The silver medal is the Box of Luck +5, see <see cref="MedalItems"/>. The /medals command adds the medal items of the inventory to the medals of the character.
+/// The silver medal is the Box of Luck +5, see <see cref="MedalItems"/>. It pays at the medal merchant like the silver medals of the character.
 /// </remarks>
 public static class ClassicBosses
 {
@@ -81,14 +81,25 @@ public static class ClassicBosses
                 continue;
             }
 
-            var strength = boss.Strength;
-            SetAttribute(context, gameConfiguration, monster, Stats.MaximumHealth, strength.Health);
-            SetAttribute(context, gameConfiguration, monster, Stats.MinimumPhysBaseDmg, strength.MinimumDamage);
-            SetAttribute(context, gameConfiguration, monster, Stats.MaximumPhysBaseDmg, strength.MaximumDamage);
-            SetAttribute(context, gameConfiguration, monster, Stats.DefenseBase, strength.Defense);
-            SetAttribute(context, gameConfiguration, monster, Stats.AttackRatePvm, strength.AttackRate);
-            SetAttribute(context, gameConfiguration, monster, Stats.DefenseRatePvm, strength.DefenseRate);
+            ApplyStrength(context, gameConfiguration, monster, boss.Strength);
         }
+    }
+
+    /// <summary>
+    /// Sets the stats of the <paramref name="strength"/> to the monster definition, without duplicating attributes.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="monster">The monster definition.</param>
+    /// <param name="strength">The strength.</param>
+    internal static void ApplyStrength(IContext context, GameConfiguration gameConfiguration, MonsterDefinition monster, BossStrength strength)
+    {
+        SetAttribute(context, gameConfiguration, monster, Stats.MaximumHealth, strength.Health);
+        SetAttribute(context, gameConfiguration, monster, Stats.MinimumPhysBaseDmg, strength.MinimumDamage);
+        SetAttribute(context, gameConfiguration, monster, Stats.MaximumPhysBaseDmg, strength.MaximumDamage);
+        SetAttribute(context, gameConfiguration, monster, Stats.DefenseBase, strength.Defense);
+        SetAttribute(context, gameConfiguration, monster, Stats.AttackRatePvm, strength.AttackRate);
+        SetAttribute(context, gameConfiguration, monster, Stats.DefenseRatePvm, strength.DefenseRate);
     }
 
     /// <summary>
