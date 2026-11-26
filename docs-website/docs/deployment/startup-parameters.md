@@ -57,6 +57,7 @@ These may be helpful when running the server in a container or under Linux.
 | `DB_ADMIN_USER` | User name of the admin user of the postgres database. In docker compose this is also used as `POSTGRES_USER` for the database container (`${DB_ADMIN_USER:-postgres}`). |
 | `DB_ADMIN_PW` | Password of the admin user of the postgres database. In docker compose this is also used as `POSTGRES_PASSWORD` for the database container (`${DB_ADMIN_PW:-admin}`). When unset, the default `admin` keeps working. |
 | `Database__AssumeExternallyProvisioned` | When `true`, an already-provisioned (empty) database is kept and only its schema is built via migrations, instead of dropping and recreating it. Default: `false`. See below. |
+| `Database__CreateTestAccounts` | When `false`, the data initialization at the start (empty database, `-reinit` or `-demo`) creates no [test accounts](../getting-started/test-accounts.md). Use it for a public server. Default: `true`. |
 
 ## Externally provisioned database
 

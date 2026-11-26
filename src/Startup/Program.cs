@@ -880,6 +880,9 @@ internal sealed class Program : IDisposable
         var plugInManager = new PlugInManager(null, loggerFactory, serviceContainer, referenceHandler);
         plugInManager.DiscoverAndRegisterPlugInsOf<IDataInitializationPlugIn>();
         var initialization = plugInManager.GetStrategy<IDataInitializationPlugIn>(version) ?? throw new Exception("Data initialization plugin not found");
-        await initialization.CreateInitialDataAsync(3, true).ConfigureAwait(false);
+
+        // A public server must not get the test accounts, which have well-known passwords and game master rights.
+        var createTestAccounts = this._configuration.GetValue("Database:CreateTestAccounts", true);
+        await initialization.CreateInitialDataAsync(3, createTestAccounts).ConfigureAwait(false);
     }
 }
