@@ -17,9 +17,11 @@ using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 ///   <item>Hydra (Atlans): Box of Kundun +3, 1 silver medal, respawn after 70 minutes.</item>
 ///   <item>Balrog (Lost Tower 7): Box of Kundun +3, 1 silver medal, respawn after 70 minutes.</item>
 ///   <item>Zaikan and Death Beam Knight (Tarkan): Box of Kundun +4, 1 silver medal, respawn after 120 minutes.</item>
-///   <item>Dark Phoenix (Icarus): Box of Kundun +5, 3 silver medals, respawn after 240 minutes.</item>
-///   <item>Hell Maine (Arena): Box of Kundun +5, 3 silver medals, respawn after 240 minutes.</item>
+///   <item>Dark Phoenix (Icarus): Box of Kundun +4, 6 silver medals, respawn after 240 minutes.</item>
+///   <item>Hell Maine (Arena): Box of Kundun +4, 6 silver medals, respawn after 240 minutes.</item>
 /// </list>
+/// The Box of Kundun +5 is held back for now (see <see cref="ClassicBoxes.HighestBoxOfKundunLevel"/>), so the strongest
+/// bosses drop the +4 like Zaikan and Death Beam Knight, but more silver medals.
 /// Hell Maine originally lives in Aida, which the classic server doesn't offer. It's activated and spawned
 /// once in the open eastern part of the Arena, see <see cref="Boss.Spawn"/>.
 /// The bosses are also much stronger than in the original data, so that they can't be killed as fast as
@@ -62,8 +64,8 @@ public static class ClassicBosses
         new(38, "Balrog", 4, 3, 1, TimeSpan.FromMinutes(70), new(800_000, 1_200, 1_400, 550, 1_800, 450)),
         new(59, "Zaikan", 8, 4, 1, TimeSpan.FromMinutes(120), new(2_000_000, 1_800, 2_100, 800, 2_600, 650)),
         new(63, "Death Beam Knight", 8, 4, 1, TimeSpan.FromMinutes(120), new(2_000_000, 1_900, 2_200, 850, 2_700, 700)),
-        new(77, "Dark Phoenix", 10, 5, 3, TimeSpan.FromMinutes(240), new(5_000_000, 3_000, 3_500, 1_100, 3_500, 950)),
-        new(309, "Hell Maine", 6, 5, 3, TimeSpan.FromMinutes(240), new(7_000_000, 4_200, 4_900, 1_540, 4_900, 1_330), new(90, 90)),
+        new(77, "Dark Phoenix", 10, 4, 6, TimeSpan.FromMinutes(240), new(5_000_000, 3_000, 3_500, 1_100, 3_500, 950)),
+        new(309, "Hell Maine", 6, 4, 6, TimeSpan.FromMinutes(240), new(7_000_000, 4_200, 4_900, 1_540, 4_900, 1_330), new(90, 90)),
     ];
 
     /// <summary>

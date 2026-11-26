@@ -29,7 +29,7 @@ public class ClassicBossesUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Hydra (Atlans) and Balrog (Lost Tower) drop a Box of Kundun +3 and respawn after 70 minutes, Zaikan and Death Beam Knight (Tarkan) a Box of Kundun +4 and respawn after 120 minutes, Dark Phoenix (Icarus) and Hell Maine (spawned in the Arena) a Box of Kundun +5 and respawn after 240 minutes. The bosses also drop a silver medal, the Dark Phoenix and Hell Maine three. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Hydra (Atlans) and Balrog (Lost Tower) drop a Box of Kundun +3 and respawn after 70 minutes, Zaikan and Death Beam Knight (Tarkan) a Box of Kundun +4 and respawn after 120 minutes, Dark Phoenix (Icarus) and Hell Maine (spawned in the Arena) a Box of Kundun +4 and respawn after 240 minutes. The bosses also drop a silver medal, the Dark Phoenix and Hell Maine six. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -47,11 +47,14 @@ public class ClassicBossesUpdatePlugIn : UpdatePlugInBase
     public override DateTime CreatedAt => new(2026, 11, 20, 18, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
-    /// <remarks>Version 2 adds Hell Maine, which spawns in the Arena.</remarks>
-    public override int Version => 2;
+    /// <remarks>
+    /// Version 2 adds Hell Maine, which spawns in the Arena.
+    /// Version 3 lets the Dark Phoenix and Hell Maine drop the Box of Kundun +4 instead of the held back +5, and six silver medals instead of three.
+    /// </remarks>
+    public override int Version => 3;
 
     /// <inheritdoc />
-    public override DateTime UpdatedAt => new(2026, 11, 20, 23, 00, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 26, 12, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)

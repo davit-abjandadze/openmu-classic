@@ -18,9 +18,10 @@ using MUnique.OpenMU.Persistence.Initialization.Properties;
 ///     All active equipment which drops from monsters is possible.</item>
 ///   <item>Monsters of at least level <see cref="BoxOfHeavenMinimumMonsterLevel"/> drop the Box of Heaven with a chance of
 ///     <see cref="BoxOfHeavenDropChance"/>, on all maps which have the common jewel drop.</item>
-///   <item>Caren the Barmaid sells the Box of Kundun +1 to +5 (Box of Luck +8 to +12).</item>
+///   <item>Caren the Barmaid sells the Box of Kundun +1 to +4 (Box of Luck +8 to +11).</item>
 ///   <item>The excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4. They are the strongest weapons
 ///     of the classic server, but the other weapons of the +5 are either weaker or not part of it.</item>
+///   <item>The Box of Kundun +5 is held back: nothing sells or drops it, see <see cref="HighestBoxOfKundunLevel"/>.</item>
 /// </list>
 /// </summary>
 /// <remarks>
@@ -57,6 +58,16 @@ public static class ClassicBoxes
     /// The level of the Box of Luck which is the Box of Kundun +4, from which the Archangel weapons are moved away.
     /// </summary>
     public const byte BoxOfKundunPlus4Level = 11;
+
+    /// <summary>
+    /// The level of the Box of Luck which is the highest Box of Kundun in the game, the +4.
+    /// </summary>
+    /// <remarks>
+    /// The Box of Kundun +5 with the Archangel weapons is held back in the first time of the server, so that the
+    /// characters develop with the lower boxes first. Caren the Barmaid doesn't sell it, and the monsters which drop it
+    /// in the original data (the Golden Tantalos of the Golden Invasion) drop the +4 instead. It's added later.
+    /// </remarks>
+    public const byte HighestBoxOfKundunLevel = BoxOfKundunPlus4Level;
 
     /// <summary>
     /// The chance that a monster drops the Box of Heaven (1 %).
@@ -113,10 +124,11 @@ public static class ClassicBoxes
         ApplyBoxOfHeavenMonsterDrop(context, gameConfiguration, boxOfLuck);
         if (gameConfiguration.Monsters.FirstOrDefault(m => m.Number == CarenTheBarmaidNumber)?.MerchantStore is { } store)
         {
-            AddBoxesOfKundun(context, store, boxOfLuck);
+            await ApplyBoxesOfKundunAsync(context, store, boxOfLuck).ConfigureAwait(false);
         }
 
         MoveArchangelWeaponsToBoxOfKundunPlus5(gameConfiguration, boxOfLuck);
+        LimitBoxOfKundunDrops(gameConfiguration, boxOfLuck);
     }
 
     /// <summary>
@@ -244,9 +256,30 @@ public static class ClassicBoxes
         }
     }
 
-    private static void AddBoxesOfKundun(IContext context, ItemStorage store, ItemDefinition boxOfLuck)
+    /// <summary>
+    /// Lets the monsters which drop a Box of Kundun above the <see cref="HighestBoxOfKundunLevel"/> drop the highest one instead.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="boxOfLuck">The Box of Luck.</param>
+    private static void LimitBoxOfKundunDrops(GameConfiguration gameConfiguration, ItemDefinition boxOfLuck)
     {
-        for (var level = FirstBoxOfKundunLevel; level <= LastBoxOfKundunLevel; level++)
+        // The levels above the Box of Kundun +5 are other items, e.g. the Heart of Dark Lord (+13).
+        foreach (var dropGroup in gameConfiguration.DropItemGroups.Where(g => g.ItemLevel is > HighestBoxOfKundunLevel and <= LastBoxOfKundunLevel && g.PossibleItems.Contains(boxOfLuck)))
+        {
+            dropGroup.ItemLevel = HighestBoxOfKundunLevel;
+            dropGroup.Description = LocalizedString.FromResource(() => DropGroupDescriptions.BoxOfKundunPlus4);
+        }
+    }
+
+    private static async ValueTask ApplyBoxesOfKundunAsync(IContext context, ItemStorage store, ItemDefinition boxOfLuck)
+    {
+        foreach (var item in store.Items.Where(i => i.Definition == boxOfLuck && i.Level > HighestBoxOfKundunLevel).ToList())
+        {
+            store.Items.Remove(item);
+            await context.DeleteAsync(item).ConfigureAwait(false);
+        }
+
+        for (var level = FirstBoxOfKundunLevel; level <= HighestBoxOfKundunLevel; level++)
         {
             if (store.Items.Any(i => i.Definition == boxOfLuck && i.Level == level)
                 || ClassicMerchantStores.FindFreeSlot(store.Items, boxOfLuck) is not { } slot)

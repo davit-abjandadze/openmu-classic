@@ -11,8 +11,8 @@ using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// Changes the boxes of an existing classic (Season 1 content) database: monsters drop the Box of Heaven,
-/// which drops a normal +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +5,
-/// and the excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4.
+/// which drops a normal +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +4,
+/// the excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4, and the +5 is held back.
 /// </summary>
 /// <remarks>
 /// The classic data shares the Season 6 updates, so this update does nothing on a regular Season 6 database.
@@ -30,7 +30,7 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Monsters of level 30 and above drop the Box of Heaven (0.1% chance), which always drops a normal (not excellent) +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +5, and the excellent Archangel weapons drop from the Box of Kundun +5 instead of the +4. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Monsters of level 30 and above drop the Box of Heaven (0.1% chance), which always drops a normal (not excellent) +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +4, and the excellent Archangel weapons are moved from the Box of Kundun +4 to the +5, which is held back: nothing sells or drops it, the Golden Tantalos drops the +4 instead. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -50,11 +50,12 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     /// <inheritdoc />
     /// <remarks>
     /// Version 2 moves the Archangel weapons from the Box of Kundun +4 to the +5.
+    /// Version 3 holds the Box of Kundun +5 back: Caren the Barmaid doesn't sell it anymore, and the Golden Tantalos drops the +4 instead.
     /// </remarks>
-    public override int Version => 2;
+    public override int Version => 3;
 
     /// <inheritdoc />
-    public override DateTime UpdatedAt => new(2026, 11, 20, 18, 00, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 26, 12, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     /// <remarks>

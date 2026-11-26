@@ -983,7 +983,7 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that Caren the Barmaid sells the Box of Kundun +1 to +5, without overlapping other items.
+    /// Tests that Caren the Barmaid sells the Box of Kundun +1 to +4, without overlapping other items.
     /// </summary>
     [Test]
     public void CarenSellsBoxesOfKundun()
@@ -991,7 +991,7 @@ internal class ClassicDataInitializationTest
         var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
         var store = this._gameConfiguration.Monsters.Single(m => m.Number == 244).MerchantStore!;
 
-        Assert.That(store.Items.Where(i => i.Definition == box).Select(i => (int)i.Level), Is.EquivalentTo(new[] { 8, 9, 10, 11, 12 }));
+        Assert.That(store.Items.Where(i => i.Definition == box).Select(i => (int)i.Level), Is.EquivalentTo(new[] { 8, 9, 10, 11 }));
 
         static IEnumerable<int> Cells(Item item) => Enumerable.Range(0, item.Definition!.Height)
             .SelectMany(r => Enumerable.Range(0, item.Definition.Width).Select(c => item.ItemSlot + (r * 8) + c));
@@ -1041,11 +1041,52 @@ internal class ClassicDataInitializationTest
         Assert.That(group.MinimumLevel, Is.EqualTo(7));
         Assert.That(group.MaximumLevel, Is.EqualTo(11));
         Assert.That(group.PossibleItems, Is.EquivalentTo(this._gameConfiguration.Items.Where(ClassicBoxes.IsBoxOfHeavenItem)));
-        Assert.That(store.Items.Where(i => i.Definition == box).Select(i => (int)i.Level), Is.EquivalentTo(new[] { 8, 9, 10, 11, 12 }));
+        Assert.That(store.Items.Where(i => i.Definition == box).Select(i => (int)i.Level), Is.EquivalentTo(new[] { 8, 9, 10, 11 }));
 
         var newDropGroup = this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == ClassicBoxes.GetBoxOfHeavenMonsterDropId());
         var lorencia = this._gameConfiguration.Maps.First(m => m.Number == 0);
         Assert.That(lorencia.DropItemGroups.Count(g => g == newDropGroup), Is.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Tests that the Box of Kundun +5 is held back: no merchant sells it and no monster drops it.
+    /// </summary>
+    [Test]
+    public void BoxOfKundunPlus5IsHeldBack()
+    {
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+
+        Assert.That(this._gameConfiguration.DropItemGroups.Where(g => g.ItemLevel == ClassicBoxes.LastBoxOfKundunLevel && g.PossibleItems.Contains(box)), Is.Empty);
+        Assert.That(this._gameConfiguration.Monsters.Where(m => m.MerchantStore is not null).SelectMany(m => m.MerchantStore!.Items).Where(i => i.Definition == box && i.Level == ClassicBoxes.LastBoxOfKundunLevel), Is.Empty);
+        Assert.That(this._gameConfiguration.Monsters.Single(m => m.Number == 82).DropItemGroups.Select(g => (int)g.ItemLevel!.Value), Is.EqualTo(new[] { (int)ClassicBoxes.HighestBoxOfKundunLevel }), "Golden Tantalos");
+    }
+
+    /// <summary>
+    /// Tests that the update holds the Box of Kundun +5 back in an existing classic database, in which Caren the Barmaid
+    /// sells it and the Golden Tantalos drops it, and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateHoldsBoxOfKundunPlus5BackAsync()
+    {
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        var store = this._gameConfiguration.Monsters.Single(m => m.Number == 244).MerchantStore!;
+        var plus5 = this._context.CreateNew<Item>();
+        plus5.Definition = box;
+        plus5.Level = ClassicBoxes.LastBoxOfKundunLevel;
+        plus5.Durability = 1;
+        plus5.ItemSlot = 119;
+        store.Items.Add(plus5);
+        var tantalosDrop = this._gameConfiguration.Monsters.Single(m => m.Number == 82).DropItemGroups.Single();
+        tantalosDrop.ItemLevel = ClassicBoxes.LastBoxOfKundunLevel;
+        var dropGroupCount = this._gameConfiguration.DropItemGroups.Count;
+
+        var update = new ClassicBoxesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(store.Items.Where(i => i.Definition == box).Select(i => (int)i.Level), Is.EquivalentTo(new[] { 8, 9, 10, 11 }));
+        Assert.That(tantalosDrop.ItemLevel, Is.EqualTo(ClassicBoxes.HighestBoxOfKundunLevel));
+        Assert.That(this._gameConfiguration.DropItemGroups, Has.Count.EqualTo(dropGroupCount));
     }
 
     /// <summary>
@@ -1129,8 +1170,8 @@ internal class ClassicDataInitializationTest
             (38, 4, 10, 1, 70), // Balrog, Lost Tower, Box of Kundun +3
             (59, 8, 11, 1, 120), // Zaikan, Tarkan, Box of Kundun +4
             (63, 8, 11, 1, 120), // Death Beam Knight, Tarkan, Box of Kundun +4
-            (77, 10, 12, 3, 240), // Dark Phoenix, Icarus, Box of Kundun +5
-            (309, 6, 12, 3, 240), // Hell Maine, Arena, Box of Kundun +5
+            (77, 10, 11, 6, 240), // Dark Phoenix, Icarus, Box of Kundun +4
+            (309, 6, 11, 6, 240), // Hell Maine, Arena, Box of Kundun +4
         };
 
         foreach (var (monsterNumber, mapNumber, boxLevel, medals, minutes) in expected)
@@ -1186,7 +1227,7 @@ internal class ClassicDataInitializationTest
 
         Assert.That(hellMaine.IsActive, Is.True);
         Assert.That(arena.MonsterSpawns.Count(s => s.MonsterDefinition == hellMaine), Is.EqualTo(1));
-        Assert.That(arena.DropItemGroups.Count(g => g.Monster == hellMaine), Is.EqualTo(4));
+        Assert.That(arena.DropItemGroups.Count(g => g.Monster == hellMaine), Is.EqualTo(7));
     }
 
     /// <summary>
@@ -1210,10 +1251,10 @@ internal class ClassicDataInitializationTest
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
 
         Assert.That(phoenix.RespawnDelay, Is.EqualTo(TimeSpan.FromMinutes(240)));
-        Assert.That(icarus.DropItemGroups.Count(g => g.Monster == phoenix), Is.EqualTo(4));
+        Assert.That(icarus.DropItemGroups.Count(g => g.Monster == phoenix), Is.EqualTo(7));
         var boss = ClassicBosses.Bosses.Single(b => b.MonsterNumber == 77);
-        var ids = Enumerable.Range(0, 4).Select(i => ClassicBosses.GetDropGroupId(boss, (byte)i)).ToList();
-        Assert.That(this._gameConfiguration.DropItemGroups.Count(g => ids.Contains(g.GetId())), Is.EqualTo(4));
+        var ids = Enumerable.Range(0, 7).Select(i => ClassicBosses.GetDropGroupId(boss, (byte)i)).ToList();
+        Assert.That(this._gameConfiguration.DropItemGroups.Count(g => ids.Contains(g.GetId())), Is.EqualTo(7));
     }
 
     /// <summary>
@@ -1287,7 +1328,7 @@ internal class ClassicDataInitializationTest
 
     /// <summary>
     /// Tests that Thompson the Merchant stands on a walkable safezone tile next to the fountain of Lorencia,
-    /// sells only the Box of Kundun +3, +4 and +5, and that the medal merchant plugin is active with their prices.
+    /// sells only the Box of Kundun +3 and +4, and that the medal merchant plugin is active with their prices.
     /// </summary>
     [Test]
     public void MedalMerchantSellsBoxesOfKundun()
@@ -1306,13 +1347,13 @@ internal class ClassicDataInitializationTest
 
         var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
         Assert.That(merchant.MerchantStore!.Items.All(i => i.Definition == box), Is.True);
-        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 10, 11, 12 }));
+        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 10, 11 }));
 
         var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MedalMerchantPlugIn).GUID);
         var configuration = plugIn.GetConfiguration<MedalMerchantConfiguration>(new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
         Assert.That(plugIn.IsActive, Is.True);
         Assert.That(configuration!.MerchantNumber, Is.EqualTo(merchant.Number));
-        Assert.That(merchant.MerchantStore.Items.Select(i => configuration.GetPrice(i)?.SilverMedals).Order(), Is.EqualTo(new int?[] { 5, 10, 15 }));
+        Assert.That(merchant.MerchantStore.Items.Select(i => configuration.GetPrice(i)?.SilverMedals).Order(), Is.EqualTo(new int?[] { 5, 10 }));
     }
 
     /// <summary>
@@ -1337,7 +1378,7 @@ internal class ClassicDataInitializationTest
 
         Assert.That(merchant.IsActive, Is.True);
         Assert.That(lorencia.MonsterSpawns.Count(s => s.MonsterDefinition == merchant), Is.EqualTo(1));
-        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 10, 11, 12 }));
+        Assert.That(merchant.MerchantStore.Items.Select(i => (int)i.Level).Order(), Is.EqualTo(new[] { 10, 11 }));
         Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MedalMerchantPlugIn).GUID).IsActive, Is.True);
     }
 

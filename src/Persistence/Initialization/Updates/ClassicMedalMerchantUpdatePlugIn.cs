@@ -16,6 +16,7 @@ using MUnique.OpenMU.PlugIns;
 /// <remarks>
 /// The classic data shares the Season 6 updates, so this update does nothing on a regular Season 6 database.
 /// Version 2 sells only the Box of Kundun +4 and +5, for 10 and 15 silver medals, instead of the +1 to +5 for 4 to 64 silver medals.
+/// Version 3 holds the Box of Kundun +5 back, so only the +3 and +4 are sold.
 /// </remarks>
 [PlugIn]
 [Display(Name = nameof(MUnique.OpenMU.Persistence.Initialization.Properties.PlugInResources.ClassicMedalMerchantUpdatePlugIn_Name), Description = nameof(MUnique.OpenMU.Persistence.Initialization.Properties.PlugInResources.ClassicMedalMerchantUpdatePlugIn_Description), ResourceType = typeof(MUnique.OpenMU.Persistence.Initialization.Properties.PlugInResources))]
@@ -30,7 +31,7 @@ public class ClassicMedalMerchantUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Thompson the Merchant stands next to the fountain of Lorencia and sells the Box of Kundun +4 for 10 and the Box of Kundun +5 for 15 silver medals. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Thompson the Merchant stands next to the fountain of Lorencia and sells the Box of Kundun +3 for 5 and the Box of Kundun +4 for 10 silver medals. The Box of Kundun +5 is held back. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -45,10 +46,13 @@ public class ClassicMedalMerchantUpdatePlugIn : UpdatePlugInBase
     public override bool IsMandatory => true;
 
     /// <inheritdoc />
-    public override int Version => 2;
+    public override int Version => 3;
 
     /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 11, 20, 20, 00, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 26, 12, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     protected override async ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
