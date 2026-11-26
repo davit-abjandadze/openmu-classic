@@ -7,7 +7,10 @@ namespace MUnique.OpenMU.GameLogic.MiniGames;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using MUnique.OpenMU.AttributeSystem;
+using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions.MiniGames;
 using MUnique.OpenMU.GameLogic.PlugIns;
@@ -42,6 +45,18 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
 
     private readonly SkippableDelay _skipDelay;
 
+    /// <summary>
+    /// The level syncs of the players on the map of an instance, see <see cref="InstanceSettings"/>.
+    /// </summary>
+    private readonly ConcurrentDictionary<Player, MiniGameLevelSync> _levelSyncs = new();
+
+    /// <summary>
+    /// The non-player characters whose health has already been scaled for an instance.
+    /// </summary>
+    private readonly ConditionalWeakTable<AttackableNpcBase, object> _scaledNpcs = new();
+
+    private readonly DateTime _enterEndsAtUtc;
+
     private int _gameLoopStarted;
 
     private Stopwatch? _elapsedTimeSinceStart;
@@ -59,7 +74,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
         this._mapInitializer = mapInitializer;
         this.Key = key;
         this.Definition = definition;
-        this.EnterEndsAtUtc = DateTime.UtcNow.Add(definition.EnterDuration.AtLeast(CountdownMessageDuration));
+        this._enterEndsAtUtc = DateTime.UtcNow.Add(definition.EnterDuration.AtLeast(CountdownMessageDuration));
         this.Logger = this._gameContext.LoggerFactory.CreateLogger(this.GetType());
         this.DropGenerator = this._gameContext.DropGenerator;
         this._skipDelay = new SkippableDelay(this.Logger, this);
@@ -119,9 +134,22 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     /// <summary>
     /// Gets the UTC time when the entering phase ends. It's derived from the creation
     /// time and the configured <see cref="MiniGameDefinition.EnterDuration"/> and is used
-    /// for the entrance announcements.
+    /// for the entrance announcements. Instances end it with the entrance of their slot.
     /// </summary>
-    public DateTime EnterEndsAtUtc { get; }
+    public DateTime EnterEndsAtUtc => this.InstanceSettings?.Slot.EntranceClosesUtc ?? this._enterEndsAtUtc;
+
+    /// <summary>
+    /// Gets the settings of the instance, if this game is an instance of an instanced mini game
+    /// (see <see cref="IInstancedMiniGameSlotProvider"/>); otherwise, <c>null</c>.
+    /// It's set before the game loop starts.
+    /// </summary>
+    public InstancedMiniGameSettings? InstanceSettings { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether players may join the party of a player of this game.
+    /// The members of an instance are fixed when they enter it.
+    /// </summary>
+    public bool AllowsNewPartyMembers => this.InstanceSettings is null;
 
     /// <summary>
     /// Gets the map on which the game takes place.
@@ -231,7 +259,9 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     /// <returns>A value indicating whether entering had success.</returns>
     public async ValueTask<EnterResult> TryEnterAsync(Player player)
     {
-        var result = await this._players.TryEnterAsync(player, this.IsEnteringAllowedAsync, () => this.AllowEnterWhilePlaying).ConfigureAwait(false);
+        // The members of an instance may enter it again until it ends, e.g. after they died.
+        var isInstanceMember = this.InstanceSettings?.IsMember(player) is true;
+        var result = await this._players.TryEnterAsync(player, this.IsEnteringAllowedAsync, () => this.AllowEnterWhilePlaying || isInstanceMember).ConfigureAwait(false);
         if (result != EnterResult.Success)
         {
             return result;
@@ -387,6 +417,37 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
             {
                 _ = Task.Run(() => this.RunGameAsync(cancellationToken), cancellationToken);
             }
+        }
+    }
+
+    /// <summary>
+    /// Makes this game an instance of an instanced mini game. Must be called before the game loop starts.
+    /// </summary>
+    /// <param name="settings">The settings of the instance.</param>
+    internal void SetInstanceSettings(InstancedMiniGameSettings settings)
+    {
+        if (Volatile.Read(ref this._gameLoopStarted) != 0)
+        {
+            throw new InvalidOperationException("The instance settings must be set before the game loop starts.");
+        }
+
+        this.InstanceSettings = settings;
+        this.Map.SpawnQuantityFactor = settings.Scaling.MonsterCountFactor;
+        this._rewards.RewardFactor = settings.Scaling.RewardFactor;
+    }
+
+    /// <summary>
+    /// Takes back the entry of a player which entered with <see cref="TryEnterAsync"/>, but which
+    /// wasn't warped to the map yet, e.g. because another member of its party couldn't enter.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    internal async ValueTask CancelEntryAsync(Player player)
+    {
+        await this._players.RemoveAsync(player).ConfigureAwait(false);
+        if (player.CurrentMiniGame == this)
+        {
+            player.CurrentMiniGame = null;
+            player.PlayerPickedUpItem -= this.OnPlayerPickedUpItemAsync;
         }
     }
 
@@ -556,6 +617,11 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
             monster.Died += this.OnMonsterDied;
         }
 
+        if (args.Object is AttackableNpcBase npc)
+        {
+            this.ScaleHealthForInstance(npc);
+        }
+
         if (args.Object is Destructible destructible)
         {
             destructible.Died += this.OnDestructibleDied;
@@ -568,6 +634,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
             // A player which enters the map after terrain changes, e.g. when it rejoins the game,
             // would otherwise see the original terrain, e.g. a closed bridge.
             await this._changeEvents.SendAppliedTerrainChangesAsync(player).ConfigureAwait(false);
+            await this.ApplyLevelSyncAsync(player).ConfigureAwait(false);
         }
 
         if (args.Object is DroppedItem item)
@@ -597,6 +664,11 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
             player.CurrentMiniGame = null;
             player.PlayerPickedUpItem -= this.OnPlayerPickedUpItemAsync;
             player.Died -= this.OnPlayerDied;
+            if (this._levelSyncs.TryRemove(player, out var levelSync))
+            {
+                levelSync.Remove();
+            }
+
             var remainingPlayerCount = await this._players.RemoveAsync(player).ConfigureAwait(false);
             var cantGameProceed = remainingPlayerCount == 0 && this.State != MiniGameState.Open;
 
@@ -739,6 +811,13 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
 
             var enterDuration = this.Definition.EnterDuration.AtLeast(this.MinimumEnterDuration);
             var gameDuration = this.Definition.GameDuration.AtLeast(CountdownMessageDuration);
+            if (this.InstanceSettings is { } instance)
+            {
+                // All instances of a slot start their game together, when the entrance of the slot closes.
+                enterDuration = (instance.Slot.EntranceClosesUtc - DateTime.UtcNow - this.CountdownDuration).AtLeast(this.MinimumEnterDuration);
+                gameDuration = instance.Slot.GameDuration.AtLeast(CountdownMessageDuration);
+            }
+
             var exitDuration = this.Definition.ExitDuration.Subtract(CountdownMessageDuration).AtLeast(CountdownMessageDuration);
 
             this.Logger.LogDebug("{context}: Waiting for entering players for {enterDuration}", this, enterDuration);
@@ -765,9 +844,10 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
             }
 
             await this.CloseEntranceAsync().ConfigureAwait(false);
-            if (this.PlayerCount < this.MinimumPlayerCount)
+            var minimumPlayerCount = this.InstanceSettings is null ? this.MinimumPlayerCount : 1;
+            if (this.PlayerCount < minimumPlayerCount)
             {
-                await this.ShowGoldenMessageAsync(nameof(PlayerMessage.MiniGameCantStartWithLessThanPlayers), this.MinimumPlayerCount).ConfigureAwait(false);
+                await this.ShowGoldenMessageAsync(nameof(PlayerMessage.MiniGameCantStartWithLessThanPlayers), minimumPlayerCount).ConfigureAwait(false);
                 if (this.Definition.EntranceFee > 0)
                 {
                     await this.ForEachPlayerAsync(async player => player.TryAddMoney(this.Definition.EntranceFee)).ConfigureAwait(false);
@@ -818,6 +898,67 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
         {
             await this.DisposeAsync().ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Scales the health of a non-player character of an instance by the number of its players.
+    /// </summary>
+    /// <param name="npc">The non-player character.</param>
+    private void ScaleHealthForInstance(AttackableNpcBase npc)
+    {
+        if (this.InstanceSettings?.Scaling.MonsterHealthFactor is not { } factor
+            || Math.Abs(factor - 1) < 0.001
+            || factor <= 0
+            || npc is Monster { SummonedBy: not null })
+        {
+            return;
+        }
+
+        // A respawned monster is added again, but it keeps its attributes and their scaling.
+        if (this._scaledNpcs.TryGetValue(npc, out _))
+        {
+            return;
+        }
+
+        this._scaledNpcs.Add(npc, new object());
+        npc.Attributes.AddElement(new ConstantElement((float)factor, AggregateType.Multiplicate), Stats.MaximumHealth);
+        npc.Health = npc.SpawnArea.MaximumHealthOverride is { } overriddenHealth
+            ? (int)(overriddenHealth * factor)
+            : (int)npc.Attributes[Stats.MaximumHealth];
+    }
+
+    /// <summary>
+    /// Weakens a player of an instance whose level is above the maximum level of the tier (level sync).
+    /// </summary>
+    /// <param name="player">The player.</param>
+    private async ValueTask ApplyLevelSyncAsync(Player player)
+    {
+        if (this.InstanceSettings is not { IsLevelSyncEnabled: true }
+            || player.Attributes is not { } attributes
+            || player.SelectedCharacter is not { } character)
+        {
+            return;
+        }
+
+        var maximumLevel = character.IsSpecialCharacter() ? this.Definition.MaximumSpecialCharacterLevel : this.Definition.MaximumCharacterLevel;
+        var factor = MiniGameLevelSync.CalculateFactor((int)attributes[Stats.Level], maximumLevel);
+        if (factor >= 1 || this._levelSyncs.ContainsKey(player))
+        {
+            return;
+        }
+
+        if (MiniGameLevelSync.Apply(attributes, factor) is not { } levelSync)
+        {
+            return;
+        }
+
+        if (!this._levelSyncs.TryAdd(player, levelSync))
+        {
+            levelSync.Remove();
+            return;
+        }
+
+        await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.InstancedEventLevelSyncFormat), maximumLevel).ConfigureAwait(false);
     }
 
     private async ValueTask CloseEntranceAsync()

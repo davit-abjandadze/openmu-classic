@@ -1345,4 +1345,58 @@ Extensões de inventário: {18}</value>
   <data name="BossRespawnsIn" xml:space="preserve">
     <value>{0} ({1}): morto, renasce em {2}h {3:00}m {4:00}s</value>
   </data>
+  <data name="InstancedEventAlreadyInEvent" xml:space="preserve">
+    <value>Você já está em um evento.</value>
+  </data>
+  <data name="InstancedEventNotOpenFormat" xml:space="preserve">
+    <value>{0} não está aberto agora. A próxima entrada abre às {1} (em {2} minuto(s)).</value>
+  </data>
+  <data name="InstancedEventOnlyPartyLeaderFormat" xml:space="preserve">
+    <value>Somente o líder do grupo pode entrar em {0} pelo grupo.</value>
+  </data>
+  <data name="InstancedEventNobodyEnteredFormat" xml:space="preserve">
+    <value>Ninguém entrou em {0}:</value>
+  </data>
+  <data name="InstancedEventMemberRefusedFormat" xml:space="preserve">
+    <value>{0} {1}.</value>
+  </data>
+  <data name="InstancedEventReasonOffline" xml:space="preserve">
+    <value>não está online</value>
+  </data>
+  <data name="InstancedEventReasonDead" xml:space="preserve">
+    <value>está morto</value>
+  </data>
+  <data name="InstancedEventReasonTooFarAway" xml:space="preserve">
+    <value>está longe demais do líder do grupo</value>
+  </data>
+  <data name="InstancedEventReasonInOtherEvent" xml:space="preserve">
+    <value>está em outro evento, um duelo ou uma guerra de guilda</value>
+  </data>
+  <data name="InstancedEventReasonPlayerKiller" xml:space="preserve">
+    <value>é um player killer</value>
+  </data>
+  <data name="InstancedEventReasonAlreadyEnteredToday" xml:space="preserve">
+    <value>já entrou hoje (uma vez por dia, até a meia-noite)</value>
+  </data>
+  <data name="InstancedEventReasonLevelTooLow" xml:space="preserve">
+    <value>está abaixo do nível mínimo do evento</value>
+  </data>
+  <data name="InstancedEventReasonNotTracked" xml:space="preserve">
+    <value>não pode ser verificado para o limite diário, contate um game master</value>
+  </data>
+  <data name="InstancedEventReasonEntryFailed" xml:space="preserve">
+    <value>não conseguiu entrar no evento</value>
+  </data>
+  <data name="InstancedEventFullFormat" xml:space="preserve">
+    <value>Todas as salas de {0} estão ocupadas. Tente novamente no próximo início.</value>
+  </data>
+  <data name="InstancedEventEnteredFormat" xml:space="preserve">
+    <value>Você entrou em {0}. O jogo começa em {1} segundo(s).</value>
+  </data>
+  <data name="InstancedEventLevelSyncFormat" xml:space="preserve">
+    <value>Sua força é reduzida ao nível {0} neste evento.</value>
+  </data>
+  <data name="InstancedEventUseCommandFormat" xml:space="preserve">
+    <value>Entra-se em {0} com o comando {1}.</value>
+  </data>
 </root>

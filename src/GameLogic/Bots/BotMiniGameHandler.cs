@@ -1,4 +1,4 @@
-// <copyright file="BotMiniGameHandler.cs" company="MUnique">
+﻿// <copyright file="BotMiniGameHandler.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -73,7 +73,8 @@ internal static class BotMiniGameHandler
     /// <param name="bot">The bot which wants to follow its leader in.</param>
     /// <param name="definition">The mini game definition.</param>
     /// <param name="reason">The human-readable reason when the bot does not qualify.</param>
-    internal static bool IsEligible(Player bot, MiniGameDefinition definition, out string reason)
+    /// <param name="isLevelSynced">If set to <c>true</c>, the event weakens characters above its maximum level (level sync), so they may enter.</param>
+    internal static bool IsEligible(Player bot, MiniGameDefinition definition, out string reason, bool isLevelSynced = false)
     {
         var level = (int)(bot.Attributes?[Stats.Level] ?? 0);
 
@@ -91,7 +92,7 @@ internal static class BotMiniGameHandler
             return false;
         }
 
-        if (level > maximumLevel)
+        if (level > maximumLevel && !isLevelSynced)
         {
             reason = $"level {level} is above the maximum of {maximumLevel}";
             return false;
@@ -128,7 +129,7 @@ internal static class BotMiniGameHandler
             return;
         }
 
-        if (!IsEligible(bot, definition, out var reason))
+        if (!IsEligible(bot, definition, out var reason, miniGame.InstanceSettings?.IsLevelSyncEnabled is true))
         {
             // Like a player who cannot join the run: the bot says goodbye and goes back to its
             // own hunting life instead of waiting at the gate.

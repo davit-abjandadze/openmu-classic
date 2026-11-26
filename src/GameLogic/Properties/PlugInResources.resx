@@ -2232,4 +2232,40 @@
   <data name="MapExcellentDropLevelsConfiguration_MinimumDropLevel_Description" xml:space="preserve"><value>Excellent items with a lower drop level don't drop on the map.</value></data>
   <data name="MapExcellentDropLevelsConfiguration_MaximumDropLevel_Name" xml:space="preserve"><value>Maximum drop level</value></data>
   <data name="MapExcellentDropLevelsConfiguration_MaximumDropLevel_Description" xml:space="preserve"><value>Excellent items with a higher drop level don't drop on the map.</value></data>
+  <data name="PartySizeScaling_PlayerCount_Caption" xml:space="preserve">
+    <value>Player Count</value>
+  </data>
+  <data name="PartySizeScaling_MonsterCountFactor_Caption" xml:space="preserve">
+    <value>Monster Count Factor</value>
+  </data>
+  <data name="PartySizeScaling_MonsterHealthFactor_Caption" xml:space="preserve">
+    <value>Monster Health Factor</value>
+  </data>
+  <data name="PartySizeScaling_RewardFactor_Caption" xml:space="preserve">
+    <value>Reward Factor</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_AnnouncementLeadTimes_Caption" xml:space="preserve">
+    <value>Announcement Lead Times</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_UpcomingMessage_Caption" xml:space="preserve">
+    <value>Upcoming Message</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_EntranceDuration_Caption" xml:space="preserve">
+    <value>Entrance Duration (Instances)</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_GameDuration_Caption" xml:space="preserve">
+    <value>Game Duration (Instances)</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_MaximumPartyDistance_Caption" xml:space="preserve">
+    <value>Maximum Party Distance</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_MaximumInstancesPerSlot_Caption" xml:space="preserve">
+    <value>Maximum Instances Per Slot</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_IsLevelSyncEnabled_Caption" xml:space="preserve">
+    <value>Level Sync</value>
+  </data>
+  <data name="InstancedMiniGameStartConfiguration_PartySizeScalings_Caption" xml:space="preserve">
+    <value>Party Size Scalings</value>
+  </data>
 </root>

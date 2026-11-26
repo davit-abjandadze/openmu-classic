@@ -3711,5 +3711,167 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("MedalMerchantBought", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You are already in an event..
+        /// </summary>
+        public static string InstancedEventAlreadyInEvent {
+            get {
+                return ResourceManager.GetString("InstancedEventAlreadyInEvent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is not open now. The next entrance opens at {1} (in {2} minute(s))..
+        /// </summary>
+        public static string InstancedEventNotOpenFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventNotOpenFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only the party leader can enter {0} for the party..
+        /// </summary>
+        public static string InstancedEventOnlyPartyLeaderFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventOnlyPartyLeaderFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Nobody entered {0}:.
+        /// </summary>
+        public static string InstancedEventNobodyEnteredFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventNobodyEnteredFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} {1}..
+        /// </summary>
+        public static string InstancedEventMemberRefusedFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventMemberRefusedFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to is not online.
+        /// </summary>
+        public static string InstancedEventReasonOffline {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonOffline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to is dead.
+        /// </summary>
+        public static string InstancedEventReasonDead {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonDead", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to is too far away from the party leader.
+        /// </summary>
+        public static string InstancedEventReasonTooFarAway {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonTooFarAway", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to is in another event, a duel or a guild war.
+        /// </summary>
+        public static string InstancedEventReasonInOtherEvent {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonInOtherEvent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to is a player killer.
+        /// </summary>
+        public static string InstancedEventReasonPlayerKiller {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonPlayerKiller", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to already entered today (once per day, until midnight).
+        /// </summary>
+        public static string InstancedEventReasonAlreadyEnteredToday {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonAlreadyEnteredToday", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to is below the minimum level of the event.
+        /// </summary>
+        public static string InstancedEventReasonLevelTooLow {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonLevelTooLow", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to can't be checked for the daily limit, please contact a game master.
+        /// </summary>
+        public static string InstancedEventReasonNotTracked {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonNotTracked", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to couldn't enter the event.
+        /// </summary>
+        public static string InstancedEventReasonEntryFailed {
+            get {
+                return ResourceManager.GetString("InstancedEventReasonEntryFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All rooms of {0} are taken. Please try again at the next start..
+        /// </summary>
+        public static string InstancedEventFullFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventFullFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You entered {0}. The game starts in {1} second(s)..
+        /// </summary>
+        public static string InstancedEventEnteredFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventEnteredFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your strength is reduced to level {0} in this event..
+        /// </summary>
+        public static string InstancedEventLevelSyncFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventLevelSyncFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is entered with the command {1}..
+        /// </summary>
+        public static string InstancedEventUseCommandFormat {
+            get {
+                return ResourceManager.GetString("InstancedEventUseCommandFormat", resourceCulture);
+            }
+        }
     }
 }

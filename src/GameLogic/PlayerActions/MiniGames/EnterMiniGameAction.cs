@@ -47,6 +47,16 @@ public class EnterMiniGameAction
             return;
         }
 
+        if (miniGameDefinition.MapCreationPolicy == MiniGameMapCreationPolicy.OnePerParty
+            && player.GameContext.PlugInManager.GetStrategy<MiniGameType, IPeriodicMiniGameStartPlugIn>(miniGameType) is IInstancedMiniGameSlotProvider slotProvider
+            && slotProvider.IsInstanced(player.GameContext))
+        {
+            // Instanced mini games are entered by their chat command, which checks the party and the daily limit.
+            await ShowRefusalAsync(player, nameof(PlayerMessage.InstancedEventUseCommandFormat), miniGameDefinition.Name, JoinMiniGameChatCommandPlugInBase.GetCommand(miniGameType)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMiniGameEnterResultPlugIn>(p => p.ShowResultAsync(miniGameType, EnterResult.Failed)).ConfigureAwait(false);
+            return;
+        }
+
         var isSpecialCharacter = player.SelectedCharacter.IsSpecialCharacter();
         var characterLevel = player.Attributes![Stats.Level];
         var minLevel = isSpecialCharacter ? miniGameDefinition.MinimumSpecialCharacterLevel : miniGameDefinition.MinimumCharacterLevel;
@@ -143,17 +153,7 @@ public class EnterMiniGameAction
                 await party.KickMySelfAsync(player).ConfigureAwait(false);
             }
 
-            await player.MagicEffectList.ClearEffectsAfterDeathAsync().ConfigureAwait(false);
-
-            if (player.ShopStorage?.StoreOpen ?? false)
-            {
-                var storeCloseAction = new CloseStoreAction();
-                await storeCloseAction.CloseStoreAsync(player).ConfigureAwait(false);
-            }
-
-            await player.RemoveSummonAsync().ConfigureAwait(false);
-            await player.MagicEffectList.ClearEffectsAfterDeathAsync().ConfigureAwait(false);
-            await player.WarpToAsync(entrance).ConfigureAwait(false);
+            await WarpIntoAsync(player, entrance).ConfigureAwait(false);
 
             // The bots of the entering party leader follow them in (each checked against the same
             // entry restrictions, no ticket needed - the leader's own ticket legitimizes the visit).
@@ -163,6 +163,27 @@ public class EnterMiniGameAction
         {
             await player.InvokeViewPlugInAsync<IShowMiniGameEnterResultPlugIn>(p => p.ShowResultAsync(miniGameType, enterResult)).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Prepares a player which entered a mini game and warps it to its entrance:
+    /// the effects, an open personal store and the summon don't go along.
+    /// </summary>
+    /// <param name="player">The player which entered the mini game.</param>
+    /// <param name="entrance">The entrance of the mini game.</param>
+    internal static async ValueTask WarpIntoAsync(Player player, ExitGate entrance)
+    {
+        await player.MagicEffectList.ClearEffectsAfterDeathAsync().ConfigureAwait(false);
+
+        if (player.ShopStorage?.StoreOpen ?? false)
+        {
+            var storeCloseAction = new CloseStoreAction();
+            await storeCloseAction.CloseStoreAsync(player).ConfigureAwait(false);
+        }
+
+        await player.RemoveSummonAsync().ConfigureAwait(false);
+        await player.MagicEffectList.ClearEffectsAfterDeathAsync().ConfigureAwait(false);
+        await player.WarpToAsync(entrance).ConfigureAwait(false);
     }
 
     /// <summary>

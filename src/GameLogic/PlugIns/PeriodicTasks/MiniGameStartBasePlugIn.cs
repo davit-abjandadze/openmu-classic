@@ -14,11 +14,20 @@ using MUnique.OpenMU.PlugIns;
 /// </summary>
 /// <typeparam name="TConfiguration">Implementation of the mini game configuration class.</typeparam>
 /// <typeparam name="TGameState">Implementation of the mini game state class.</typeparam>
-public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : PeriodicTaskBasePlugIn<TConfiguration, TGameState>, ISupportDefaultCustomConfiguration, IPeriodicMiniGameStartPlugIn
+public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : PeriodicTaskBasePlugIn<TConfiguration, TGameState>, ISupportDefaultCustomConfiguration, IPeriodicMiniGameStartPlugIn, IInstancedMiniGameSlotProvider
     where TConfiguration : MiniGameStartConfiguration
     where TGameState : PeriodicTaskGameServerState
 {
+    /// <summary>
+    /// The time after an announcement point in which it's still announced, e.g. after a short hiccup of the periodic tick.
+    /// </summary>
+    private static readonly TimeSpan AnnouncementTolerance = TimeSpan.FromSeconds(30);
+
     private static readonly ConcurrentDictionary<(Type PlugInType, IGameContext GameContext), EntranceAnnouncement> Announcements = new();
+
+    private static readonly ConcurrentDictionary<(Type PlugInType, IGameContext GameContext), InstancedMiniGameSlot> Slots = new();
+
+    private static readonly ConcurrentDictionary<(Type PlugInType, IGameContext GameContext), UpcomingAnnouncements> Upcoming = new();
 
     /// <inheritdoc />
     public abstract MiniGameType Key { get; }
@@ -29,7 +38,31 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
     /// <inheritdoc />
     public bool IsEventActive(IGameContext gameContext)
     {
-        return gameContext.MiniGames.GetRunningMiniGames(this.Key).Any(IsActive);
+        return gameContext.MiniGames.GetRunningMiniGames(this.Key).Any(IsActive)
+            || this.GetOpenSlot(gameContext) is not null;
+    }
+
+    /// <inheritdoc />
+    public bool IsInstanced(IGameContext gameContext)
+    {
+        return this.Configuration is InstancedMiniGameStartConfiguration
+            && gameContext.Configuration.MiniGameDefinitions.Any(d => d.Type == this.Key && d.MapCreationPolicy == MiniGameMapCreationPolicy.OnePerParty && d.IsAvailable());
+    }
+
+    /// <inheritdoc />
+    public InstancedMiniGameSlot? GetOpenSlot(IGameContext gameContext)
+    {
+        return Slots.TryGetValue((this.GetType(), gameContext), out var slot) && slot.IsEntranceOpen(DateTime.UtcNow)
+            ? slot
+            : null;
+    }
+
+    /// <inheritdoc />
+    public DateTime? GetNextSlotStartUtc(IGameContext gameContext)
+    {
+        return this.IsEnabledOnContext(gameContext)
+            ? this.Configuration?.GetNextStartUtc(DateTime.UtcNow, GetTimeZone(gameContext))
+            : null;
     }
 
     /// <inheritdoc />
@@ -39,6 +72,7 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
     public virtual async ValueTask DisposeRunningGamesAsync(IGameContext gameContext)
     {
         Announcements.TryRemove((this.GetType(), gameContext), out _);
+        Slots.TryRemove((this.GetType(), gameContext), out _);
         var logger = gameContext.LoggerFactory.CreateLogger(this.GetType());
         foreach (var game in gameContext.MiniGames.GetRunningMiniGames(this.Key))
         {
@@ -73,29 +107,64 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
             return ValueTask.FromResult<TimeSpan?>(TimeSpan.Zero);
         }
 
-        // The scope comes last on purpose: an open or prepared run is reported even on
-        // excluded servers, so in-flight runs finish gracefully instead of going silent.
-        if (!this.IsEnabledOnContext(gameContext))
+        if (miniGameDefinition.MapCreationPolicy == MiniGameMapCreationPolicy.OnePerParty
+            && this.GetOpenSlot(gameContext) is not null)
         {
-            return ValueTask.FromResult<TimeSpan?>(null);
+            return ValueTask.FromResult<TimeSpan?>(TimeSpan.Zero);
         }
 
-        var timeNow = new TimeOnly(DateTime.UtcNow.TimeOfDay.Ticks);
-        var nextRun = this.Configuration?.Timetable.Where(time => time > timeNow).Order().FirstOrDefault();
-        return ValueTask.FromResult(nextRun - timeNow);
+        // The scope comes last on purpose: an open or prepared run is reported even on
+        // excluded servers, so in-flight runs finish gracefully instead of going silent.
+        // The timetable is defined in the time zone of the server, like the start check.
+        var utcNow = DateTime.UtcNow;
+        return ValueTask.FromResult(this.GetNextSlotStartUtc(gameContext) - utcNow);
     }
 
     /// <inheritdoc />
     public override async ValueTask ExecuteTaskAsync(GameContext gameContext)
     {
+        await this.AnnounceUpcomingStartAsync(gameContext, DateTime.UtcNow).ConfigureAwait(false);
         await base.ExecuteTaskAsync(gameContext).ConfigureAwait(false);
         await this.AnnounceEntranceAsync(gameContext).ConfigureAwait(false);
+        await this.AnnounceSlotClosingAsync(gameContext).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public ValueTask<MiniGameContext?> GetMiniGameContextAsync(IGameContext gameContext, MiniGameDefinition miniGameDefinition)
     {
         return ValueTask.FromResult(gameContext.MiniGames.TryGetRunningMiniGame(miniGameDefinition, null));
+    }
+
+    /// <summary>
+    /// Announces the upcoming start at the configured lead times before it, e.g. 5 and 2 minutes before.
+    /// It's internal (rather than private) so that it can be tested deterministically.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    /// <param name="utcNow">The current point in time, in UTC.</param>
+    internal async ValueTask AnnounceUpcomingStartAsync(IGameContext gameContext, DateTime utcNow)
+    {
+        if (this.Configuration is not InstancedMiniGameStartConfiguration configuration
+            || configuration.UpcomingMessage.Value is null
+            || configuration.AnnouncementLeadTimes is not { Count: > 0 } leadTimes
+            || !this.IsEnabledOnContext(gameContext)
+            || configuration.GetNextStartUtc(utcNow, GetTimeZone(gameContext)) is not { } nextStartUtc)
+        {
+            return;
+        }
+
+        var announcements = Upcoming.GetOrAdd((this.GetType(), gameContext), _ => new UpcomingAnnouncements());
+        foreach (var leadTime in leadTimes.Where(t => t > TimeSpan.Zero))
+        {
+            var announceAtUtc = nextStartUtc - leadTime;
+            if (utcNow < announceAtUtc || utcNow >= announceAtUtc + AnnouncementTolerance
+                || !announcements.TryMarkAnnounced(nextStartUtc, leadTime))
+            {
+                continue;
+            }
+
+            var minutes = (int)Math.Max(1, Math.Round((nextStartUtc - utcNow).TotalMinutes));
+            await gameContext.SendGlobalNotificationAsync(configuration.UpcomingMessage, minutes).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -182,6 +251,8 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
 
         await this.DisposeStaleGamesAsync(state.Context).ConfigureAwait(false);
 
+        await this.OpenSlotAsync(state.Context).ConfigureAwait(false);
+
         var enterDuration = TimeSpan.Zero;
         var gamesCreated = 0;
         foreach (var miniGameDefinition in miniGameDefinitions)
@@ -223,6 +294,13 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
         return ValueTask.CompletedTask;
     }
 
+    /// <summary>
+    /// Gets the time zone in which the timetable is defined. Contexts without one (e.g. in tests) use UTC.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    /// <returns>The time zone.</returns>
+    private static TimeZoneInfo GetTimeZone(IGameContext gameContext) => gameContext.ServerTimeZone ?? TimeZoneInfo.Utc;
+
     private static bool IsActive(MiniGameContext game)
     {
         return !game.IsDisposed && !game.IsDisposing
@@ -246,6 +324,47 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
     }
 
     /// <summary>
+    /// Opens a new slot, if the mini game runs in instances, and announces its open entrance.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    private async ValueTask OpenSlotAsync(IGameContext gameContext)
+    {
+        if (!this.IsInstanced(gameContext)
+            || this.Configuration is not InstancedMiniGameStartConfiguration configuration)
+        {
+            return;
+        }
+
+        var slot = new InstancedMiniGameSlot(this.Key, configuration, DateTime.UtcNow);
+        Slots[(this.GetType(), gameContext)] = slot;
+        var minutes = (int)Math.Ceiling((slot.EntranceClosesUtc - slot.StartUtc).TotalMinutes);
+        if (configuration.EntranceOpenedMessage.Value is not null)
+        {
+            await gameContext.SendGlobalNotificationAsync(configuration.EntranceOpenedMessage, minutes).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Announces once that the entrance of the current slot closed.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    private async ValueTask AnnounceSlotClosingAsync(IGameContext gameContext)
+    {
+        if (!Slots.TryGetValue((this.GetType(), gameContext), out var slot)
+            || slot.IsClosingAnnounced
+            || DateTime.UtcNow < slot.EntranceClosesUtc)
+        {
+            return;
+        }
+
+        slot.IsClosingAnnounced = true;
+        if (slot.Configuration.EntranceClosedMessage.Value is not null)
+        {
+            await gameContext.SendGlobalNotificationAsync(slot.Configuration.EntranceClosedMessage).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
     /// Tracks the entrance announcements of one run: which minute was announced last, and
     /// whether the closing has been announced.
     /// </summary>
@@ -260,5 +379,29 @@ public abstract class MiniGameStartBasePlugIn<TConfiguration, TGameState> : Peri
         /// Gets or sets a value indicating whether the closing has been announced.
         /// </summary>
         public bool CloseAnnounced { get; set; }
+    }
+
+    /// <summary>
+    /// Tracks which announcements before the next start have been sent.
+    /// </summary>
+    private sealed class UpcomingAnnouncements
+    {
+        private readonly HashSet<(DateTime StartUtc, TimeSpan LeadTime)> _announced = new();
+
+        /// <summary>
+        /// Marks the announcement as sent, unless it was sent before.
+        /// </summary>
+        /// <param name="startUtc">The start which is announced.</param>
+        /// <param name="leadTime">The lead time of the announcement.</param>
+        /// <returns><c>true</c>, if it wasn't sent before; otherwise, <c>false</c>.</returns>
+        public bool TryMarkAnnounced(DateTime startUtc, TimeSpan leadTime)
+        {
+            lock (this._announced)
+            {
+                // Announcements of past starts are not needed anymore.
+                this._announced.RemoveWhere(a => a.StartUtc < startUtc);
+                return this._announced.Add((startUtc, leadTime));
+            }
+        }
     }
 }

@@ -596,6 +596,12 @@ public class MiniGameStartPlugInTests
         }
 
         /// <inheritdoc />
+        public ValueTask<MiniGameContext> CreateInstanceAsync(MiniGameDefinition miniGameDefinition, InstancedMiniGameSettings settings)
+        {
+            throw new NotSupportedException("Instances are not created by these tests.");
+        }
+
+        /// <inheritdoc />
         public MiniGameContext? TryGetRunningMiniGame(MiniGameDefinition miniGameDefinition, Player? requester)
         {
             return this.Games.FirstOrDefault(game => game.Definition == miniGameDefinition);

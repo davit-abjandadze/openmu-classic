@@ -108,6 +108,29 @@ public class GameMap
     public bool IsTornDown => this._isTornDown;
 
     /// <summary>
+    /// Gets or sets the factor for the number of monsters which spawn at the start of an event
+    /// or one of its waves, e.g. to scale an instance of a mini game by its number of players.
+    /// Every spawn area keeps at least one monster.
+    /// </summary>
+    public double SpawnQuantityFactor { get; set; } = 1;
+
+    /// <summary>
+    /// Gets the number of monsters which spawn in the event spawn area on this map,
+    /// considering the <see cref="SpawnQuantityFactor"/>.
+    /// </summary>
+    /// <param name="spawnArea">The spawn area of an event.</param>
+    /// <returns>The number of monsters.</returns>
+    public int GetEventSpawnQuantity(MonsterSpawnArea spawnArea)
+    {
+        if (spawnArea.Quantity <= 0 || Math.Abs(this.SpawnQuantityFactor - 1) < 0.001)
+        {
+            return spawnArea.Quantity;
+        }
+
+        return Math.Max(1, (int)Math.Round(spawnArea.Quantity * this.SpawnQuantityFactor));
+    }
+
+    /// <summary>
     /// Gets the object with the specified identifier.
     /// </summary>
     /// <param name="id">The identifier.</param>

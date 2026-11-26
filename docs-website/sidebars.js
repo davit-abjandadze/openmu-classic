@@ -61,6 +61,7 @@ const sidebars = {
       label: "Server features",
       items: [
         "server-features/castle-siege",
+        "server-features/instanced-events",
         "server-features/bots",
         "server-features/anti-cheat",
         "server-features/test-actors",

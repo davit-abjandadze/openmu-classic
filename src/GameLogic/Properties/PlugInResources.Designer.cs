@@ -8871,5 +8871,113 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("MapExcellentDropLevelsConfiguration_MaximumDropLevel_Description", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Player Count.
+        /// </summary>
+        public static string PartySizeScaling_PlayerCount_Caption {
+            get {
+                return ResourceManager.GetString("PartySizeScaling_PlayerCount_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Monster Count Factor.
+        /// </summary>
+        public static string PartySizeScaling_MonsterCountFactor_Caption {
+            get {
+                return ResourceManager.GetString("PartySizeScaling_MonsterCountFactor_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Monster Health Factor.
+        /// </summary>
+        public static string PartySizeScaling_MonsterHealthFactor_Caption {
+            get {
+                return ResourceManager.GetString("PartySizeScaling_MonsterHealthFactor_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reward Factor.
+        /// </summary>
+        public static string PartySizeScaling_RewardFactor_Caption {
+            get {
+                return ResourceManager.GetString("PartySizeScaling_RewardFactor_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Announcement Lead Times.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_AnnouncementLeadTimes_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_AnnouncementLeadTimes_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Upcoming Message.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_UpcomingMessage_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_UpcomingMessage_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Entrance Duration (Instances).
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_EntranceDuration_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_EntranceDuration_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Game Duration (Instances).
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_GameDuration_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_GameDuration_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum Party Distance.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_MaximumPartyDistance_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_MaximumPartyDistance_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum Instances Per Slot.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_MaximumInstancesPerSlot_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_MaximumInstancesPerSlot_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Level Sync.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_IsLevelSyncEnabled_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_IsLevelSyncEnabled_Caption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Party Size Scalings.
+        /// </summary>
+        public static string InstancedMiniGameStartConfiguration_PartySizeScalings_Caption {
+            get {
+                return ResourceManager.GetString("InstancedMiniGameStartConfiguration_PartySizeScalings_Caption", resourceCulture);
+            }
+        }
     }
 }

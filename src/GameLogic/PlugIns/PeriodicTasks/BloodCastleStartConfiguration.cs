@@ -7,7 +7,7 @@ namespace MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
 /// <summary>
 /// The blood castle start configuration.
 /// </summary>
-public class BloodCastleStartConfiguration : MiniGameStartConfiguration
+public class BloodCastleStartConfiguration : InstancedMiniGameStartConfiguration
 {
     /// <summary>
     /// Gets the default configuration for blood castle.
@@ -20,5 +20,6 @@ public class BloodCastleStartConfiguration : MiniGameStartConfiguration
             EntranceClosedMessage = "Blood Castle entrance closed.",
             TaskDuration = TimeSpan.FromMinutes(20),
             Timetable = GenerateTimeSequence(TimeSpan.FromMinutes(240), startLimit: new TimeOnly(1, 0)).ToList(),
+            PartySizeScalings = CreateDefaultPartySizeScalings(),
         };
 }

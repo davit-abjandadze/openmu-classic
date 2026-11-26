@@ -1282,5 +1282,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("ClassicExcellentDropLevelsUpdatePlugIn_Description", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Classic: Devil Square and Blood Castle three times a day in instances.
+        /// </summary>
+        public static string ClassicInstancedEventsUpdatePlugIn_Name {
+            get {
+                return ResourceManager.GetString("ClassicInstancedEventsUpdatePlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Replaces the nightly Devil Square (21:00) and Blood Castle (22:00) by three slots a day (Devil Square 13:00, 19:00, 22:00; Blood Castle 13:30, 19:30, 22:30) in which every solo player or party enters its own instance of the tier of its level (6 Devil Square and 7 Blood Castle tiers), once per day and event. Only applies to the classic (Season 1 content) data..
+        /// </summary>
+        public static string ClassicInstancedEventsUpdatePlugIn_Description {
+            get {
+                return ResourceManager.GetString("ClassicInstancedEventsUpdatePlugIn_Description", resourceCulture);
+            }
+        }
     }
 }

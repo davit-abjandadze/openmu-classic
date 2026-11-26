@@ -71,48 +71,29 @@ public sealed class MiniGameManager : IMiniGameManager
                 MiniGameCounter.Add(-1);
             }
 
-            switch (miniGameDefinition.Type)
-            {
-                case MiniGameType.ChaosCastle:
-                    miniGameContext = new ChaosCastleContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                case MiniGameType.DevilSquare:
-                    miniGameContext = new DevilSquareContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                case MiniGameType.BloodCastle:
-                    miniGameContext = new BloodCastleContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                case MiniGameType.Doppelganger:
-                    miniGameContext = new DoppelgangerContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                case MiniGameType.Kanturu:
-                    miniGameContext = new KanturuContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                case MiniGameType.IllusionTemple:
-                    miniGameContext = new IllusionTempleContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                case MiniGameType.ImperialGuardian:
-                    miniGameContext = new ImperialGuardianContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-                default:
-                    miniGameContext = new MiniGameContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
-                    break;
-            }
-
+            miniGameContext = this.CreateContext(miniGameKey, miniGameDefinition);
             this._miniGames[miniGameKey] = miniGameContext;
         }
 
-        var createdMap = miniGameContext.Map;
+        return await this.StartAsync(miniGameContext).ConfigureAwait(false);
+    }
 
-        // ReSharper disable once InconsistentlySynchronizedField it's desired behavior to initialize the map outside the lock to keep locked timespan short.
-        await this._mapInitializer.InitializeStateAsync(createdMap).ConfigureAwait(false);
-        this.GameMapCreated?.Invoke(this, createdMap);
-        MiniGameCounter.Add(1);
+    /// <inheritdoc />
+    public async ValueTask<MiniGameContext> CreateInstanceAsync(MiniGameDefinition miniGameDefinition, InstancedMiniGameSettings settings)
+    {
+        var mapDefinition = miniGameDefinition.Entrance?.Map ?? throw new ArgumentException($"{nameof(miniGameDefinition)} contains no entrance map.");
 
-        // The loop starts here and not in the constructor, so overridden members
-        // read their post-construction values from the first tick on.
-        miniGameContext.EnsureGameLoopRunning();
-        return miniGameContext;
+        // Every instance gets its own key, so it can never be confused with another instance of the same party.
+        var miniGameKey = new MiniGameMapKey(mapDefinition.Number, miniGameDefinition.GameLevel, $"instance:{Guid.NewGuid():N}");
+        MiniGameContext miniGameContext;
+        using (await this._lock.LockAsync().ConfigureAwait(false))
+        {
+            miniGameContext = this.CreateContext(miniGameKey, miniGameDefinition);
+            miniGameContext.SetInstanceSettings(settings);
+            this._miniGames[miniGameKey] = miniGameContext;
+        }
+
+        return await this.StartAsync(miniGameContext).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -176,5 +157,54 @@ public sealed class MiniGameManager : IMiniGameManager
         }
 
         this.GameMapRemoved?.Invoke(this, miniGameContext.Map);
+    }
+
+    private MiniGameContext CreateContext(MiniGameMapKey miniGameKey, MiniGameDefinition miniGameDefinition)
+    {
+        MiniGameContext miniGameContext;
+        switch (miniGameDefinition.Type)
+        {
+            case MiniGameType.ChaosCastle:
+                miniGameContext = new ChaosCastleContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            case MiniGameType.DevilSquare:
+                miniGameContext = new DevilSquareContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            case MiniGameType.BloodCastle:
+                miniGameContext = new BloodCastleContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            case MiniGameType.Doppelganger:
+                miniGameContext = new DoppelgangerContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            case MiniGameType.Kanturu:
+                miniGameContext = new KanturuContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            case MiniGameType.IllusionTemple:
+                miniGameContext = new IllusionTempleContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            case MiniGameType.ImperialGuardian:
+                miniGameContext = new ImperialGuardianContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+            default:
+                miniGameContext = new MiniGameContext(miniGameKey, miniGameDefinition, this._gameContext, this._mapInitializer);
+                break;
+        }
+
+        return miniGameContext;
+    }
+
+    private async ValueTask<MiniGameContext> StartAsync(MiniGameContext miniGameContext)
+    {
+        var createdMap = miniGameContext.Map;
+
+        // ReSharper disable once InconsistentlySynchronizedField it's desired behavior to initialize the map outside the lock to keep locked timespan short.
+        await this._mapInitializer.InitializeStateAsync(createdMap).ConfigureAwait(false);
+        this.GameMapCreated?.Invoke(this, createdMap);
+        MiniGameCounter.Add(1);
+
+        // The loop starts here and not in the constructor, so overridden members
+        // read their post-construction values from the first tick on.
+        miniGameContext.EnsureGameLoopRunning();
+        return miniGameContext;
     }
 }

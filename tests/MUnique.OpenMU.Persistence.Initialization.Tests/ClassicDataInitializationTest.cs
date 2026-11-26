@@ -729,24 +729,13 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that there is only one free Devil Square and Blood Castle room for all levels, with double experience,
-    /// and that the events are active, but not the hunting rewards.
+    /// Tests that the Devil Square and the Blood Castle have free tiers (six and seven), which are entered in instances per party,
+    /// with double experience, and that the events are active, but not the hunting rewards.
     /// </summary>
     [Test]
     public void EventsAreConfigured()
     {
-        foreach (var (type, level) in new[] { (MiniGameType.DevilSquare, ClassicEvents.DevilSquareLevel), (MiniGameType.BloodCastle, ClassicEvents.BloodCastleLevel) })
-        {
-            var active = this._gameConfiguration.MiniGameDefinitions.Where(d => d.Type == type && d.IsActive).ToList();
-            Assert.That(active.Select(d => d.GameLevel), Is.EqualTo(new[] { level }), type.ToString());
-            var definition = active.Single();
-            Assert.That(definition.TicketItem, Is.Null);
-            Assert.That(definition.FreeTicketItem, Is.Null);
-            Assert.That(definition.MinimumCharacterLevel, Is.EqualTo(10));
-            Assert.That(definition.MaximumCharacterLevel, Is.EqualTo(400));
-            Assert.That(definition.MapCreationPolicy, Is.EqualTo(MiniGameMapCreationPolicy.Shared));
-            Assert.That(definition.Entrance!.Map!.ExpMultiplier, Is.EqualTo(2));
-        }
+        AssertInstancedEvents(this._gameConfiguration);
 
         foreach (var plugInType in new[] { typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn), typeof(MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents.GoldenInvasionPlugIn), typeof(MUnique.OpenMU.GameLogic.MiniGames.Medals.MiniGameMedalsPlugIn), typeof(MUnique.OpenMU.GameLogic.ItemExchange.ItemExchangeChatCommandPlugIn), typeof(MUnique.OpenMU.GameLogic.TeamVsTeam.TeamVsTeamPlugIn) })
         {
@@ -758,8 +747,116 @@ internal class ClassicDataInitializationTest
             Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == plugInType.GUID).IsActive, Is.False, plugInType.Name);
         }
 
+    }
+
+    /// <summary>
+    /// Tests that the active tiers of the Devil Square and the Blood Castle have active monsters to fight.
+    /// </summary>
+    [Test]
+    public void EveryEventTierHasActiveMonsters()
+    {
+        foreach (var definition in this._gameConfiguration.MiniGameDefinitions.Where(d => d.Type is MiniGameType.DevilSquare or MiniGameType.BloodCastle && d.IsActive))
+        {
+            var map = definition.Entrance!.Map!;
+            var monsters = map.MonsterSpawns
+                .Where(s => s.SpawnTrigger is SpawnTrigger.OnceAtEventStart or SpawnTrigger.AutomaticDuringEvent or SpawnTrigger.AutomaticDuringWave or SpawnTrigger.OnceAtWaveStart)
+                .Where(s => s.MonsterDefinition is { IsActive: true, ObjectKind: NpcObjectKind.Monster })
+                .ToList();
+            Assert.That(map.IsActive, Is.True, definition.Name.ToString());
+            Assert.That(monsters, Is.Not.Empty, definition.Name.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Tests that the update replaces the former nightly events on an existing classic database,
+    /// and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateConfiguresInstancedEventsAsync()
+    {
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        foreach (var definition in this._gameConfiguration.MiniGameDefinitions.Where(d => d.Type is MiniGameType.DevilSquare or MiniGameType.BloodCastle))
+        {
+            // The state of the former nightly events: one shared room for all levels.
+            definition.IsActive = definition.GameLevel == 4;
+            definition.MapCreationPolicy = MiniGameMapCreationPolicy.Shared;
+            definition.MinimumCharacterLevel = 10;
+            definition.MaximumCharacterLevel = 400;
+        }
+
         var devilSquare = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn).GUID);
-        Assert.That(devilSquare.CustomConfiguration, Does.Contain("21:00"));
+        var formerConfiguration = MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartConfiguration.Default;
+        formerConfiguration.Timetable = [new TimeOnly(21, 0)];
+        devilSquare.SetConfiguration(formerConfiguration, referenceHandler);
+        var characterClass = this._gameConfiguration.CharacterClasses.First();
+        foreach (var statAttribute in characterClass.StatAttributes.Where(a => MUnique.OpenMU.GameLogic.MiniGames.MiniGameEntryStats.All.Contains(a.Attribute)).ToList())
+        {
+            characterClass.StatAttributes.Remove(statAttribute);
+        }
+
+        var update = new ClassicInstancedEventsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        AssertInstancedEvents(this._gameConfiguration);
+        foreach (var attribute in MUnique.OpenMU.GameLogic.MiniGames.MiniGameEntryStats.All)
+        {
+            Assert.That(this._gameConfiguration.Attributes.Count(a => a == attribute), Is.EqualTo(1), attribute.Designation);
+        }
+    }
+
+    private static void AssertInstancedEvents(GameConfiguration gameConfiguration)
+    {
+        foreach (var (type, tierLevels) in new[] { (MiniGameType.DevilSquare, ClassicEvents.DevilSquareTierLevels), (MiniGameType.BloodCastle, ClassicEvents.BloodCastleTierLevels) })
+        {
+            var active = gameConfiguration.MiniGameDefinitions.Where(d => d.Type == type && d.IsActive).OrderBy(d => d.GameLevel).ToList();
+            Assert.That(active.Select(d => (int)d.GameLevel), Is.EqualTo(Enumerable.Range(1, tierLevels.Count)), type.ToString());
+            Assert.That(tierLevels[0], Is.EqualTo((10, 60)));
+            Assert.That(tierLevels[^1].Maximum, Is.EqualTo(400));
+            foreach (var definition in active)
+            {
+                var (minimumLevel, maximumLevel) = tierLevels[definition.GameLevel - 1];
+                Assert.That(definition.TicketItem, Is.Null);
+                Assert.That(definition.FreeTicketItem, Is.Null);
+                Assert.That(definition.RequiresMasterClass, Is.False);
+                Assert.That(definition.MinimumCharacterLevel, Is.EqualTo(minimumLevel));
+                Assert.That(definition.MaximumCharacterLevel, Is.EqualTo(maximumLevel));
+                Assert.That(definition.MinimumPlayerCount, Is.EqualTo(1));
+                Assert.That(definition.MapCreationPolicy, Is.EqualTo(MiniGameMapCreationPolicy.OnePerParty));
+                Assert.That(definition.Entrance!.Map!.ExpMultiplier, Is.EqualTo(2));
+            }
+        }
+
+        Assert.That(ClassicEvents.BloodCastleTierLevels, Has.Count.EqualTo(7));
+        Assert.That(ClassicEvents.DevilSquareTierLevels, Has.Count.EqualTo(6));
+
+        var referenceHandler = new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler();
+        var devilSquare = gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn).GUID)
+            .GetConfiguration<MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartConfiguration>(referenceHandler)!;
+        var bloodCastle = gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn).GUID)
+            .GetConfiguration<MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartConfiguration>(referenceHandler)!;
+        // The localized strings are only deserialized with the converter which the server registers, so the raw configuration is checked.
+        Assert.That(gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.DevilSquareStartPlugIn).GUID).CustomConfiguration, Does.Contain("Devil Square opens in {0} minute(s)! Join with /joinds"));
+        Assert.That(gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.BloodCastleStartPlugIn).GUID).CustomConfiguration, Does.Contain("Blood Castle opens in {0} minute(s)! Join with /joinbc"));
+        Assert.That(devilSquare.Timetable, Is.EqualTo(new[] { new TimeOnly(13, 0), new TimeOnly(19, 0), new TimeOnly(22, 0) }));
+        Assert.That(bloodCastle.Timetable, Is.EqualTo(new[] { new TimeOnly(13, 30), new TimeOnly(19, 30), new TimeOnly(22, 30) }));
+        foreach (var configuration in new MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks.InstancedMiniGameStartConfiguration[] { devilSquare, bloodCastle })
+        {
+            Assert.That(configuration.EntranceDuration, Is.EqualTo(TimeSpan.FromMinutes(5)));
+            Assert.That(configuration.GameDuration, Is.EqualTo(TimeSpan.FromMinutes(15)));
+            Assert.That(configuration.AnnouncementLeadTimes, Is.EqualTo(new[] { TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2) }));
+            Assert.That(configuration.PartySizeScalings.Select(p => p.MonsterCountFactor), Is.EqualTo(new[] { 0.6, 0.8, 1.0, 1.15, 1.3 }));
+            Assert.That(configuration.PartySizeScalings.Select(p => p.MonsterHealthFactor), Is.EqualTo(new[] { 0.7, 0.85, 1.0, 1.1, 1.2 }));
+            Assert.That(configuration.PartySizeScalings.Select(p => p.RewardFactor), Is.EqualTo(new[] { 1.5, 1.2, 1.0, 0.9, 0.85 }));
+        }
+
+        foreach (var characterClass in gameConfiguration.CharacterClasses)
+        {
+            foreach (var attribute in MUnique.OpenMU.GameLogic.MiniGames.MiniGameEntryStats.All)
+            {
+                Assert.That(characterClass.StatAttributes.Count(a => a.Attribute == attribute), Is.EqualTo(1), $"{characterClass.Name}: {attribute.Designation}");
+            }
+        }
     }
 
     /// <summary>

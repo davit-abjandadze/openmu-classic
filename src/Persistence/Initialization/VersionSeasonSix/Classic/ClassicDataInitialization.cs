@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.HuntingRewards;
+using MUnique.OpenMU.GameLogic.MiniGames;
 using MUnique.OpenMU.GameLogic.MiniGames.Medals;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.GameLogic.TeamVsTeam;
@@ -67,7 +68,7 @@ public class ClassicDataInitialization : DataInitialization
         ClassicIcarusMonsters.Apply(this.Context, this.GameConfiguration);
         ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);
         await ClassicMedalMerchant.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
-        this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All).Concat(HuntingPointStats.All).Concat(TeamVsTeamStats.All));
+        this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All).Concat(HuntingPointStats.All).Concat(TeamVsTeamStats.All).Concat(MiniGameEntryStats.All));
     }
 
     /// <inheritdoc />

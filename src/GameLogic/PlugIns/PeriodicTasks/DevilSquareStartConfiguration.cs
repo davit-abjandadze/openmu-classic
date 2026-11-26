@@ -7,7 +7,7 @@ namespace MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
 /// <summary>
 /// The devil square start configuration.
 /// </summary>
-public class DevilSquareStartConfiguration : MiniGameStartConfiguration
+public class DevilSquareStartConfiguration : InstancedMiniGameStartConfiguration
 {
     /// <summary>
     /// Gets the default configuration for devil square.
@@ -20,5 +20,6 @@ public class DevilSquareStartConfiguration : MiniGameStartConfiguration
             EntranceClosedMessage = "Devil Square entrance closed.",
             TaskDuration = TimeSpan.FromMinutes(25),
             Timetable = PeriodicTaskConfiguration.GenerateTimeSequence(TimeSpan.FromMinutes(240)).ToList(),
+            PartySizeScalings = CreateDefaultPartySizeScalings(),
         };
 }

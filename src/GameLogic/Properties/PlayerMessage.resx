@@ -1345,4 +1345,58 @@ Inventory Extensions: {18}</value>
   <data name="BossRespawnsIn" xml:space="preserve">
     <value>{0} ({1}): dead, respawns in {2}h {3:00}m {4:00}s</value>
   </data>
+  <data name="InstancedEventAlreadyInEvent" xml:space="preserve">
+    <value>You are already in an event.</value>
+  </data>
+  <data name="InstancedEventNotOpenFormat" xml:space="preserve">
+    <value>{0} is not open now. The next entrance opens at {1} (in {2} minute(s)).</value>
+  </data>
+  <data name="InstancedEventOnlyPartyLeaderFormat" xml:space="preserve">
+    <value>Only the party leader can enter {0} for the party.</value>
+  </data>
+  <data name="InstancedEventNobodyEnteredFormat" xml:space="preserve">
+    <value>Nobody entered {0}:</value>
+  </data>
+  <data name="InstancedEventMemberRefusedFormat" xml:space="preserve">
+    <value>{0} {1}.</value>
+  </data>
+  <data name="InstancedEventReasonOffline" xml:space="preserve">
+    <value>is not online</value>
+  </data>
+  <data name="InstancedEventReasonDead" xml:space="preserve">
+    <value>is dead</value>
+  </data>
+  <data name="InstancedEventReasonTooFarAway" xml:space="preserve">
+    <value>is too far away from the party leader</value>
+  </data>
+  <data name="InstancedEventReasonInOtherEvent" xml:space="preserve">
+    <value>is in another event, a duel or a guild war</value>
+  </data>
+  <data name="InstancedEventReasonPlayerKiller" xml:space="preserve">
+    <value>is a player killer</value>
+  </data>
+  <data name="InstancedEventReasonAlreadyEnteredToday" xml:space="preserve">
+    <value>already entered today (once per day, until midnight)</value>
+  </data>
+  <data name="InstancedEventReasonLevelTooLow" xml:space="preserve">
+    <value>is below the minimum level of the event</value>
+  </data>
+  <data name="InstancedEventReasonNotTracked" xml:space="preserve">
+    <value>can't be checked for the daily limit, please contact a game master</value>
+  </data>
+  <data name="InstancedEventReasonEntryFailed" xml:space="preserve">
+    <value>couldn't enter the event</value>
+  </data>
+  <data name="InstancedEventFullFormat" xml:space="preserve">
+    <value>All rooms of {0} are taken. Please try again at the next start.</value>
+  </data>
+  <data name="InstancedEventEnteredFormat" xml:space="preserve">
+    <value>You entered {0}. The game starts in {1} second(s).</value>
+  </data>
+  <data name="InstancedEventLevelSyncFormat" xml:space="preserve">
+    <value>Your strength is reduced to level {0} in this event.</value>
+  </data>
+  <data name="InstancedEventUseCommandFormat" xml:space="preserve">
+    <value>{0} is entered with the command {1}.</value>
+  </data>
 </root>

@@ -1,4 +1,4 @@
-// <copyright file="IMiniGameManager.cs" company="MUnique">
+﻿// <copyright file="IMiniGameManager.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -32,6 +32,14 @@ public interface IMiniGameManager
     /// <param name="requester">The requesting player.</param>
     /// <returns>The hosted mini game instance.</returns>
     ValueTask<MiniGameContext> GetOrCreateAsync(MiniGameDefinition miniGameDefinition, Player requester);
+
+    /// <summary>
+    /// Creates a new instance of an instanced mini game, which only the members of the settings may enter.
+    /// </summary>
+    /// <param name="miniGameDefinition">The mini game definition, i.e. the tier of the instance.</param>
+    /// <param name="settings">The settings of the instance.</param>
+    /// <returns>The created mini game instance.</returns>
+    ValueTask<MiniGameContext> CreateInstanceAsync(MiniGameDefinition miniGameDefinition, InstancedMiniGameSettings settings);
 
     /// <summary>
     /// Gets the currently running mini game instance for the given definition, if one exists.

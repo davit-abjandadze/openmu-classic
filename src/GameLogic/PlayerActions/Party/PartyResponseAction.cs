@@ -1,4 +1,4 @@
-// <copyright file="PartyResponseAction.cs" company="MUnique">
+﻿// <copyright file="PartyResponseAction.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -43,7 +43,10 @@ public class PartyResponseAction
             return;
         }
 
-        if (player.CurrentMiniGame?.Definition.AllowParty is false)
+        // The members of an instanced mini game are fixed when they enter it.
+        if (player.CurrentMiniGame?.Definition.AllowParty is false
+            || player.CurrentMiniGame?.AllowsNewPartyMembers is false
+            || (player.LastPartyRequester as Player)?.CurrentMiniGame?.AllowsNewPartyMembers is false)
         {
             await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.PartyNotPossibleDuringEvent)).ConfigureAwait(false);
             player.LastPartyRequester = null;

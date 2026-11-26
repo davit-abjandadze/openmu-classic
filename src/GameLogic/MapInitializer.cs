@@ -143,7 +143,8 @@ public class MapInitializer : IMapInitializer
 
         foreach (var spawnArea in eventSpawns)
         {
-            for (int i = 0; i < spawnArea.Quantity; i++)
+            var quantity = createdMap.GetEventSpawnQuantity(spawnArea);
+            for (int i = 0; i < quantity; i++)
             {
                 await this.InitializeSpawnAsync(i, createdMap, spawnArea, eventStateProvider).ConfigureAwait(false);
             }
@@ -166,7 +167,8 @@ public class MapInitializer : IMapInitializer
 
         foreach (var spawnArea in waveSpawns)
         {
-            for (int i = 0; i < spawnArea.Quantity; i++)
+            var quantity = createdMap.GetEventSpawnQuantity(spawnArea);
+            for (int i = 0; i < quantity; i++)
             {
                 await this.InitializeSpawnAsync(i, createdMap, spawnArea, eventStateProvider).ConfigureAwait(false);
             }

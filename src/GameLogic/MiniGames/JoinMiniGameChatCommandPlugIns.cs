@@ -1,4 +1,4 @@
-// <copyright file="JoinMiniGameChatCommandPlugIns.cs" company="MUnique">
+﻿// <copyright file="JoinMiniGameChatCommandPlugIns.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -18,6 +18,8 @@ public abstract class JoinMiniGameChatCommandPlugInBase : IChatCommandPlugIn
 {
     private readonly EnterMiniGameAction _enterAction = new();
 
+    private readonly EnterInstancedMiniGameAction _instancedEnterAction = new();
+
     /// <inheritdoc />
     public abstract string Key { get; }
 
@@ -29,10 +31,27 @@ public abstract class JoinMiniGameChatCommandPlugInBase : IChatCommandPlugIn
     /// </summary>
     protected abstract MiniGameType MiniGameType { get; }
 
+    /// <summary>
+    /// Gets the chat command with which a mini game of the specified type is joined.
+    /// </summary>
+    /// <param name="type">The type of the mini game.</param>
+    /// <returns>The chat command; or an empty string, if there is none.</returns>
+    public static string GetCommand(MiniGameType type) => type switch
+    {
+        MiniGameType.DevilSquare => JoinDevilSquareChatCommandPlugIn.Command,
+        MiniGameType.BloodCastle => JoinBloodCastleChatCommandPlugIn.Command,
+        _ => string.Empty,
+    };
+
     /// <inheritdoc />
     public async ValueTask HandleCommandAsync(Player player, string command)
     {
         if (player.Attributes is null || player.SelectedCharacter is null)
+        {
+            return;
+        }
+
+        if (await this._instancedEnterAction.TryEnterAsync(player, this.MiniGameType).ConfigureAwait(false))
         {
             return;
         }
@@ -68,7 +87,10 @@ public abstract class JoinMiniGameChatCommandPlugInBase : IChatCommandPlugIn
 [ChatCommandHelp(Command)]
 public class JoinDevilSquareChatCommandPlugIn : JoinMiniGameChatCommandPlugInBase
 {
-    private const string Command = "/joinds";
+    /// <summary>
+    /// The chat command.
+    /// </summary>
+    internal const string Command = "/joinds";
 
     /// <inheritdoc />
     public override string Key => Command;
@@ -86,7 +108,10 @@ public class JoinDevilSquareChatCommandPlugIn : JoinMiniGameChatCommandPlugInBas
 [ChatCommandHelp(Command)]
 public class JoinBloodCastleChatCommandPlugIn : JoinMiniGameChatCommandPlugInBase
 {
-    private const string Command = "/joinbc";
+    /// <summary>
+    /// The chat command.
+    /// </summary>
+    internal const string Command = "/joinbc";
 
     /// <inheritdoc />
     public override string Key => Command;

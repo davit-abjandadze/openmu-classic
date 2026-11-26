@@ -1,4 +1,4 @@
-// <copyright file="PartyRequestAction.cs" company="MUnique">
+﻿// <copyright file="PartyRequestAction.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -22,7 +22,11 @@ public class PartyRequestAction
     public async ValueTask HandlePartyRequestAsync(Player player, Player toRequest)
     {
         var isPartyMember = player.Party != null && !Equals(player.Party.PartyMaster, player);
-        if (player.CurrentMiniGame?.Definition.AllowParty is false)
+
+        // The members of an instanced mini game are fixed when they enter it.
+        if (player.CurrentMiniGame?.Definition.AllowParty is false
+            || player.CurrentMiniGame?.AllowsNewPartyMembers is false
+            || toRequest.CurrentMiniGame?.AllowsNewPartyMembers is false)
         {
             await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.PartyNotPossibleDuringEvent)).ConfigureAwait(false);
             return;

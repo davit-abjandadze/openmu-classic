@@ -71,6 +71,12 @@ internal sealed class MiniGameRewardService
     }
 
     /// <summary>
+    /// Gets or sets the factor for the experience and money rewards, e.g. by the number of players of an instance.
+    /// Item rewards are not scaled.
+    /// </summary>
+    public double RewardFactor { get; set; } = 1;
+
+    /// <summary>
     /// Registers that a monster of the given definition has been killed.
     /// </summary>
     /// <param name="definition">The definition of the killed monster.</param>
@@ -151,23 +157,24 @@ internal sealed class MiniGameRewardService
         switch (reward.RewardType)
         {
             case MiniGameRewardType.Experience:
-                await player.AddExperienceAsync(reward.RewardAmount, null).ConfigureAwait(false);
+                await player.AddExperienceAsync(this.Scale(reward.RewardAmount), null).ConfigureAwait(false);
                 break;
             case MiniGameRewardType.ExperiencePerRemainingSeconds:
                 var seconds = (int)this._remainingTimeProvider().TotalSeconds;
                 if (seconds > 0)
                 {
-                    await player.AddExperienceAsync(seconds * reward.RewardAmount, null).ConfigureAwait(false);
+                    await player.AddExperienceAsync(this.Scale(seconds * reward.RewardAmount), null).ConfigureAwait(false);
                 }
 
                 break;
             case MiniGameRewardType.Money:
-                if (!player.TryAddMoney(reward.RewardAmount))
+                var money = this.Scale(reward.RewardAmount);
+                if (!player.TryAddMoney(money))
                 {
                     await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.AwardMoneyFailByFullInventory)).ConfigureAwait(false);
                 }
 
-                return (0, reward.RewardAmount);
+                return (0, money);
             case MiniGameRewardType.Item:
                 await this.GiveItemRewardAsync(player, reward).ConfigureAwait(false);
                 break;
@@ -186,6 +193,8 @@ internal sealed class MiniGameRewardService
 
         return (0, 0);
     }
+
+    private int Scale(int amount) => (int)Math.Round(amount * this.RewardFactor);
 
     private async ValueTask GiveItemRewardAsync(Player player, MiniGameReward reward, bool drop = false)
     {

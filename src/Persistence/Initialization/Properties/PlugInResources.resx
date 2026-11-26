@@ -514,4 +514,10 @@
   <data name="ClassicMaximumAccountsPerIpUpdatePlugIn_Description" xml:space="preserve"><value>Activates the plugin which limits the accounts logged in at the same time from one IP address to 2, over all game servers. Accounts which play in the offline mode (/offlevel) count, too. The limit can be changed in the plugin configuration. Only applies to the classic (Season 1 content) data.</value></data>
   <data name="ClassicEventAccountsPerIpUpdatePlugIn_Name" xml:space="preserve"><value>Classic: one account per IP address in events</value></data>
   <data name="ClassicEventAccountsPerIpUpdatePlugIn_Description" xml:space="preserve"><value>Activates the plugin which lets only one account of an IP address take part in the same event (Devil Square, Blood Castle, Team vs Team, ...), over all game servers. As soon as an account entered the event, another account of the same IP address can't enter it anymore. The limit can be changed in the plugin configuration. Only applies to the classic (Season 1 content) data.</value></data>
+  <data name="ClassicInstancedEventsUpdatePlugIn_Name" xml:space="preserve">
+    <value>Classic: Devil Square and Blood Castle three times a day in instances</value>
+  </data>
+  <data name="ClassicInstancedEventsUpdatePlugIn_Description" xml:space="preserve">
+    <value>Replaces the nightly Devil Square (21:00) and Blood Castle (22:00) by three slots a day (Devil Square 13:00, 19:00, 22:00; Blood Castle 13:30, 19:30, 22:30) in which every solo player or party enters its own instance of the tier of its level (6 Devil Square and 7 Blood Castle tiers), once per day and event. Only applies to the classic (Season 1 content) data.</value>
+  </data>
 </root>
