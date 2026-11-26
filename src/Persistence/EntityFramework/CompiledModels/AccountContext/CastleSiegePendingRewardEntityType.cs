@@ -22,7 +22,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegePendingReward",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegePendingReward),
                 baseEntityType,
-                propertyCount: 3,
+                propertyCount: 4,
                 foreignKeyCount: 1,
                 unnamedIndexCount: 1,
                 keyCount: 1);
@@ -53,6 +53,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
                 fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetField("<ItemDefinitionId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 sentinel: new Guid("00000000-0000-0000-0000-000000000000"));
             itemDefinitionId.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var itemLevel = runtimeEntityType.AddProperty(
+                "ItemLevel",
+                typeof(byte),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetProperty("ItemLevel", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetField("<ItemLevel>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: (byte)0);
+            itemLevel.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var key = runtimeEntityType.AddKey(
                 new[] { id });

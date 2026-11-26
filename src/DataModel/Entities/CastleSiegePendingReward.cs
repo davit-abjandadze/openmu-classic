@@ -24,4 +24,9 @@ public class CastleSiegePendingReward
     /// Gets or sets the identifier of the item definition to deliver.
     /// </summary>
     public Guid ItemDefinitionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the item level of the item to deliver.
+    /// </summary>
+    public byte ItemLevel { get; set; }
 }

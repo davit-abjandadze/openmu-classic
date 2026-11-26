@@ -8,9 +8,9 @@ using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.Attributes;
 
 /// <summary>
-/// Makes the strongest normal monsters of Icarus four times as strong as in the original data, because characters
-/// with resets kill them too fast. Health, damage, defense, attack rate and defense rate are multiplied by four;
-/// level, experience and drops stay unchanged.
+/// Makes the strongest normal monsters of Icarus stronger than in the original data, because characters
+/// with resets kill them too fast. Damage, attack rate and defense rate are multiplied by four, health and
+/// defense by two; level, experience and drops stay unchanged.
 /// </summary>
 /// <remarks>
 /// Drakan and Alpha Crust are also used in the Devil Square, where they get stronger as well.
@@ -18,19 +18,25 @@ using MUnique.OpenMU.GameLogic.Attributes;
 public static class ClassicIcarusMonsters
 {
     /// <summary>
-    /// The factor by which the original stats were multiplied.
+    /// The factor by which the original damage, attack rate and defense rate were multiplied.
     /// </summary>
     public const int StrengthFactor = 4;
 
     /// <summary>
-    /// Gets the strengthened monsters with their stats (the original stats times <see cref="StrengthFactor"/>).
+    /// The factor by which the original health and defense were multiplied.
+    /// </summary>
+    public const int HealthAndDefenseFactor = 2;
+
+    /// <summary>
+    /// Gets the strengthened monsters with their stats (the original health and defense times <see cref="HealthAndDefenseFactor"/>,
+    /// the other original stats times <see cref="StrengthFactor"/>).
     /// </summary>
     public static IReadOnlyList<(short MonsterNumber, string Name, ClassicBosses.BossStrength Strength)> Monsters { get; } =
     [
-        (72, "Phantom Knight", new(164_000, 2_240, 2_440, 1_700, 2_760, 1_080)),
-        (73, "Drakan", new(116_000, 1_700, 1_920, 1_220, 2_280, 840)),
-        (74, "Alpha Crust", new(138_000, 1_956, 2_160, 1_440, 2_480, 960)),
-        (75, "Great Drakan", new(200_000, 2_600, 2_800, 1_980, 3_200, 1_220)),
+        (72, "Phantom Knight", new(82_000, 2_240, 2_440, 850, 2_760, 1_080)),
+        (73, "Drakan", new(58_000, 1_700, 1_920, 610, 2_280, 840)),
+        (74, "Alpha Crust", new(69_000, 1_956, 2_160, 720, 2_480, 960)),
+        (75, "Great Drakan", new(100_000, 2_600, 2_800, 990, 3_200, 1_220)),
     ];
 
     /// <summary>

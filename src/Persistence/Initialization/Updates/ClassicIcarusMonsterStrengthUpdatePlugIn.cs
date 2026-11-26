@@ -11,7 +11,7 @@ using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// Makes Phantom Knight, Drakan, Alpha Crust and Great Drakan of an existing classic (Season 1 content) database
-/// four times as strong, see <see cref="ClassicIcarusMonsters"/>.
+/// stronger, see <see cref="ClassicIcarusMonsters"/>.
 /// </summary>
 /// <remarks>
 /// The classic data shares the Season 6 updates, so this update does nothing on a regular Season 6 database.
@@ -29,7 +29,7 @@ public class ClassicIcarusMonsterStrengthUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Phantom Knight, Drakan, Alpha Crust and Great Drakan get four times their health, damage, defense, attack rate and defense rate (e.g. Great Drakan 200k health). Customized values of these stats are overwritten. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Phantom Knight, Drakan, Alpha Crust and Great Drakan get four times their damage, attack rate and defense rate and twice their health and defense (e.g. Great Drakan 100k health). Customized values of these stats are overwritten. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;

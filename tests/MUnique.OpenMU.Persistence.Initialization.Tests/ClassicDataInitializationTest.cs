@@ -1,4 +1,4 @@
-﻿// <copyright file="ClassicDataInitializationTest.cs" company="MUnique">
+// <copyright file="ClassicDataInitializationTest.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -622,6 +622,41 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that the Castle Siege participants receive 5 Boxes of Kundun +4 and that monsters drop the Sign of Lord (Rena +3).
+    /// </summary>
+    [Test]
+    public void CastleSiegeRewardsAndSignOfLordDropAreConfigured()
+    {
+        this.AssertCastleSiegeRewardsAndSignOfLordDrop();
+    }
+
+    /// <summary>
+    /// Tests that the update configures the Castle Siege rewards and the Sign of Lord drop on an existing classic database
+    /// which doesn't have them yet, and that applying it again doesn't add a second drop group.
+    /// </summary>
+    [Test]
+    public async Task UpdateConfiguresCastleSiegeRewardsAndSignOfLordDropAsync()
+    {
+        var castleSiege = this._gameConfiguration.CastleSiegeConfiguration!;
+        castleSiege.RewardItemDefinition = null;
+        castleSiege.RewardItemLevel = 0;
+        castleSiege.RewardItemCount = 0;
+        castleSiege.ParticipantRewardMinSeconds = 60;
+        var dropGroup = this._gameConfiguration.DropItemGroups.Single(g => g.GetId() == ClassicCastleSiege.GetSignOfLordDropId());
+        this._gameConfiguration.DropItemGroups.Remove(dropGroup);
+        foreach (var map in this._gameConfiguration.Maps)
+        {
+            map.DropItemGroups.Remove(dropGroup);
+        }
+
+        var update = new ClassicCastleSiegeRewardsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        this.AssertCastleSiegeRewardsAndSignOfLordDrop();
+    }
+
+    /// <summary>
     /// Tests that the update replaces the former absolute experience rates by resets (540 at zero resets)
     /// by the relative ones, and that it keeps a configuration which was changed by hand.
     /// </summary>
@@ -1213,15 +1248,16 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that Phantom Knight, Drakan, Alpha Crust and Great Drakan are four times as strong as in the original data,
-    /// and that the update repairs an existing database, also when it's applied twice, without duplicating the attributes.
+    /// Tests that Phantom Knight, Drakan, Alpha Crust and Great Drakan have four times the original damage and twice the
+    /// original health and defense, and that the update
+    /// halves the health and defense of an existing database, also when it's applied twice, without duplicating the attributes.
     /// </summary>
     [Test]
-    public async Task IcarusMonstersAreFourTimesStrongerAsync()
+    public async Task IcarusMonstersAreStrongerAsync()
     {
         var greatDrakan = this._gameConfiguration.Monsters.Single(m => m.Number == 75);
-        Assert.That(GetValue(greatDrakan, Stats.MaximumHealth), Is.EqualTo(50_000 * ClassicIcarusMonsters.StrengthFactor));
-        Assert.That(GetValue(greatDrakan, Stats.DefenseBase), Is.EqualTo(495 * ClassicIcarusMonsters.StrengthFactor));
+        Assert.That(GetValue(greatDrakan, Stats.MaximumHealth), Is.EqualTo(50_000 * ClassicIcarusMonsters.HealthAndDefenseFactor));
+        Assert.That(GetValue(greatDrakan, Stats.DefenseBase), Is.EqualTo(495 * ClassicIcarusMonsters.HealthAndDefenseFactor));
         Assert.That(GetValue(greatDrakan, Stats.Level), Is.EqualTo(100));
         foreach (var (number, name, strength) in ClassicIcarusMonsters.Monsters)
         {
@@ -1232,14 +1268,17 @@ internal class ClassicDataInitializationTest
         }
 
         var drakan = this._gameConfiguration.Monsters.Single(m => m.Number == 73);
-        drakan.Attributes.Single(a => a.AttributeDefinition == Stats.MaximumHealth.GetPersistent(this._gameConfiguration)).Value = 29_000;
+        drakan.Attributes.Single(a => a.AttributeDefinition == Stats.MaximumHealth.GetPersistent(this._gameConfiguration)).Value = 116_000;
+        drakan.Attributes.Single(a => a.AttributeDefinition == Stats.DefenseBase.GetPersistent(this._gameConfiguration)).Value = 1_220;
         var attributeCount = drakan.Attributes.Count;
 
-        var update = new ClassicIcarusMonsterStrengthUpdatePlugIn();
+        var update = new ClassicIcarusMonsterHealthUpdatePlugIn();
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
 
-        Assert.That(GetValue(drakan, Stats.MaximumHealth), Is.EqualTo(116_000));
+        Assert.That(GetValue(drakan, Stats.MaximumHealth), Is.EqualTo(58_000));
+        Assert.That(GetValue(drakan, Stats.DefenseBase), Is.EqualTo(610));
+        Assert.That(GetValue(drakan, Stats.MaximumPhysBaseDmg), Is.EqualTo(1_920));
         Assert.That(drakan.Attributes.Count, Is.EqualTo(attributeCount));
 
         float GetValue(MonsterDefinition monster, AttributeSystem.AttributeDefinition attribute)
@@ -1480,5 +1519,24 @@ internal class ClassicDataInitializationTest
 
         Assert.That(lorencia.MonsterSpawns.Count(ClassicFarmSpots.IsFarmSpot), Is.EqualTo(ClassicFarmSpots.SpotsPerMap));
         Assert.That(this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count), Is.EqualTo(count + 1));
+    }
+
+    private void AssertCastleSiegeRewardsAndSignOfLordDrop()
+    {
+        var castleSiege = this._gameConfiguration.CastleSiegeConfiguration!;
+        var dropGroups = this._gameConfiguration.DropItemGroups.Where(g => g.GetId() == ClassicCastleSiege.GetSignOfLordDropId()).ToList();
+        var lostTower = this._gameConfiguration.Maps.Single(m => m.Number == 4);
+        Assert.Multiple(() =>
+        {
+            Assert.That(castleSiege.RewardItemDefinition, Is.Not.Null);
+            Assert.That((castleSiege.RewardItemDefinition!.Group, castleSiege.RewardItemDefinition.Number), Is.EqualTo(((byte)14, (short)11)), "Box of Luck");
+            Assert.That(castleSiege.RewardItemLevel, Is.EqualTo(ClassicBoxes.BoxOfKundunPlus4Level));
+            Assert.That(castleSiege.RewardItemCount, Is.EqualTo(5));
+            Assert.That(castleSiege.ParticipantRewardMinSeconds, Is.EqualTo(ClassicCastleSiege.ParticipantRewardMinSeconds));
+            Assert.That(dropGroups, Has.Count.EqualTo(1));
+            Assert.That(dropGroups[0].ItemLevel, Is.EqualTo(castleSiege.SignOfLordItemLevel));
+            Assert.That(dropGroups[0].PossibleItems.Single(), Is.SameAs(castleSiege.SignOfLordItemDefinition));
+            Assert.That(lostTower.DropItemGroups.Count(g => g == dropGroups[0]), Is.EqualTo(1));
+        });
     }
 }

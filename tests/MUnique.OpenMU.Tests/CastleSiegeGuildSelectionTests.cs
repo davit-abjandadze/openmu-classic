@@ -528,6 +528,45 @@ public class CastleSiegeGuildSelectionTests
     }
 
     /// <summary>
+    /// Verifies that each eligible participant receives the configured number of reward items with the configured level,
+    /// online ones in the inventory and offline ones when they enter the game.
+    /// </summary>
+    [Test]
+    public async ValueTask RewardsConfiguredItemCountAndLevelAsync()
+    {
+        const byte itemLevel = 11;
+        const int itemCount = 5;
+        var fixture = await CreateFixtureAsync().ConfigureAwait(false);
+        fixture.RewardItemDefinition.MaximumItemLevel = 15;
+        fixture.CastleSiegeConfiguration.RewardItemLevel = itemLevel;
+        fixture.CastleSiegeConfiguration.RewardItemCount = itemCount;
+        var player = await CreateSiegePlayerAsync(fixture, AlphaGuildId, "Counted").ConfigureAwait(false);
+        foreach (var characterId in new[] { player.SelectedCharacter!.Id, fixture.OfflineCharacterId })
+        {
+            fixture.Context.ParticipantTracking[characterId] = new CastleSiegeParticipant
+            {
+                CharacterId = characterId,
+                GuildId = AlphaGuildId,
+                ParticipationTime = TimeSpan.FromSeconds(fixture.CastleSiegeConfiguration.ParticipantRewardMinSeconds),
+            };
+        }
+
+        await CastleSiegeParticipantTracker.AwardRewardsAsync(fixture.Context).ConfigureAwait(false);
+
+        var rewards = player.Inventory!.Items.Where(item => item.Definition == fixture.RewardItemDefinition).ToList();
+        using var persistenceContext = fixture.PersistenceContextProvider.CreateNewTypedContext(
+            typeof(CastleSiegePendingReward), false, fixture.GameConfiguration);
+        var queuedRewards = await persistenceContext.GetAsync<CastleSiegePendingReward>().ConfigureAwait(false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(rewards, Has.Count.EqualTo(itemCount));
+            Assert.That(rewards.All(item => item.Level == itemLevel), Is.True);
+            Assert.That(queuedRewards, Has.Count.EqualTo(itemCount));
+            Assert.That(queuedRewards.All(reward => reward.CharacterId == fixture.OfflineCharacterId && reward.ItemLevel == itemLevel), Is.True);
+        });
+    }
+
+    /// <summary>
     /// Verifies that the defending owner is credited when no attacking guild captures the Crown.
     /// </summary>
     [Test]
@@ -587,7 +626,7 @@ public class CastleSiegeGuildSelectionTests
         var player = await CreateSiegePlayerAsync(fixture, AlphaGuildId, "Returning").ConfigureAwait(false);
         var itemAppearView = player.ViewPlugIns.GetPlugIn<IItemAppearPlugIn>()!;
         await CastleSiegeRewardDelivery
-            .QueueAsync(fixture.GameServerContext, [player.SelectedCharacter!.Id], fixture.RewardItemDefinition)
+            .QueueAsync(fixture.GameServerContext, [(player.SelectedCharacter!.Id, 1)], fixture.RewardItemDefinition, 0)
             .ConfigureAwait(false);
 
         await new CastleSiegePendingRewardPlugIn()

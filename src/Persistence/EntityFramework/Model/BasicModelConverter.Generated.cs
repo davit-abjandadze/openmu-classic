@@ -548,6 +548,8 @@ internal sealed class BasicModelConverter
         target.CastleSiegeMapDefinition = (MUnique.OpenMU.DataModel.Configuration.GameMapDefinition)this.ConvertObject(source.CastleSiegeMapDefinition)!;
         target.LandOfTrialsMapDefinition = (MUnique.OpenMU.DataModel.Configuration.GameMapDefinition)this.ConvertObject(source.LandOfTrialsMapDefinition)!;
         target.RewardItemDefinition = (MUnique.OpenMU.DataModel.Configuration.Items.ItemDefinition)this.ConvertObject(source.RewardItemDefinition)!;
+        target.RewardItemLevel = source.RewardItemLevel;
+        target.RewardItemCount = source.RewardItemCount;
         if (source.StateSchedule is { } stateScheduleItems)
         {
             foreach (var item in stateScheduleItems)
@@ -747,6 +749,7 @@ internal sealed class BasicModelConverter
         target.Id = source.Id;
         target.CharacterId = source.CharacterId;
         target.ItemDefinitionId = source.ItemDefinitionId;
+        target.ItemLevel = source.ItemLevel;
         return target;
     }
 

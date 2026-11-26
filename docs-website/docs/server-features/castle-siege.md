@@ -66,3 +66,15 @@ skill to cross it. The gate blocks a teleport when the straight line between
 the start and the target passes through its area. An opened or destroyed gate
 doesn't block teleports. The castle walls are ordinary terrain and are not
 covered by this rule.
+
+## Participation reward
+
+At the end of the battle, every member of a selected guild who fought at least
+the configured time on the Castle Siege map receives the reward item of the
+Castle Siege configuration, with its configured item level and number of
+items. Participants who are offline, or whose inventory is full, receive the
+remaining items when they next enter the game. The classic data rewards five
+Boxes of Kundun +4 for at least 30 minutes in the battle.
+
+The classic data also lets monsters of at least level 50 drop the Sign of Lord
+(Rena +3), which guilds need to register their marks, with a chance of 0.5 %.

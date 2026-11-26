@@ -19,8 +19,9 @@ internal static class CastleSiegeRewardDelivery
     /// </summary>
     /// <param name="player">The rewarded player.</param>
     /// <param name="rewardDefinition">The reward item definition.</param>
+    /// <param name="itemLevel">The item level of the reward item.</param>
     /// <returns><c>true</c> when the item was added; otherwise, <c>false</c>.</returns>
-    internal static async ValueTask<bool> TryAddToInventoryAsync(Player player, ItemDefinition rewardDefinition)
+    internal static async ValueTask<bool> TryAddToInventoryAsync(Player player, ItemDefinition rewardDefinition, byte itemLevel)
     {
         if (player.Inventory is null)
         {
@@ -29,6 +30,7 @@ internal static class CastleSiegeRewardDelivery
 
         var item = player.PersistenceContext.CreateNew<Item>();
         item.Definition = rewardDefinition;
+        item.Level = Math.Min(itemLevel, rewardDefinition.MaximumItemLevel);
         item.Durability = item.IsStackable() ? 1 : rewardDefinition.Durability;
         if (await player.Inventory.AddItemAsync(item).ConfigureAwait(false))
         {
@@ -43,18 +45,20 @@ internal static class CastleSiegeRewardDelivery
     }
 
     /// <summary>
-    /// Queues a reward for delivery when the character next enters the game.
+    /// Queues rewards for delivery when the characters next enter the game.
     /// </summary>
     /// <param name="gameContext">The game context.</param>
-    /// <param name="characterIds">The persistent character identifiers.</param>
+    /// <param name="characterRewards">The persistent character identifiers with the number of items which are queued for them.</param>
     /// <param name="rewardDefinition">The reward item definition.</param>
+    /// <param name="itemLevel">The item level of the reward items.</param>
     /// <returns>A task that represents the asynchronous queue operation.</returns>
     internal static async ValueTask QueueAsync(
         IGameContext gameContext,
-        IReadOnlyCollection<Guid> characterIds,
-        ItemDefinition rewardDefinition)
+        IReadOnlyCollection<(Guid CharacterId, int Count)> characterRewards,
+        ItemDefinition rewardDefinition,
+        byte itemLevel)
     {
-        if (characterIds.Count == 0)
+        if (characterRewards.Count == 0)
         {
             return;
         }
@@ -63,11 +67,15 @@ internal static class CastleSiegeRewardDelivery
             typeof(CastleSiegePendingReward),
             false,
             gameContext.Configuration);
-        foreach (var characterId in characterIds)
+        foreach (var (characterId, count) in characterRewards)
         {
-            var pendingReward = persistenceContext.CreateNew<CastleSiegePendingReward>();
-            pendingReward.CharacterId = characterId;
-            pendingReward.ItemDefinitionId = rewardDefinition.GetId();
+            for (var i = 0; i < count; i++)
+            {
+                var pendingReward = persistenceContext.CreateNew<CastleSiegePendingReward>();
+                pendingReward.CharacterId = characterId;
+                pendingReward.ItemDefinitionId = rewardDefinition.GetId();
+                pendingReward.ItemLevel = itemLevel;
+            }
         }
 
         await persistenceContext.SaveChangesAsync().ConfigureAwait(false);

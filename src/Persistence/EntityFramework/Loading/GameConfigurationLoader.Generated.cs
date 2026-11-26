@@ -18,7 +18,7 @@ internal sealed partial class GameConfigurationLoader
         "select \"Id\", \"BannerSaleZone\", \"BannerYear\", \"BannerYearId\", \"ScriptSaleZone\", \"ScriptYear\", \"ScriptYearId\" from config.\"CashShopConfiguration\"",
         "select \"Id\", \"CashShopConfigurationId\", \"CoinType\", \"IsBundle\", \"IsForSale\", \"IsGiftable\", \"Name\", \"PackageSequence\", \"Price\" from config.\"CashShopPackage\"",
         "select \"Id\", \"CashShopPackageId\", \"Duration\", \"ItemDefinitionId\", \"ItemLevel\", \"Price\", \"PriceSequence\", \"ProductSequence\", \"Quantity\" from config.\"CashShopProduct\"",
-        "select \"Id\", \"AttackRespawnAreaId\", \"CastleSiegeMapDefinitionId\", \"CrownHoldTimeSeconds\", \"DefenseRespawnAreaId\", \"Enabled\", \"GateBuyPrice\", \"GateRepairCostPerHealthPoint\", \"GuildScoreCastleSiege\", \"GuildScoreCastleSiegeMembers\", \"LandOfTrialsMapDefinitionId\", \"MaxAttackingGuilds\", \"ParticipantRewardMinSeconds\", \"RegisterMinLevel\", \"RegisterMinMembers\", \"RepairCostPerUpgradeLevel\", \"RewardItemDefinitionId\", \"SignOfLordItemDefinitionId\", \"SignOfLordItemLevel\", \"StatueBuyPrice\", \"StatueRepairCostPerHealthPoint\" from config.\"CastleSiegeConfiguration\"",
+        "select \"Id\", \"AttackRespawnAreaId\", \"CastleSiegeMapDefinitionId\", \"CrownHoldTimeSeconds\", \"DefenseRespawnAreaId\", \"Enabled\", \"GateBuyPrice\", \"GateRepairCostPerHealthPoint\", \"GuildScoreCastleSiege\", \"GuildScoreCastleSiegeMembers\", \"LandOfTrialsMapDefinitionId\", \"MaxAttackingGuilds\", \"ParticipantRewardMinSeconds\", \"RegisterMinLevel\", \"RegisterMinMembers\", \"RepairCostPerUpgradeLevel\", \"RewardItemCount\", \"RewardItemDefinitionId\", \"RewardItemLevel\", \"SignOfLordItemDefinitionId\", \"SignOfLordItemLevel\", \"StatueBuyPrice\", \"StatueRepairCostPerHealthPoint\" from config.\"CastleSiegeConfiguration\"",
         "select \"Id\", \"CastleSiegeConfigurationId\", \"CastleSiegeConfigurationId1\", \"X1\", \"X2\", \"Y1\", \"Y2\" from config.\"CastleSiegeZoneDefinition\"",
         "select \"Id\", \"CastleSiegeConfigurationId\", \"CastleSiegeConfigurationId1\", \"CastleSiegeConfigurationId2\", \"CastleSiegeConfigurationId3\", \"CastleSiegeConfigurationId4\", \"Level\", \"RequiredJewelOfGuardianCount\", \"RequiredZen\", \"Value\" from config.\"CastleSiegeUpgradeDefinition\"",
         "select \"Id\", \"CastleSiegeConfigurationId\", \"DefaultSide\", \"Direction\", \"InstanceId\", \"IsPersistedToDatabase\", \"MonsterDefinitionId\", \"SpawnX\", \"SpawnY\" from config.\"CastleSiegeNpcDefinition\"",
@@ -491,13 +491,15 @@ internal sealed partial class GameConfigurationLoader
             entity.RegisterMinLevel = reader.GetInt32(13);
             entity.RegisterMinMembers = reader.GetInt32(14);
             entity.RepairCostPerUpgradeLevel = reader.GetInt32(15);
-            if (!reader.IsDBNull(16)) { entity.RewardItemDefinitionId = reader.GetGuid(16); }
-            if (!reader.IsDBNull(17)) { entity.SignOfLordItemDefinitionId = reader.GetGuid(17); }
-            entity.SignOfLordItemLevel = (global::System.Byte)reader.GetInt16(18);
-            entity.StatueBuyPrice = reader.GetInt32(19);
-            entity.StatueRepairCostPerHealthPoint = reader.GetInt32(20);
+            entity.RewardItemCount = reader.GetInt32(16);
+            if (!reader.IsDBNull(17)) { entity.RewardItemDefinitionId = reader.GetGuid(17); }
+            entity.RewardItemLevel = (global::System.Byte)reader.GetInt16(18);
+            if (!reader.IsDBNull(19)) { entity.SignOfLordItemDefinitionId = reader.GetGuid(19); }
+            entity.SignOfLordItemLevel = (global::System.Byte)reader.GetInt16(20);
+            entity.StatueBuyPrice = reader.GetInt32(21);
+            entity.StatueRepairCostPerHealthPoint = reader.GetInt32(22);
             this._CastleSiegeConfiguration[entity.Id] = entity;
-            this._CastleSiegeConfigurationRows.Add((entity, reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.IsDBNull(2) ? null : reader.GetGuid(2), reader.IsDBNull(4) ? null : reader.GetGuid(4), reader.IsDBNull(10) ? null : reader.GetGuid(10), reader.IsDBNull(16) ? null : reader.GetGuid(16), reader.IsDBNull(17) ? null : reader.GetGuid(17)));
+            this._CastleSiegeConfigurationRows.Add((entity, reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.IsDBNull(2) ? null : reader.GetGuid(2), reader.IsDBNull(4) ? null : reader.GetGuid(4), reader.IsDBNull(10) ? null : reader.GetGuid(10), reader.IsDBNull(17) ? null : reader.GetGuid(17), reader.IsDBNull(19) ? null : reader.GetGuid(19)));
         }
     }
 

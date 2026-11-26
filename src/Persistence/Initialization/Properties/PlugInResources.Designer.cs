@@ -1264,6 +1264,12 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
 
         /// <summary>Gets the localized ClassicIcarusMonsterStrengthUpdatePlugIn_Description text.</summary>
         public static string ClassicIcarusMonsterStrengthUpdatePlugIn_Description => ResourceManager.GetString("ClassicIcarusMonsterStrengthUpdatePlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicIcarusMonsterHealthUpdatePlugIn_Name text.</summary>
+        public static string ClassicIcarusMonsterHealthUpdatePlugIn_Name => ResourceManager.GetString("ClassicIcarusMonsterHealthUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicIcarusMonsterHealthUpdatePlugIn_Description text.</summary>
+        public static string ClassicIcarusMonsterHealthUpdatePlugIn_Description => ResourceManager.GetString("ClassicIcarusMonsterHealthUpdatePlugIn_Description", resourceCulture)!;
         
         /// <summary>
         ///   Looks up a localized string similar to Classic: excellent item drop levels of Tarkan and Icarus.
@@ -1280,6 +1286,24 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         public static string ClassicExcellentDropLevelsUpdatePlugIn_Description {
             get {
                 return ResourceManager.GetString("ClassicExcellentDropLevelsUpdatePlugIn_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Classic: Castle Siege rewards and Sign of Lord drop.
+        /// </summary>
+        public static string ClassicCastleSiegeRewardsUpdatePlugIn_Name {
+            get {
+                return ResourceManager.GetString("ClassicCastleSiegeRewardsUpdatePlugIn_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Every guild member who fought at least 30 minutes in the Castle Siege receives 5 Boxes of Kundun +4 (offline participants when they enter the game). Monsters of at least level 50 drop the Sign of Lord (Rena +3), which guilds need to register for the siege, with a chance of 0.5 %. Overwrites the participation reward of the Castle Siege configuration. Only applies to the classic (Season 1 content) data..
+        /// </summary>
+        public static string ClassicCastleSiegeRewardsUpdatePlugIn_Description {
+            get {
+                return ResourceManager.GetString("ClassicCastleSiegeRewardsUpdatePlugIn_Description", resourceCulture);
             }
         }
 

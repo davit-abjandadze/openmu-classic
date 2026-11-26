@@ -104,6 +104,20 @@ public partial class CastleSiegeConfiguration
     public virtual ItemDefinition? RewardItemDefinition { get; set; }
 
     /// <summary>
+    /// Gets or sets the item level of the participation reward item, e.g. 11 for the Box of Kundun +4.
+    /// </summary>
+    public byte RewardItemLevel { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number of participation reward items which each eligible participant receives.
+    /// </summary>
+    /// <remarks>
+    /// A value below 1 is treated as 1, so that a configuration which only sets the <see cref="RewardItemDefinition"/>
+    /// still rewards one item.
+    /// </remarks>
+    public int RewardItemCount { get; set; } = 1;
+
+    /// <summary>
     /// Gets or sets the schedule entries that define when each siege state begins.
     /// </summary>
     [MemberOfAggregate]

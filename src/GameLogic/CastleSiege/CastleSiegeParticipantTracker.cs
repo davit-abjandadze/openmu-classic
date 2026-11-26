@@ -52,24 +52,33 @@ public static class CastleSiegeParticipantTracker
 
         if (context.Configuration.RewardItemDefinition is { } rewardDefinition)
         {
-            var queuedCharacterIds = new List<Guid>();
+            var itemLevel = context.Configuration.RewardItemLevel;
+            var itemCount = Math.Max(1, context.Configuration.RewardItemCount);
+            var queuedRewards = new List<(Guid CharacterId, int Count)>();
             foreach (var participant in eligibleParticipants)
             {
-                if (onlinePlayers.TryGetValue(participant.CharacterId, out var player)
-                    && await CastleSiegeRewardDelivery
-                        .TryAddToInventoryAsync(player, rewardDefinition)
-                        .ConfigureAwait(false))
+                var deliveredCount = 0;
+                if (onlinePlayers.TryGetValue(participant.CharacterId, out var player))
                 {
-                    continue;
+                    while (deliveredCount < itemCount
+                           && await CastleSiegeRewardDelivery
+                               .TryAddToInventoryAsync(player, rewardDefinition, itemLevel)
+                               .ConfigureAwait(false))
+                    {
+                        deliveredCount++;
+                    }
                 }
 
-                queuedCharacterIds.Add(participant.CharacterId);
+                if (deliveredCount < itemCount)
+                {
+                    queuedRewards.Add((participant.CharacterId, itemCount - deliveredCount));
+                }
             }
 
-            if (queuedCharacterIds.Count > 0)
+            if (queuedRewards.Count > 0)
             {
                 await CastleSiegeRewardDelivery
-                    .QueueAsync(context.GameContext, queuedCharacterIds, rewardDefinition)
+                    .QueueAsync(context.GameContext, queuedRewards, rewardDefinition, itemLevel)
                     .ConfigureAwait(false);
             }
         }

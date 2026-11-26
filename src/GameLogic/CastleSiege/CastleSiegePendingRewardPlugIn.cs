@@ -47,7 +47,7 @@ public class CastleSiegePendingRewardPlugIn : IPlayerStateChangedPlugIn
             }
 
             if (!await CastleSiegeRewardDelivery
-                    .TryAddToInventoryAsync(player, rewardDefinition)
+                    .TryAddToInventoryAsync(player, rewardDefinition, pendingReward.ItemLevel)
                     .ConfigureAwait(false))
             {
                 continue;

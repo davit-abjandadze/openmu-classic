@@ -22,7 +22,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeConfiguration",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeConfiguration),
                 baseEntityType,
-                propertyCount: 21,
+                propertyCount: 23,
                 navigationCount: 15,
                 foreignKeyCount: 6,
                 unnamedIndexCount: 6,
@@ -167,6 +167,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 sentinel: 0);
             repairCostPerUpgradeLevel.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
+            var rewardItemCount = runtimeEntityType.AddProperty(
+                "RewardItemCount",
+                typeof(int),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Configuration.CastleSiegeConfiguration).GetProperty("RewardItemCount", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Configuration.CastleSiegeConfiguration).GetField("<RewardItemCount>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: 0);
+            rewardItemCount.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
             var rewardItemDefinitionId = runtimeEntityType.AddProperty(
                 "RewardItemDefinitionId",
                 typeof(Guid?),
@@ -174,6 +182,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 fieldInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeConfiguration).GetField("<RewardItemDefinitionId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 nullable: true);
             rewardItemDefinitionId.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var rewardItemLevel = runtimeEntityType.AddProperty(
+                "RewardItemLevel",
+                typeof(byte),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Configuration.CastleSiegeConfiguration).GetProperty("RewardItemLevel", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Configuration.CastleSiegeConfiguration).GetField("<RewardItemLevel>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: (byte)0);
+            rewardItemLevel.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var signOfLordItemDefinitionId = runtimeEntityType.AddProperty(
                 "SignOfLordItemDefinitionId",
