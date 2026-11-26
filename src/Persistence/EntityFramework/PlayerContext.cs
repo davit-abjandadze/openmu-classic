@@ -519,8 +519,9 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
 
+            var classNames = this.GetCharacterClassNames();
             return entries
-                .Select(entry => new CharacterSummary(entry.Name, entry.ClassName, (int)entry.Level, (int)entry.MasterLevel, (int)entry.Resets))
+                .Select(entry => ToSummary(entry, classNames))
                 .ToList();
         }
     }
@@ -540,7 +541,12 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            return entry is null ? null : new CharacterSummary(entry.Name, entry.ClassName, (int)entry.Level, (int)entry.MasterLevel, (int)entry.Resets);
+            if (entry is null)
+            {
+                return null;
+            }
+
+            return ToSummary(entry, this.GetCharacterClassNames());
         }
     }
 
@@ -726,9 +732,31 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
     {
         return characters.Select(character => new CharacterRankingRow(
             character.Name,
-            character.RawCharacterClass!.Name,
+            character.CharacterClassId,
             character.RawAttributes.Where(a => a.DefinitionId == levelAttributeId).Select(a => a.Value).FirstOrDefault(),
             character.RawAttributes.Where(a => a.DefinitionId == masterLevelAttributeId).Select(a => a.Value).FirstOrDefault(),
             character.RawAttributes.Where(a => a.DefinitionId == resetsAttributeId).Select(a => a.Value).FirstOrDefault()));
+    }
+
+    private static CharacterSummary ToSummary(CharacterRankingRow row, IReadOnlyDictionary<Guid, string> classNames)
+        => new(
+            row.Name,
+            row.CharacterClassId is { } classId ? classNames.GetValueOrDefault(classId, string.Empty) : string.Empty,
+            (int)row.Level,
+            (int)row.MasterLevel,
+            (int)row.Resets);
+
+    /// <summary>
+    /// Gets the names of the character classes by their identifier.
+    /// </summary>
+    /// <remarks>
+    /// The character classes are configuration data, which isn't part of the model of this
+    /// context, so they come from the game configuration which this context was created with.
+    /// </remarks>
+    private IReadOnlyDictionary<Guid, string> GetCharacterClassNames()
+    {
+        var classes = (this.Context as EntityDataContext)?.CurrentGameConfiguration?.RawCharacterClasses;
+        return classes?.ToDictionary(characterClass => characterClass.Id, characterClass => characterClass.Name.ToString() ?? string.Empty)
+            ?? new Dictionary<Guid, string>();
     }
 }
