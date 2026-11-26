@@ -182,6 +182,42 @@ public class ExperienceRateSplitTest
     }
 
     /// <summary>
+    /// Verifies that with the <see cref="PartySoloExperiencePlugIn"/> every member near the killer gains the experience
+    /// of a solo kill for its own level, without a share and without a party bonus, while a member out of range gains nothing.
+    /// </summary>
+    [Test]
+    public async ValueTask PartySoloExperienceGivesEveryMemberTheSoloExperienceAsync()
+    {
+        var soloContext = this.CreateGameServerContext(normalExperienceRate: 1.0f, globalMasterExperienceRate: 1.0f, maximumLevel: 400, maximumMasterLevel: 200);
+        var soloLow = await this.CreatePlayerAsync(soloContext, level: 50, totalLevel: 50, isMasterClass: false).ConfigureAwait(false);
+        var soloHigh = await this.CreatePlayerAsync(soloContext, level: 150, totalLevel: 150, isMasterClass: false).ConfigureAwait(false);
+        var expectedLow = await soloLow.AddExpAfterKillAsync(CreateKilledObject(level: 100).Object).ConfigureAwait(false);
+        var expectedHigh = await soloHigh.AddExpAfterKillAsync(CreateKilledObject(level: 100).Object).ConfigureAwait(false);
+
+        var context = this.CreateGameServerContext(normalExperienceRate: 1.0f, globalMasterExperienceRate: 1.0f, maximumLevel: 400, maximumMasterLevel: 200);
+        context.FeaturePlugIns.AddPlugIn(new PartySoloExperiencePlugIn(), true);
+        var low = await this.CreatePlayerAsync(context, level: 50, totalLevel: 50, isMasterClass: false).ConfigureAwait(false);
+        var high = await this.CreatePlayerAsync(context, level: 150, totalLevel: 150, isMasterClass: false).ConfigureAwait(false);
+        var absent = await this.CreatePlayerAsync(context, level: 50, totalLevel: 50, isMasterClass: false).ConfigureAwait(false);
+        var party = new Party(new PartyManager(5, new NullLogger<Party>()), 5, new NullLogger<Party>());
+        await party.AddAsync(low).ConfigureAwait(false);
+        await party.AddAsync(high).ConfigureAwait(false);
+        await party.AddAsync(absent).ConfigureAwait(false);
+        await low.AddObserverAsync(high).ConfigureAwait(false);
+        await low.RemoveObserverAsync(absent).ConfigureAwait(false);
+
+        var shares = await party.DistributeExperienceAfterKillAsync(CreateKilledObject(level: 100).Object, low).ConfigureAwait(false);
+
+        Assert.That(expectedLow, Is.GreaterThan(expectedHigh), "the solo experience depends on the own level");
+        Assert.That(shares, Has.Count.EqualTo(2));
+        Assert.That(shares.Single(s => s.Player == low).Experience, Is.EqualTo(expectedLow));
+        Assert.That(shares.Single(s => s.Player == high).Experience, Is.EqualTo(expectedHigh));
+        Assert.That(low.SelectedCharacter!.Experience, Is.EqualTo(expectedLow));
+        Assert.That(high.SelectedCharacter!.Experience, Is.EqualTo(expectedHigh));
+        Assert.That(absent.SelectedCharacter!.Experience, Is.EqualTo(0));
+    }
+
+    /// <summary>
     /// Verifies that the <see cref="IExperienceCalculationPlugIn"/>s are applied to the experience of
     /// each party member, as for a solo kill. Experience bonuses can be implemented as such a plugin.
     /// </summary>
@@ -471,7 +507,9 @@ public class ExperienceRateSplitTest
             contextProvider,
             mapInitializer,
             new NullLoggerFactory(),
-            new PlugInManager(new List<PlugInConfiguration>(), new NullLoggerFactory(), null, null),
+            // Without a configuration, every plugin would be active, including the solo experience in a party,
+            // which a test activates explicitly.
+            new PlugInManager(new List<PlugInConfiguration> { new() { TypeId = typeof(PartySoloExperiencePlugIn).GUID, IsActive = false } }, new NullLoggerFactory(), null, null),
             NullDropGenerator.Instance,
             new ConfigurationChangeMediator());
         mapInitializer.PlugInManager = gameServerContext.PlugInManager;

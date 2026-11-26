@@ -1405,6 +1405,8 @@
   <data name="MaximumConnectionsPerIpPlugIn_Name" xml:space="preserve"><value>Maximum Connections Per IP</value></data>
   <data name="MaximumConnectionsPerIpPlugIn_Description" xml:space="preserve"><value>Limits the number of accounts which are logged in at the same time from the same IP address, over all game servers of the process. Accounts which play in the offline mode (/offlevel) count for the IP address they were started from.</value></data>
   <data name="EventAccountsPerIpPlugIn_Name" xml:space="preserve"><value>Accounts Per IP in Events</value></data>
+  <data name="PartySoloExperiencePlugIn_Name" xml:space="preserve"><value>Solo Experience in a Party</value></data>
+  <data name="PartySoloExperiencePlugIn_Description" xml:space="preserve"><value>Every party member near the killer gains the experience which it would gain if it had killed the monster alone, for its own level and experience rates, instead of a share of the party experience. There is no party bonus.</value></data>
   <data name="EventAccountsPerIpPlugIn_Description" xml:space="preserve"><value>Limits the accounts of one IP address which take part in the same event (Devil Square, Blood Castle, Chaos Castle, Team vs Team, ...), by default to one. As soon as an account entered an event, another account of the same IP address can't enter it anymore, even after the first one left it. The events of all game servers of the process count together.</value></data>
   <data name="LoginTimeoutPlugIn_Name" xml:space="preserve"><value>Login Timeout</value></data>
   <data name="LoginTimeoutPlugIn_Description" xml:space="preserve"><value>Disconnects clients which don't log in within the configured time after they connected.</value></data>

@@ -102,15 +102,16 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that no content newer than Season 1 is active, except the bosses which the classic server spawns additionally.
+    /// Tests that no content newer than Season 1 is active, except the bosses which the classic server spawns additionally
+    /// and the suppliers of the Castle Siege.
     /// </summary>
     [Test]
     public void NoNewerContentIsActive()
     {
         var target = ClassicContentRestriction.TargetVersion;
         Assert.That(this._gameConfiguration.Maps.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
-        var addedBosses = ClassicBosses.Bosses.Where(b => b.Spawn is not null).Select(b => b.MonsterNumber).ToHashSet();
-        Assert.That(this._gameConfiguration.Monsters.Where(m => m.IsActive && m.IntroducedIn > target && !addedBosses.Contains(m.Number)), Is.Empty);
+        var addedMonsters = ClassicBosses.Bosses.Where(b => b.Spawn is not null).Select(b => b.MonsterNumber).Concat(ClassicCastleSiege.SupplierNumbers).ToHashSet();
+        Assert.That(this._gameConfiguration.Monsters.Where(m => m.IsActive && m.IntroducedIn > target && !addedMonsters.Contains(m.Number)), Is.Empty);
         Assert.That(this._gameConfiguration.Items.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
         Assert.That(this._gameConfiguration.MiniGameDefinitions.Where(m => m.IsActive && m.IntroducedIn > target), Is.Empty);
         Assert.That(this._gameConfiguration.Maps.Single(m => m.Number == 0).IsActive, Is.True, "Lorencia");
@@ -654,6 +655,68 @@ internal class ClassicDataInitializationTest
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
 
         this.AssertCastleSiegeRewardsAndSignOfLordDrop();
+    }
+
+    /// <summary>
+    /// Tests that all plugins of the Castle Siege are active, including the internal packet handlers of the game server
+    /// like the group handler of the Castle Siege packets (C1 B2), and that the suppliers of the Valley of Loren are active.
+    /// </summary>
+    [Test]
+    public void CastleSiegePlugInsAndSuppliersAreActive()
+    {
+        this.AssertCastleSiegePlugInsAndSuppliersAreActive();
+    }
+
+    /// <summary>
+    /// Tests that the update activates the plugins of the Castle Siege and the suppliers on an existing classic database
+    /// where they are inactive, and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateActivatesCastleSiegePlugInsAndSuppliersAsync()
+    {
+        var typeIds = ClassicPlugInDefaults.GetCastleSiegePlugInTypes().Select(t => t.GUID).ToHashSet();
+        foreach (var plugIn in this._gameConfiguration.PlugInConfigurations.Where(c => typeIds.Contains(c.TypeId)))
+        {
+            plugIn.IsActive = false;
+        }
+
+        foreach (var supplier in this._gameConfiguration.Monsters.Where(m => ClassicCastleSiege.SupplierNumbers.Contains(m.Number)))
+        {
+            supplier.IsActive = false;
+        }
+
+        var update = new ClassicCastleSiegePlugInsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        this.AssertCastleSiegePlugInsAndSuppliersAreActive();
+    }
+
+    /// <summary>
+    /// Tests that every party member gains the experience of a solo kill.
+    /// </summary>
+    [Test]
+    public void PartySoloExperienceIsActive()
+    {
+        var plugIn = this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeof(MUnique.OpenMU.GameLogic.PlugIns.PartySoloExperiencePlugIn).GUID);
+        Assert.That(plugIn.IsActive, Is.True);
+    }
+
+    /// <summary>
+    /// Tests that the update activates the solo experience in a party on an existing classic database
+    /// which doesn't have the plugin configuration yet, and that applying it again doesn't add a second one.
+    /// </summary>
+    [Test]
+    public async Task UpdateActivatesPartySoloExperienceAsync()
+    {
+        var typeId = typeof(MUnique.OpenMU.GameLogic.PlugIns.PartySoloExperiencePlugIn).GUID;
+        this._gameConfiguration.PlugInConfigurations.Remove(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId));
+
+        var update = new ClassicPartySoloExperienceUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(this._gameConfiguration.PlugInConfigurations.Single(c => c.TypeId == typeId).IsActive, Is.True);
     }
 
     /// <summary>
@@ -1609,6 +1672,20 @@ internal class ClassicDataInitializationTest
 
         Assert.That(lorencia.MonsterSpawns.Count(ClassicFarmSpots.IsFarmSpot), Is.EqualTo(ClassicFarmSpots.SpotsPerMap));
         Assert.That(this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count), Is.EqualTo(count + 1));
+    }
+
+    private void AssertCastleSiegePlugInsAndSuppliersAreActive()
+    {
+        var typeIds = ClassicPlugInDefaults.GetCastleSiegePlugInTypes().Select(t => t.GUID).ToHashSet();
+        Assert.That(typeIds, Does.Contain(typeof(MUnique.OpenMU.GameLogic.CastleSiege.CastleSiegePlugIn).GUID));
+        Assert.That(typeIds, Does.Contain(typeof(MUnique.OpenMU.GameLogic.CastleSiege.CastleSiegeRegistrationGuardsmanTalkPlugIn).GUID));
+        Assert.That(typeIds, Does.Contain(new Guid("2438FBA6-4962-4BC7-8784-69F89AB53D8F")), "CastleSiegeGroupHandlerPlugIn");
+        Assert.That(typeIds, Does.Contain(new Guid("3E5E1A6A-A064-4F3E-8E96-B52860931601")), "CastleSiegeStatusHandlerPlugIn");
+        var inactive = this._gameConfiguration.PlugInConfigurations.Where(c => typeIds.Contains(c.TypeId) && !c.IsActive).Select(c => c.TypeId).ToList();
+        Assert.That(inactive, Is.Empty);
+        var suppliers = this._gameConfiguration.Monsters.Where(m => ClassicCastleSiege.SupplierNumbers.Contains(m.Number)).ToList();
+        Assert.That(suppliers, Has.Count.EqualTo(2));
+        Assert.That(suppliers.All(m => m.IsActive), Is.True);
     }
 
     private void AssertCastleSiegeRewardsAndSignOfLordDrop()

@@ -565,10 +565,19 @@ public sealed class Party : AsyncDisposable
             return [];
         }
 
-        var perLevel = CalculatePartyExperiencePerLevel(this._distributionList, killedObject);
-
         // The shares are copied into their own list, because _distributionList is reused and cleared by the caller.
         var shares = new List<ExperienceShare>(this._distributionList.Count);
+        if (PartySoloExperiencePlugIn.IsActive(this._distributionList[0].GameContext))
+        {
+            foreach (var player in this._distributionList)
+            {
+                shares.Add(new ExperienceShare(player, await player.AddExpAfterKillAsync(killedObject).ConfigureAwait(false)));
+            }
+
+            return shares;
+        }
+
+        var perLevel = CalculatePartyExperiencePerLevel(this._distributionList, killedObject);
         foreach (var player in this._distributionList)
         {
             var experience = await AwardExperienceAsync(player, perLevel, killedObject).ConfigureAwait(false);

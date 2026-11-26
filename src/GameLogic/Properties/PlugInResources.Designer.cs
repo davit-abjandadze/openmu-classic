@@ -5281,6 +5281,24 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Solo Experience in a Party.
+        /// </summary>
+        public static string PartySoloExperiencePlugIn_Name {
+            get {
+                return ResourceManager.GetString("PartySoloExperiencePlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Every party member near the killer gains the experience which it would gain if it had killed the monster alone..
+        /// </summary>
+        public static string PartySoloExperiencePlugIn_Description {
+            get {
+                return ResourceManager.GetString("PartySoloExperiencePlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Maximum Accounts Per IP.
         /// </summary>
         public static string EventAccountsPerIpConfiguration_MaximumAccountsPerIp_Caption {

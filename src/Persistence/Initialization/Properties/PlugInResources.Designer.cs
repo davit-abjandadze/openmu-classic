@@ -1314,6 +1314,42 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Classic: Castle Siege plugins and suppliers.
+        /// </summary>
+        public static string ClassicCastleSiegePlugInsUpdatePlugIn_Name {
+            get {
+                return ResourceManager.GetString("ClassicCastleSiegePlugInsUpdatePlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Activates all plugins of the Castle Siege and the suppliers of the Valley of Loren..
+        /// </summary>
+        public static string ClassicCastleSiegePlugInsUpdatePlugIn_Description {
+            get {
+                return ResourceManager.GetString("ClassicCastleSiegePlugInsUpdatePlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Classic: solo experience in a party.
+        /// </summary>
+        public static string ClassicPartySoloExperienceUpdatePlugIn_Name {
+            get {
+                return ResourceManager.GetString("ClassicPartySoloExperienceUpdatePlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Every party member near the killer gains the experience of a solo kill..
+        /// </summary>
+        public static string ClassicPartySoloExperienceUpdatePlugIn_Description {
+            get {
+                return ResourceManager.GetString("ClassicPartySoloExperienceUpdatePlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Classic: Devil Square and Blood Castle three times a day in instances.
         /// </summary>
         public static string ClassicInstancedEventsUpdatePlugIn_Name {

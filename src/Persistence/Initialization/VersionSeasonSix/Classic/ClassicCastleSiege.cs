@@ -14,6 +14,7 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 ///     <see cref="RewardItemCount"/> Boxes of Kundun +4. Offline participants receive them when they enter the game.</item>
 ///   <item>Monsters of at least level <see cref="SignOfLordMinimumMonsterLevel"/> drop the Sign of Lord (Rena +3) with a chance of
 ///     <see cref="SignOfLordDropChance"/>, on all maps which have the common jewel drop. Without it, no guild can register its marks.</item>
+///   <item>The suppliers of the Valley of Loren sell potions to the attackers and defenders, see <see cref="SupplierNumbers"/>.</item>
 /// </list>
 /// </summary>
 public static class ClassicCastleSiege
@@ -55,6 +56,16 @@ public static class ClassicCastleSiege
     private const short JewelsDropGroupNumber = 4;
 
     /// <summary>
+    /// Gets the numbers of the suppliers in the Valley of Loren, Pamela (376) for the attackers and Angela (377) for the defenders,
+    /// who sell potions, arrows, bolts and the Town Portal Scroll.
+    /// </summary>
+    /// <remarks>
+    /// They were added in Season 2, so the <see cref="ClassicContentRestriction"/> deactivates them. They sell classic items only,
+    /// and without them nobody sells potions on the map during a battle of two hours.
+    /// </remarks>
+    public static IReadOnlySet<short> SupplierNumbers { get; } = new HashSet<short> { 376, 377 };
+
+    /// <summary>
     /// Applies the Castle Siege changes. It can be applied multiple times with the same result.
     /// </summary>
     /// <param name="context">The context.</param>
@@ -63,6 +74,18 @@ public static class ClassicCastleSiege
     {
         ApplyParticipantReward(gameConfiguration);
         ApplySignOfLordDrop(context, gameConfiguration);
+    }
+
+    /// <summary>
+    /// Activates the <see cref="SupplierNumbers">suppliers</see> in the Valley of Loren.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    public static void ActivateSuppliers(GameConfiguration gameConfiguration)
+    {
+        foreach (var supplier in gameConfiguration.Monsters.Where(m => SupplierNumbers.Contains(m.Number)))
+        {
+            supplier.IsActive = true;
+        }
     }
 
     /// <summary>

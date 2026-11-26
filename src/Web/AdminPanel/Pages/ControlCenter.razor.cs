@@ -57,8 +57,8 @@ public partial class ControlCenter : ComponentBase, IDisposable
         new(() => Resources.ControlCenterResets, [typeof(ResetFeaturePlugIn), typeof(ResetExperienceRatePlugIn), typeof(StatResetFeaturePlugIn)]),
         new(() => Resources.ControlCenterRewards, [typeof(HuntingJewelPlugIn), typeof(HuntingPointsPlugIn), typeof(ItemExchangeChatCommandPlugIn), typeof(MiniGameMedalsPlugIn), typeof(TeamVsTeamPlugIn)]),
         new(() => Resources.ControlCenterPvp, [typeof(PvpSpotsPlugIn), typeof(TeamVsTeamPlugIn)]),
-        new(() => Resources.ControlCenterEvents, [typeof(DevilSquareStartPlugIn), typeof(BloodCastleStartPlugIn), typeof(GoldenInvasionPlugIn), typeof(RedDragonInvasionPlugIn), typeof(WhiteWizardInvasionPlugIn), typeof(EventAccountsPerIpPlugIn)]),
-        new(() => Resources.ControlCenterOther, [typeof(ItemLevelLimitPlugIn), typeof(MapExcellentDropLevelsPlugIn), typeof(UnlockedCharacterClassesPlugIn), typeof(BossMapMarkersPlugIn), typeof(PeriodicSaveProgressPlugIn), typeof(MaximumConnectionsPerIpPlugIn)]),
+        new(() => Resources.ControlCenterEvents, [typeof(DevilSquareStartPlugIn), typeof(BloodCastleStartPlugIn), typeof(GoldenInvasionPlugIn), typeof(RedDragonInvasionPlugIn), typeof(WhiteWizardInvasionPlugIn), typeof(EventAccountsPerIpPlugIn), typeof(GameLogic.CastleSiege.CastleSiegePlugIn)]),
+        new(() => Resources.ControlCenterOther, [typeof(PartySoloExperiencePlugIn), typeof(ItemLevelLimitPlugIn), typeof(MapExcellentDropLevelsPlugIn), typeof(UnlockedCharacterClassesPlugIn), typeof(BossMapMarkersPlugIn), typeof(PeriodicSaveProgressPlugIn), typeof(MaximumConnectionsPerIpPlugIn)]),
     ];
 
     private IList<IManageableServer> _servers = [];

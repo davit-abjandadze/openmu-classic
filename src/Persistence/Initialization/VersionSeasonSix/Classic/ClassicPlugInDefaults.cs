@@ -76,8 +76,9 @@ public static class ClassicPlugInDefaults
     ];
 
     /// <summary>
-    /// The chat commands which are disabled by default, but used by the classic server:
-    /// the stat commands of the players (e.g. <c>/str 100</c>), <c>/openware</c> and the game master commands for the level and the NPCs.
+    /// The plugins which are disabled by default, but used by the classic server:
+    /// the stat commands of the players (e.g. <c>/str 100</c>), <c>/openware</c>, the game master commands for the level and the NPCs,
+    /// and the solo experience in a party.
     /// </summary>
     private static readonly Type[] ActivePlugIns =
     [
@@ -90,6 +91,7 @@ public static class ClassicPlugInDefaults
         typeof(GetLevelChatCommandPlugIn),
         typeof(SetLevelChatCommandPlugIn),
         typeof(NpcChatCommandPlugIn),
+        typeof(PartySoloExperiencePlugIn),
     ];
 
     /// <summary>
@@ -192,6 +194,57 @@ public static class ClassicPlugInDefaults
 
         SetActive(gameConfiguration, false, InactivePlugIns);
         SetActive(gameConfiguration, true, ActivePlugIns);
+        ActivateCastleSiegePlugIns(gameConfiguration);
+    }
+
+    /// <summary>
+    /// Gets the plugins of the Castle Siege: the plugins of the Castle Siege namespaces of the game logic and the game server
+    /// (the siege itself, its NPCs, the packet handlers and the views of the registration, the marks, the status, the taxes,
+    /// the owner logo, the defense and the siege weapons), and the consume handlers of the Life Stone and the siege potions.
+    /// </summary>
+    /// <returns>The plugin types.</returns>
+    /// <remarks>
+    /// They are found by their namespace instead of being listed, so that plugins which are added to the Castle Siege later are covered as well.
+    /// </remarks>
+    public static IEnumerable<Type> GetCastleSiegePlugInTypes()
+        => new[] { typeof(GameLogic.CastleSiege.CastleSiegePlugIn).Assembly, typeof(GameServer.GameServer).Assembly }
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type is { IsClass: true, IsAbstract: false }
+                           && type.GetCustomAttributes(typeof(PlugInAttribute), false).Length > 0
+                           && !type.IsAssignableTo(typeof(GameLogic.IDisabledByDefault))
+                           && ((type.Namespace?.EndsWith(".CastleSiege", StringComparison.Ordinal) ?? false)
+                               || type.Name.Contains("Siege", StringComparison.Ordinal)));
+
+    /// <summary>
+    /// Activates all <see cref="GetCastleSiegePlugInTypes">plugins of the Castle Siege</see>.
+    /// Without them, e.g. the guardsman doesn't open the registration and the client gets no status of the siege.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <remarks>
+    /// The plugin configurations which don't exist yet are created active by the server at its start, so they don't have to be created here.
+    /// </remarks>
+    public static void ActivateCastleSiegePlugIns(GameConfiguration gameConfiguration)
+    {
+        SetActive(gameConfiguration, true, GetCastleSiegePlugInTypes());
+    }
+
+    /// <summary>
+    /// Activates the <see cref="PartySoloExperiencePlugIn"/>, and creates its plugin configuration if it doesn't exist yet.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="context">The context which creates the plugin configuration.</param>
+    public static void ActivatePartySoloExperience(GameConfiguration gameConfiguration, IContext context)
+    {
+        if (Find<PartySoloExperiencePlugIn>(gameConfiguration) is not { } plugInConfiguration)
+        {
+            var typeId = typeof(PartySoloExperiencePlugIn).GUID;
+            plugInConfiguration = context.CreateNew<PlugInConfiguration>();
+            plugInConfiguration.SetGuid(typeId);
+            plugInConfiguration.TypeId = typeId;
+            gameConfiguration.PlugInConfigurations.Add(plugInConfiguration);
+        }
+
+        plugInConfiguration.IsActive = true;
     }
 
     /// <summary>

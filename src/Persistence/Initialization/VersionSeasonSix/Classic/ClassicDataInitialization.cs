@@ -70,6 +70,7 @@ public class ClassicDataInitialization : DataInitialization
         ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);
         await ClassicMedalMerchant.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         ClassicCastleSiege.Apply(this.Context, this.GameConfiguration);
+        ClassicCastleSiege.ActivateSuppliers(this.GameConfiguration);
         this.AddCharacterStatAttributes(PvpStats.All.Concat(HuntingJewelStats.All).Concat(MedalStats.All).Concat(HuntingPointStats.All).Concat(TeamVsTeamStats.All).Concat(MiniGameEntryStats.All));
     }
 
