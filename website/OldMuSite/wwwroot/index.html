@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Old MU – Legend Never Dies</title>
+  <meta name="description" content="Old MU – classic Season 1 MU Online on the Season 6 client. Dark Knight, Dark Wizard, Fairy Elf and Magic Gladiator, free Devil Square and Blood Castle, PvP ranking.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=weapon-aura-3">
+  <script src="/js/site.js" defer></script>
+  <script src="/js/classes.js" defer></script>
+  <script src="/js/home-ranking.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Old MU home"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="#info">Server</a>
+        <a href="/guide.html">Guide</a>
+        <a href="#events">Events</a>
+        <a href="#ranking">Ranking</a>
+        <a href="#start">Download</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Checking…</span></span>
+        <a class="btn btn-red btn-small" href="/register.html">Register</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-lights" aria-hidden="true"></div>
+      <div class="wrap">
+      <div class="hero-inner">
+        <h1 class="hero-title"><img class="hero-logo" src="/img/logo.webp" alt="Old MU – Legend Never Dies" width="680" height="455"></h1>
+        <p class="hero-sub">Classic Season 1 MU Online on the Season 6 client. The old maps, the old classes, the old feeling – with MU Helper.</p>
+        <div class="hero-actions">
+          <a class="btn btn-red" href="/register.html">Create account</a>
+          <a class="btn" href="#start" data-download>Download</a>
+        </div>
+        <a class="online-badge" href="/ranking.html" data-online-badge hidden>
+          <span class="dot"></span><b data-online-count>0</b> <span data-online-label>players online</span>
+        </a>
+      </div>
+      </div>
+    </section>
+
+    <section class="facts" id="info">
+      <div class="wrap">
+        <div class="facts-grid">
+          <div class="fact"><b>100x</b><span>Experience</span></div>
+          <div class="fact"><b>500x</b><span>Zen</span></div>
+          <div class="fact"><b>+11</b><span>Max item level</span></div>
+          <div class="fact"><b>350–400</b><span>Reset level</span></div>
+          <div class="fact"><b>55</b><span>Max resets</span></div>
+          <div class="fact"><b>S1</b><span>Content</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The Server</h2>
+          <span class="ornament"></span>
+          <p>Lorencia, Devias, Noria, Dungeon, Lost Tower, Atlans, Tarkan and Icarus – nothing more, nothing less.</p>
+        </div>
+        <div class="features">
+          <article class="feature"><h3>Free Devil Square &amp; Blood Castle</h3><p>Three times a day, no tickets. You enter the room of your level tier, so you play against your own level.</p></article>
+          <article class="feature"><h3>Silver medals</h3><p>Win events and kill bosses for Silver Medals, then trade them at Thompson for Boxes of Kundun.</p></article>
+          <article class="feature"><h3>Bosses on the map</h3><p>Hydra, Balrog, Zaikan, Death Beam Knight and Dark Phoenix – see them and their respawn timer on the Tab map.</p></article>
+          <article class="feature"><h3>PvP spots &amp; prestige</h3><p>Fight for the PvP spots, win duels and climb the weekly prestige ranking.</p></article>
+          <article class="feature"><h3>Resets</h3><p>Reset from level 350, 500 points per reset. The experience goes down the more resets you have.</p></article>
+          <article class="feature"><h3>Fair play</h3><p>At most two accounts per IP, and one account per IP in each event.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ranking">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Top Players</h2>
+          <span class="ornament"></span>
+        </div>
+        <div class="class-tabs" data-class-tabs></div>
+        <div class="top-boards">
+          <article class="top-board" data-top-board="characters">
+            <h3>Resets</h3>
+            <p>By resets, then by level.</p>
+            <table class="top-table"><thead><tr><th>#</th><th>Character</th><th>Resets</th><th>Level</th></tr></thead><tbody></tbody></table>
+            <a class="see-all" href="/ranking.html#characters"></a>
+          </article>
+          <article class="top-board" data-top-board="pvp-week">
+            <h3>This week in PvP</h3>
+            <p>Starts over every week.</p>
+            <table class="top-table"><thead><tr><th>#</th><th>Character</th><th>Prestige</th><th>K</th><th>D</th><th>A</th></tr></thead><tbody></tbody></table>
+            <a class="see-all" href="/ranking.html#pvp-week"></a>
+          </article>
+          <article class="top-board" data-top-board="pvp-all">
+            <h3>PvP legends</h3>
+            <p>All weeks combined.</p>
+            <table class="top-table"><thead><tr><th>#</th><th>Character</th><th>Prestige</th><th>K</th><th>D</th><th>A</th></tr></thead><tbody></tbody></table>
+            <a class="see-all" href="/ranking.html#pvp-all"></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="classes">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Choose Your Class</h2>
+          <span class="ornament"></span>
+          <p>Only the four classic heroes.</p>
+        </div>
+        <div class="classes">
+          <article class="class-card dk">
+            <div class="class-art">
+              <img src="/img/class-dk.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Dark Knight</h3>
+            <div class="evo">→ Blade Knight</div>
+            <p>A fearless warrior with the strongest melee attacks and the Twisting Slash.</p>
+          </article>
+          <article class="class-card dw">
+            <div class="class-art">
+              <img src="/img/class-dw.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Dark Wizard</h3>
+            <div class="evo">→ Soul Master</div>
+            <p>Master of the elements. Evil Spirit, Teleport and the mana shield.</p>
+          </article>
+          <article class="class-card elf">
+            <div class="class-art">
+              <img src="/img/class-elf.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Fairy Elf</h3>
+            <div class="evo">→ Muse Elf</div>
+            <p>A deadly archer who heals and strengthens herself in battle.</p>
+          </article>
+          <article class="class-card mg">
+            <div class="class-art">
+              <img src="/img/class-mg.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Magic Gladiator</h3>
+            <div class="evo">Available from the start</div>
+            <p>Sword and magic in one hero – no level requirement to create one.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="events">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Event Schedule</h2>
+          <span class="ornament"></span>
+          <p>Georgian time (Tbilisi, UTC+4).</p>
+        </div>
+        <div class="events-wrap">
+          <div class="events-art" role="img" aria-label="Castle"></div>
+          <div class="schedule">
+            <table>
+              <thead><tr><th>Event</th><th>Start</th></tr></thead>
+              <tbody>
+                <tr><td>Devil Square</td><td data-times="13:00,19:00,22:00">13:00 · 19:00 · 22:00</td></tr>
+                <tr><td>Blood Castle</td><td data-times="13:30,19:30,22:30">13:30 · 19:30 · 22:30</td></tr>
+                <tr><td>Golden Invasion</td><td data-times="23:00">23:00</td></tr>
+                <tr><td>Team vs Team</td><td data-times="23:30">23:30</td></tr>
+              </tbody>
+            </table>
+            <p class="next-event" data-next-event></p>
+            <p class="note">Enter Devil Square with <b>/joinds</b>, Blood Castle with <b>/joinbc</b> and Team vs Team with <b>/jointvt</b>. The entrance is open for 5 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Start Playing</h2>
+          <span class="ornament"></span>
+        </div>
+        <div class="steps">
+          <div class="step"><h3>Create an account</h3><p>Just a login and a password – no e-mail needed.</p><a class="btn btn-small" href="/register.html">Register</a></div>
+          <div class="step"><h3>Download the game</h3><p>Get the Old MU launcher with the client and unpack it anywhere.</p><a class="btn btn-small" href="#start" data-download data-download-label>Download</a></div>
+          <div class="step"><h3>Play</h3><p>Start <b>OldMuLauncher.exe</b>, press Start Game and log in with your account.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="banner">
+      <div class="wrap">
+        <h2>The Legend Never Dies</h2>
+        <p>Your old friends are already in Lorencia.</p>
+        <a class="btn btn-red" href="/register.html">Create account</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online is a trademark of Webzen. This is a private, non-commercial server.</span>
+      <span><a href="/register.html">Register</a> · <a href="/ranking.html">Ranking</a> · <a href="#start" data-download>Download</a> <span data-discord hidden>· <a href="#" rel="noopener" target="_blank">Discord</a></span></span>
+    </div>
+  </footer>
+</body>
+</html>

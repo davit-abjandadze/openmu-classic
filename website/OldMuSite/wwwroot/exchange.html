@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Item Exchange – Old MU</title>
+  <meta name="description" content="The excellent items you can get with /exchange on Old MU, who can use them, and which items you can give in.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css">
+  <script src="/js/site.js" defer></script>
+  <script src="/js/classes.js" defer></script>
+  <script src="/js/exchange.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Old MU home"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="/#info">Server</a>
+        <a href="/guide.html">Guide</a>
+        <a href="/#events">Events</a>
+        <a href="/ranking.html">Ranking</a>
+        <a href="/#start">Download</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Checking…</span></span>
+        <a class="btn btn-red btn-small" href="/register.html">Register</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Item Exchange</h1>
+        <span class="ornament"></span>
+        <p class="page-lead">Give in <b data-x="requiredItems">3</b> excellent items you don't need – get the excellent item you want.</p>
+      </div>
+    </section>
+
+    <div class="wrap exchange-page">
+      <p class="back-link"><a href="/guide.html#exchange">← Back to the guide</a></p>
+
+      <div class="exchange-info">
+        <div class="info-card">
+          <h2>How it works</h2>
+          <ol class="guide-steps">
+            <li>Put <b data-x="requiredItems">3</b> excellent items with a drop level of <b data-x="minimumDropLevel">44</b> or more into your inventory (not equipped). <a href="#inputs">Which items count?</a></li>
+            <li>Choose an item below and type its command, e.g. <span class="cmd">/exchange Dragon Armor</span>. The game shows which items would be given in – the cheapest first.</li>
+            <li>Confirm with <b>yes</b> at the end: <span class="cmd">/exchange Dragon Armor yes</span>.</li>
+          </ol>
+          <p class="note">Keep the excellent items you want to keep in the warehouse while you exchange.</p>
+        </div>
+        <div class="info-card">
+          <h2>What you get</h2>
+          <ul class="chance-list">
+            <li><span>Item level</span><b>+0</b></li>
+            <li><span>One excellent option</span><b>always</b></li>
+            <li><span>Two excellent options</span><b><span data-x="twoOptionsChance">25</span>%</b></li>
+            <li><span>Three excellent options</span><b><span data-x="threeOptionsChance">5</span>%</b></li>
+            <li><span>Luck</span><b><span data-x="luckChance">50</span>%</b></li>
+            <li><span>Additional option</span><b>random, up to +<span data-x="maximumOption">12</span></b></li>
+          </ul>
+          <p class="note">Weapons get weapon options (e.g. excellent damage rate, +2% damage, attack speed, life or mana after a kill), armor and shields get defense options (e.g. max HP +4%, damage decrease, reflect, zen after a kill).</p>
+        </div>
+      </div>
+
+      <div class="exchange-message" data-message hidden></div>
+
+      <h2 class="exchange-heading">Items you can get</h2>
+      <div class="class-tabs" data-class-tabs></div>
+      <div class="category-tabs" data-category-tabs></div>
+      <div class="item-grid" data-targets><p class="empty">Loading…</p></div>
+
+      <h2 class="exchange-heading" id="inputs">Items you can give in</h2>
+      <p class="inputs-lead">Any <b>excellent</b> version of these items counts – they drop from monsters with a drop level of <b data-x="minimumDropLevel">44</b> or more.</p>
+      <div class="inputs" data-inputs></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online is a trademark of Webzen. This is a private, non-commercial server.</span>
+      <span><a href="/guide.html">Guide</a> · <a href="/ranking.html">Ranking</a> · <a href="/">Home</a></span>
+    </div>
+  </footer>
+</body>
+</html>

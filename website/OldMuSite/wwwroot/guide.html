@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide – Old MU</title>
+  <meta name="description" content="How to play on Old MU: getting started, stats, resets, events, silver medals, bosses, PvP, the item exchange and all chat commands.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css">
+  <script src="/js/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Old MU home"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="/#info">Server</a>
+        <a href="/guide.html" aria-current="page">Guide</a>
+        <a href="/#events">Events</a>
+        <a href="/ranking.html">Ranking</a>
+        <a href="/#start">Download</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Checking…</span></span>
+        <a class="btn btn-red btn-small" href="/register.html">Register</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Guide</h1>
+        <span class="ornament"></span>
+        <p class="page-lead">Everything you need to know to play on Old MU.</p>
+      </div>
+    </section>
+
+    <div class="wrap guide-layout">
+      <nav class="guide-toc" aria-label="Contents">
+        <b>Contents</b>
+        <a href="#start">Getting started</a>
+        <a href="#stats">Stats</a>
+        <a href="#resets">Resets</a>
+        <a href="#events">Events</a>
+        <a href="#medals">Silver medals</a>
+        <a href="#bosses">Bosses</a>
+        <a href="#pvp">PvP</a>
+        <a href="#exchange">Item exchange</a>
+        <a href="#offline">Offline leveling</a>
+        <a href="#chat">Chat &amp; guilds</a>
+        <a href="#rules">Rules</a>
+        <a href="#commands">All commands</a>
+      </nav>
+
+      <div class="guide-content">
+        <section class="guide-section" id="start">
+          <h2>Getting started</h2>
+          <ol class="guide-steps">
+            <li><b>Create an account</b> on the <a href="/register.html">registration page</a> – a login and a password, no e-mail.</li>
+            <li><b>Download the game</b>, unpack it anywhere and start <b>OldMuLauncher.exe</b>.</li>
+            <li>Press <b>Start Game</b>, log in and create your character: <b>Dark Knight</b>, <b>Dark Wizard</b>, <b>Fairy Elf</b> or <b>Magic Gladiator</b>. The Magic Gladiator can be created right away.</li>
+            <li>You start in Lorencia (Elves in Noria). Hunt, level up, and switch on the <b>MU Helper</b> to hunt for you.</li>
+          </ol>
+          <p>Type the commands of this guide into the chat (Enter, then the command). <span class="cmd">/list</span> shows all commands in the game, <span class="cmd">/help /reset</span> explains one of them.</p>
+        </section>
+
+        <section class="guide-section" id="stats">
+          <h2>Stats</h2>
+          <p>Every level gives you points for strength, agility, vitality and energy. Add them in the character window (<b>C</b>) or faster with a command:</p>
+          <table class="cmd-table">
+            <tr><td><span class="cmd">/addstr 100</span></td><td>Adds 100 points to strength.</td></tr>
+            <tr><td><span class="cmd">/addagi 100</span></td><td>Agility.</td></tr>
+            <tr><td><span class="cmd">/addvit 100</span></td><td>Vitality.</td></tr>
+            <tr><td><span class="cmd">/addene 100</span></td><td>Energy.</td></tr>
+          </table>
+        </section>
+
+        <section class="guide-section" id="resets">
+          <h2>Resets</h2>
+          <p>When your character is strong enough, reset it to grow even stronger:</p>
+          <ul>
+            <li>Type <span class="cmd">/reset</span> from <b>level 350</b>. Every reset needs 10 levels more, up to level 400.</li>
+            <li>A reset is <b>free</b>. Your character goes back to <b>level 10</b>, its stats are reset, and you get <b>500 points for every reset</b> you have (5 resets = 2,500 points). You are moved to town and logged out.</li>
+            <li>At most <b>55 resets</b>. The more resets you have, the less experience you get.</li>
+            <li><span class="cmd">/resetinfo</span> shows what your next reset needs and gives.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section" id="events">
+          <h2>Events</h2>
+          <p>All events are <b>free</b> – no tickets. Times are Georgian time (Tbilisi, UTC+4). The entrance is open for 5 minutes; you are told in the game 5 and 2 minutes before.</p>
+          <table class="cmd-table">
+            <tr><th>Event</th><th>Start</th><th>Join</th></tr>
+            <tr><td>Devil Square</td><td>13:00 · 19:00 · 22:00</td><td><span class="cmd">/joinds</span></td></tr>
+            <tr><td>Blood Castle</td><td>13:30 · 19:30 · 22:30</td><td><span class="cmd">/joinbc</span></td></tr>
+            <tr><td>Golden Invasion</td><td>23:00</td><td>Golden monsters appear on the maps.</td></tr>
+            <tr><td>Team vs Team</td><td>23:30</td><td><span class="cmd">/jointvt</span></td></tr>
+          </table>
+          <p>You can enter Devil Square and Blood Castle <b>once per day</b> each. You play in the room of your level, against players of your level, and the experience is doubled there. The best players get <a href="#medals">Silver Medals</a>.</p>
+        </section>
+
+        <section class="guide-section" id="medals">
+          <h2>Silver medals</h2>
+          <p>Silver Medals are the reward of the events and the bosses. They go into your bag; when it's full, they are kept for you and paid out at Thompson.</p>
+          <ul>
+            <li><b>Devil Square</b>: 1st place 4 medals, 2nd and 3rd place 2.</li>
+            <li><b>Blood Castle</b>: the winner 3, the rest of the winning party 1.</li>
+            <li>Kill at least <b>50 monsters</b> in one Devil Square or Blood Castle game and stay until it ends: <b>1 extra</b> Silver Medal, on top of the others.</li>
+            <li><b>Team vs Team</b>: the best player 3, the winning team 1.</li>
+            <li><b>Bosses</b>: 1 Silver Medal, the Dark Phoenix and Hell Maine 6 (see <a href="#bosses">Bosses</a>).</li>
+          </ul>
+          <p><b>Thompson the Merchant</b> stands next to the fountain of Lorencia and trades medals for boxes:</p>
+          <table class="cmd-table">
+            <tr><td>Box of Kundun +3</td><td>5 Silver Medals</td></tr>
+            <tr><td>Box of Kundun +4</td><td>10 Silver Medals</td></tr>
+          </table>
+        </section>
+
+        <section class="guide-section" id="bosses">
+          <h2>Bosses</h2>
+          <p>Press <b>Tab</b> to see the bosses on the map with their respawn time, or type <span class="cmd">/bosses</span> for all maps. Bosses drop Boxes of Kundun and Silver Medals.</p>
+          <table class="cmd-table">
+            <tr><th>Boss</th><th>Map</th><th>Respawn</th><th>Drops</th></tr>
+            <tr><td>Hydra</td><td>Atlans</td><td>70 min</td><td>Box of Kundun +3, 1 Silver Medal</td></tr>
+            <tr><td>Balrog</td><td>Lost Tower</td><td>70 min</td><td>Box of Kundun +3, 1 Silver Medal</td></tr>
+            <tr><td>Zaikan</td><td>Tarkan</td><td>120 min</td><td>Box of Kundun +4, 1 Silver Medal</td></tr>
+            <tr><td>Death Beam Knight</td><td>Tarkan</td><td>120 min</td><td>Box of Kundun +4, 1 Silver Medal</td></tr>
+            <tr><td>Dark Phoenix</td><td>Icarus</td><td>240 min</td><td>Box of Kundun +4, 6 Silver Medals</td></tr>
+            <tr><td>Hell Maine</td><td>Arena</td><td>240 min</td><td>Box of Kundun +4, 6 Silver Medals</td></tr>
+          </table>
+          <p>Hell Maine is the strongest boss – bring a party.</p>
+        </section>
+
+        <section class="guide-section" id="pvp">
+          <h2>PvP</h2>
+          <ul>
+            <li>The <b>PvP spots</b> are areas where killing players gives <b>prestige</b> and doesn't make you a killer. <span class="cmd">/zones</span> lists them.</li>
+            <li>Winning a <b>duel</b> gives prestige too.</li>
+            <li><span class="cmd">/ranking</span> shows the ranking of this week, <span class="cmd">/ranking all</span> of all time. It's also on the <a href="/ranking.html">ranking page</a>.</li>
+            <li>A killer (PK) outside the PvP spots can clear the status with <span class="cmd">/pkclear</span>: 10,000,000 zen per kill.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section" id="exchange">
+          <h2>Item exchange <a class="list-link" href="/exchange.html">(list)</a></h2>
+          <p>Turn excellent items you don't need into the excellent item you want. With <span class="cmd">/exchange</span> you give in <b data-exchange="requiredItems">3</b> excellent items with a drop level of <b data-exchange="minimumDropLevel">44</b> or more and get one excellent item of your choice.</p>
+          <ol class="guide-steps">
+            <li>Put the excellent items to give in into your inventory (not equipped). Keep the ones you want to keep in the warehouse – the cheapest items are taken first.</li>
+            <li>Type <span class="cmd">/exchange</span> to see the items you can get.</li>
+            <li>Type <span class="cmd">/exchange Dragon Armor</span>. The game shows which of your items would be given in.</li>
+            <li>Confirm with <span class="cmd">/exchange Dragon Armor yes</span>. The new item is in your inventory.</li>
+          </ol>
+          <p>The new item is <b>+0</b> with at least one excellent option. The other options are random. <a href="/exchange.html">See the list of items and what counts →</a></p>
+        </section>
+
+        <section class="guide-section" id="offline">
+          <h2>Offline leveling</h2>
+          <p>Your character can keep hunting while the game is closed:</p>
+          <ol class="guide-steps">
+            <li>Go to your hunting spot and start the <b>MU Helper</b>.</li>
+            <li>Type <span class="cmd">/offlevel</span>. The game closes and your character keeps hunting with your MU Helper settings.</li>
+            <li>Log in again to stop it.</li>
+          </ol>
+          <p>It doesn't work in events, and your character has to be alive. The offline character counts as one of the two accounts of your IP.</p>
+        </section>
+
+        <section class="guide-section" id="chat">
+          <h2>Chat &amp; guilds</h2>
+          <table class="cmd-table">
+            <tr><td><span class="cmd">/world text</span></td><td>Writes to all players of all servers. The normal chat only reaches the players near you.</td></tr>
+            <tr><td><span class="cmd">/post text</span></td><td>Sends your text as a blue message to all players.</td></tr>
+            <tr><td><span class="cmd">/war guild</span></td><td>Asks the master of another guild for a guild war.</td></tr>
+            <tr><td><span class="cmd">/battlesoccer guild</span></td><td>Asks another guild for a battle soccer match.</td></tr>
+          </table>
+        </section>
+
+        <section class="guide-section" id="rules">
+          <h2>Rules</h2>
+          <ul>
+            <li>At most <b>2 accounts per IP</b> can be in the game at the same time (offline leveling counts).</li>
+            <li>Only <b>one account per IP</b> may enter each event.</li>
+            <li>Items can be upgraded up to <b>+11</b>.</li>
+            <li>No cheats, bots or bug abuse. Respect the other players.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section" id="commands">
+          <h2>All commands</h2>
+          <table class="cmd-table">
+            <tr><th>Command</th><th>What it does</th></tr>
+            <tr><td><span class="cmd">/list</span></td><td>Lists all commands.</td></tr>
+            <tr><td><span class="cmd">/help command</span></td><td>Explains a command, e.g. <span class="cmd">/help /reset</span>.</td></tr>
+            <tr><td><span class="cmd">/addstr</span> <span class="cmd">/addagi</span> <span class="cmd">/addvit</span> <span class="cmd">/addene</span> <i>points</i></td><td>Adds stat points.</td></tr>
+            <tr><td><span class="cmd">/reset</span></td><td>Resets your character (from level 350).</td></tr>
+            <tr><td><span class="cmd">/resetinfo</span></td><td>Shows what your next reset needs and gives.</td></tr>
+            <tr><td><span class="cmd">/joinds</span> <span class="cmd">/joinbc</span> <span class="cmd">/jointvt</span></td><td>Joins Devil Square, Blood Castle or Team vs Team while the entrance is open.</td></tr>
+            <tr><td><span class="cmd">/bosses</span></td><td>Shows all bosses and when they come back.</td></tr>
+            <tr><td><span class="cmd">/zones</span></td><td>Lists the PvP spots.</td></tr>
+            <tr><td><span class="cmd">/ranking</span> <span class="cmd">/ranking all</span></td><td>PvP ranking of this week or of all time.</td></tr>
+            <tr><td><span class="cmd">/pkclear</span></td><td>Clears the killer status for zen.</td></tr>
+            <tr><td><span class="cmd">/exchange</span></td><td>Exchanges excellent items, see <a href="/exchange.html">the list</a>.</td></tr>
+            <tr><td><span class="cmd">/offlevel</span></td><td>Keeps hunting with the MU Helper while you are offline.</td></tr>
+            <tr><td><span class="cmd">/openware</span></td><td>Opens your warehouse anywhere.</td></tr>
+            <tr><td><span class="cmd">/move map</span></td><td>Moves you to a map, like the move window (M), e.g. <span class="cmd">/move devias</span>.</td></tr>
+            <tr><td><span class="cmd">/waiting</span></td><td>Lists the rewards which wait for space in your inventory.</td></tr>
+            <tr><td><span class="cmd">/world text</span> <span class="cmd">/post text</span></td><td>Writes to all players.</td></tr>
+            <tr><td><span class="cmd">/war guild</span> <span class="cmd">/battlesoccer guild</span></td><td>Guild war and battle soccer.</td></tr>
+            <tr><td><span class="cmd">/language code</span></td><td>Changes the language of the game messages.</td></tr>
+            <tr><td><span class="cmd">/discord link</span></td><td>Links your account to Discord.</td></tr>
+          </table>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online is a trademark of Webzen. This is a private, non-commercial server.</span>
+      <span><a href="/register.html">Register</a> · <a href="/ranking.html">Ranking</a> · <a href="/">Home</a></span>
+    </div>
+  </footer>
+  <script src="/js/guide.js" defer></script>
+</body>
+</html>
