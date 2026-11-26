@@ -234,6 +234,12 @@ public sealed class MainForm : Form
 
     private static void OpenUrl(string url)
     {
+        // A link which isn't configured (e.g. no Discord yet) does nothing.
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return;
+        }
+
         try
         {
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
