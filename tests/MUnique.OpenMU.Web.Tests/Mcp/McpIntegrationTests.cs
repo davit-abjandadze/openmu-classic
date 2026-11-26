@@ -193,7 +193,7 @@ public sealed class McpIntegrationTests : System.IDisposable
     {
         await using var client = await this.ConnectAsync().ConfigureAwait(false);
         var tools = await client.ListToolsAsync().ConfigureAwait(false);
-        Assert.That(tools.Count, Is.EqualTo(25));
+        Assert.That(tools.Count, Is.EqualTo(28));
         var servers = new List<IManageableServer>();
         foreach (var id in new[] { 0, 4 })
         {
@@ -238,6 +238,8 @@ public sealed class McpIntegrationTests : System.IDisposable
     /// <summary>Invalid paging, types, filters, depth and unavailable live filters fail clearly.</summary>
     [TestCase("accounts_search", "limit", 101)]
     [TestCase("guilds_search", "offset", -1)]
+    [TestCase("rankings_characters", "limit", 101)]
+    [TestCase("rankings_pvp", "limit", 0)]
     [TestCase("players_list", "mapNumber", 0)]
     [TestCase("config_query", "type", "Account")]
     [TestCase("config_query", "type", "PlugInConfiguration")]
