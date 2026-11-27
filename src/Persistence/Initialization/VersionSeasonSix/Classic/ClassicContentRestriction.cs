@@ -19,7 +19,6 @@ using MUnique.OpenMU.Persistence.Initialization.Skills;
 ///   <item>Items can't be upgraded above <see cref="MaximumItemLevel"/>.</item>
 ///   <item>Skills, and the scrolls and orbs which teach them, have no character level requirement.</item>
 ///   <item>The scrolls of Decay, Ice Storm and Nova are deactivated, see <see cref="RemovedSkillItems"/>.</item>
-///   <item>The buffs of Dark Wizard, Dark Knight and Fairy Elf only affect the caster, see <see cref="SelfOnlyBuffSkills"/>.</item>
 /// </list>
 /// </summary>
 /// <remarks>
@@ -122,17 +121,6 @@ public class ClassicContentRestriction
     };
 
     /// <summary>
-    /// The buff skills which can only be cast on the caster itself, not on other players or party members.
-    /// </summary>
-    private static readonly IReadOnlySet<short> SelfOnlyBuffSkills = new HashSet<short>
-    {
-        16, // Soul Barrier (Dark Wizard)
-        27, // Greater Defense (Fairy Elf)
-        28, // Greater Damage (Fairy Elf)
-        48, // Swell Life (Dark Knight)
-    };
-
-    /// <summary>
     /// Applies the restriction to the specified game configuration.
     /// </summary>
     /// <param name="gameConfiguration">The game configuration.</param>
@@ -175,7 +163,6 @@ public class ClassicContentRestriction
         DeactivateRemovedSkillItems(gameConfiguration);
         RemoveUpgradeCraftingsAboveMaximumLevel(gameConfiguration);
         RemoveSkillLevelRequirements(gameConfiguration);
-        RestrictBuffsToSelf(gameConfiguration);
     }
 
     /// <summary>
@@ -250,18 +237,32 @@ public class ClassicContentRestriction
     }
 
     /// <summary>
-    /// Restricts the <see cref="SelfOnlyBuffSkills"/> to the caster: a cast on another player is refused,
-    /// and Swell Life no longer affects the party members.
+    /// Restores the original targets of the buffs of Dark Wizard, Dark Knight and Fairy Elf, which an earlier
+    /// version of the classic data restricted to the caster: Soul Barrier can be cast on party members,
+    /// Greater Defense and Greater Damage on any player, and Swell Life affects the whole party.
+    /// The values are the same as in the Season 6 skill initialization.
     /// </summary>
     /// <param name="gameConfiguration">The game configuration.</param>
-    internal static void RestrictBuffsToSelf(GameConfiguration gameConfiguration)
+    internal static void RestoreBuffTargets(GameConfiguration gameConfiguration)
     {
-        foreach (var skill in gameConfiguration.Skills.Where(s => SelfOnlyBuffSkills.Contains(s.Number)))
+        foreach (var skill in gameConfiguration.Skills)
         {
-            skill.TargetRestriction = SkillTargetRestriction.Self;
-            if (skill.Target == SkillTarget.ImplicitParty)
+            switch ((SkillNumber)skill.Number)
             {
-                skill.Target = SkillTarget.ImplicitPlayer;
+                case SkillNumber.SoulBarrier:
+                    skill.TargetRestriction = SkillTargetRestriction.Party;
+                    break;
+                case SkillNumber.GreaterDefense:
+                case SkillNumber.GreaterDamage:
+                    skill.TargetRestriction = SkillTargetRestriction.Player;
+                    break;
+                case SkillNumber.SwellLife:
+                    skill.TargetRestriction = SkillTargetRestriction.Undefined;
+                    skill.Target = SkillTarget.ImplicitParty;
+                    break;
+                default:
+                    // other skills are not affected.
+                    break;
             }
         }
     }

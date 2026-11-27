@@ -45,6 +45,10 @@ of the eleven walled pens. The game client has its own copy of the terrain, so
 publish the changed `Data/World7/EncTerrain7.att` in a client patch as well.
 Players without the patch can't walk through the doorways.
 
+**Classic: buffs on other players** undoes an earlier restriction of the classic
+data: Soul Barrier can be cast on party members, Greater Defense and Greater
+Damage on any player, and Swell Life affects the whole party again.
+
 :::warning[A restart is required]
 The updates take effect after a restart of the server process. Until then, the
 running server still works with the configuration it loaded at startup.

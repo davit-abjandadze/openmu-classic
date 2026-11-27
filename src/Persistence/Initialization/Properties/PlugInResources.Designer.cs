@@ -1145,11 +1145,11 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicSkillLevelRequirementsUpdatePlugIn_Description text.</summary>
         public static string ClassicSkillLevelRequirementsUpdatePlugIn_Description => ResourceManager.GetString("ClassicSkillLevelRequirementsUpdatePlugIn_Description", resourceCulture)!;
 
-        /// <summary>Gets the localized ClassicSelfOnlyBuffsUpdatePlugIn_Name text.</summary>
-        public static string ClassicSelfOnlyBuffsUpdatePlugIn_Name => ResourceManager.GetString("ClassicSelfOnlyBuffsUpdatePlugIn_Name", resourceCulture)!;
+        /// <summary>Gets the localized ClassicPartyBuffsUpdatePlugIn_Name text.</summary>
+        public static string ClassicPartyBuffsUpdatePlugIn_Name => ResourceManager.GetString("ClassicPartyBuffsUpdatePlugIn_Name", resourceCulture)!;
 
-        /// <summary>Gets the localized ClassicSelfOnlyBuffsUpdatePlugIn_Description text.</summary>
-        public static string ClassicSelfOnlyBuffsUpdatePlugIn_Description => ResourceManager.GetString("ClassicSelfOnlyBuffsUpdatePlugIn_Description", resourceCulture)!;
+        /// <summary>Gets the localized ClassicPartyBuffsUpdatePlugIn_Description text.</summary>
+        public static string ClassicPartyBuffsUpdatePlugIn_Description => ResourceManager.GetString("ClassicPartyBuffsUpdatePlugIn_Description", resourceCulture)!;
 
         /// <summary>Gets the localized ClassicRemovedMapsUpdatePlugIn_Name text.</summary>
         public static string ClassicRemovedMapsUpdatePlugIn_Name => ResourceManager.GetString("ClassicRemovedMapsUpdatePlugIn_Name", resourceCulture)!;

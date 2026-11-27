@@ -242,38 +242,44 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
-    /// Tests that the buffs of Dark Wizard, Dark Knight and Fairy Elf can only be cast on the caster itself.
+    /// Tests that the buffs of Dark Wizard, Dark Knight and Fairy Elf can be cast on other players, as in the original game.
     /// </summary>
     /// <param name="skillNumber">The skill number.</param>
-    [TestCase(16)] // Soul Barrier
-    [TestCase(27)] // Greater Defense
-    [TestCase(28)] // Greater Damage
-    [TestCase(48)] // Swell Life
-    public void BuffsAreSelfOnly(short skillNumber)
+    /// <param name="restriction">The expected target restriction.</param>
+    [TestCase(16, SkillTargetRestriction.Party)] // Soul Barrier
+    [TestCase(27, SkillTargetRestriction.Player)] // Greater Defense
+    [TestCase(28, SkillTargetRestriction.Player)] // Greater Damage
+    [TestCase(48, SkillTargetRestriction.Undefined)] // Swell Life
+    public void BuffsAffectOtherPlayers(short skillNumber, SkillTargetRestriction restriction)
     {
         var skill = this._gameConfiguration.Skills.Single(s => s.Number == skillNumber);
 
-        Assert.That(skill.TargetRestriction, Is.EqualTo(SkillTargetRestriction.Self));
-        Assert.That(skill.Target, Is.Not.EqualTo(SkillTarget.ImplicitParty));
+        Assert.That(skill.TargetRestriction, Is.EqualTo(restriction));
     }
 
     /// <summary>
-    /// Tests that the update restricts the buffs to the caster in an existing classic database.
+    /// Tests that the update lets the self-only buffs of an earlier classic database affect other players again.
     /// </summary>
     [Test]
-    public async Task UpdateRestrictsBuffsToSelfAsync()
+    public async Task UpdateRestoresBuffTargetsAsync()
     {
+        var soulBarrier = this._gameConfiguration.Skills.Single(s => s.Number == 16);
         var greaterDamage = this._gameConfiguration.Skills.Single(s => s.Number == 28);
         var swellLife = this._gameConfiguration.Skills.Single(s => s.Number == 48);
-        greaterDamage.TargetRestriction = SkillTargetRestriction.Player;
-        swellLife.TargetRestriction = SkillTargetRestriction.Undefined;
-        swellLife.Target = SkillTarget.ImplicitParty;
+        Assert.That(swellLife.Target, Is.EqualTo(SkillTarget.ImplicitParty));
+        foreach (var skill in new[] { soulBarrier, greaterDamage, swellLife })
+        {
+            skill.TargetRestriction = SkillTargetRestriction.Self;
+        }
 
-        await new ClassicSelfOnlyBuffsUpdatePlugIn().ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        swellLife.Target = SkillTarget.ImplicitPlayer;
 
-        Assert.That(greaterDamage.TargetRestriction, Is.EqualTo(SkillTargetRestriction.Self));
-        Assert.That(swellLife.TargetRestriction, Is.EqualTo(SkillTargetRestriction.Self));
-        Assert.That(swellLife.Target, Is.EqualTo(SkillTarget.ImplicitPlayer));
+        await new ClassicPartyBuffsUpdatePlugIn().ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(soulBarrier.TargetRestriction, Is.EqualTo(SkillTargetRestriction.Party));
+        Assert.That(greaterDamage.TargetRestriction, Is.EqualTo(SkillTargetRestriction.Player));
+        Assert.That(swellLife.TargetRestriction, Is.EqualTo(SkillTargetRestriction.Undefined));
+        Assert.That(swellLife.Target, Is.EqualTo(SkillTarget.ImplicitParty));
     }
 
     /// <summary>
