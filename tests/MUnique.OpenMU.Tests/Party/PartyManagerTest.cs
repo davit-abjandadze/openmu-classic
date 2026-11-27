@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Tests;
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.PlayerActions.Party;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.PlugIns;
 
@@ -114,6 +115,70 @@ public class PartyManagerTest
 
         Assert.That(party.PartyList[0], Is.SameAs(member1));
         Assert.That(party.PartyList[0].Name, Is.EqualTo(originalName));
+    }
+
+    /// <summary>
+    /// Verifies that logging back in after the last member disconnects restores the original party.
+    /// </summary>
+    /// <param name="disposeWithoutDisconnect">Whether the leader's session is disposed directly.</param>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async ValueTask EveryoneLogsOut_ReturningPlayersRejoinTheSamePartyAsync(bool disposeWithoutDisconnect)
+    {
+        var context = GameContextTestHelper.CreateGameContext();
+        var leaderCharacter = PlayerTestHelper.CreateCharacter(context);
+        leaderCharacter.Name = "Leader";
+        leaderCharacter.Id = Guid.NewGuid();
+        var memberCharacter = PlayerTestHelper.CreateCharacter(context);
+        memberCharacter.Name = "Member";
+        memberCharacter.Id = Guid.NewGuid();
+        var leader = await PlayerTestHelper.CreatePlayerAsync(context, leaderCharacter).ConfigureAwait(false);
+        var member = await PlayerTestHelper.CreatePlayerAsync(context, memberCharacter).ConfigureAwait(false);
+        await using var party = context.PartyManager.CreateParty();
+        await party.AddAsync(leader).ConfigureAwait(false);
+        await party.AddAsync(member).ConfigureAwait(false);
+
+        if (disposeWithoutDisconnect)
+        {
+            await leader.DisposeAsync().ConfigureAwait(false);
+        }
+        else
+        {
+            await leader.DisconnectAsync().ConfigureAwait(false);
+        }
+
+        await member.DisconnectAsync().ConfigureAwait(false);
+        Assert.That(party.PartyList, Has.All.InstanceOf<OfflinePartyMember>());
+
+        await using var returningMember = await PlayerTestHelper.CreatePlayerAsync(context, memberCharacter).ConfigureAwait(false);
+        await using var returningLeader = await PlayerTestHelper.CreatePlayerAsync(context, leaderCharacter).ConfigureAwait(false);
+        Assert.That(party.PartyList, Is.EqualTo(new IPartyMember[] { returningLeader, returningMember }));
+        Assert.That(party.PartyMaster, Is.SameAs(returningLeader));
+        Assert.That(returningLeader.Party, Is.SameAs(party));
+        Assert.That(returningMember.Party, Is.SameAs(party));
+    }
+
+    /// <summary>
+    /// Verifies that manually leaving a party prevents automatic rejoining on login.
+    /// </summary>
+    [Test]
+    public async ValueTask MemberLeavesManually_DoesNotRejoinOnLoginAsync()
+    {
+        var context = GameContextTestHelper.CreateGameContext();
+        var character = PlayerTestHelper.CreateCharacter(context);
+        character.Name = "Leaving";
+        character.Id = Guid.NewGuid();
+        await using var leader = await PlayerTestHelper.CreatePlayerAsync(context).ConfigureAwait(false);
+        var member = await PlayerTestHelper.CreatePlayerAsync(context, character).ConfigureAwait(false);
+        await using var party = context.PartyManager.CreateParty();
+        await party.AddAsync(leader).ConfigureAwait(false);
+        await party.AddAsync(member).ConfigureAwait(false);
+        await new PartyKickAction().KickPlayerAsync(member, 1).ConfigureAwait(false);
+        await member.DisconnectAsync().ConfigureAwait(false);
+
+        await using var returningMember = await PlayerTestHelper.CreatePlayerAsync(context, character).ConfigureAwait(false);
+        Assert.That(returningMember.Party, Is.Null);
+        Assert.That(party.PartyList, Is.Empty);
     }
 
     /// <summary>

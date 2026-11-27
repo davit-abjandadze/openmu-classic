@@ -32,6 +32,11 @@ public sealed class PartyManager : IPartyManager
     /// <inheritdoc />
     public async ValueTask OnMemberReconnectedAsync(IPartyMember member)
     {
+        if (member.Party is not null)
+        {
+            return;
+        }
+
         var characterId = (member as Player)?.SelectedCharacter?.Id;
         Party? party = null;
         IPartyMember? snapshot = null;
@@ -40,7 +45,7 @@ public sealed class PartyManager : IPartyManager
         if (this._partyByCharacterName.TryGetValue(member.Name, out var partyByName))
         {
             party = partyByName;
-            snapshot = party.PartyList.FirstOrDefault(m => m.Name == member.Name && !m.IsConnected && IsSameCharacter(m, characterId));
+            snapshot = party.PartyList.OfType<OfflinePartyMember>().FirstOrDefault(m => m.Name == member.Name && IsSameCharacter(m, characterId));
         }
 
         // The character may have been renamed while it was offline (e.g. by the admin panel):
@@ -49,7 +54,7 @@ public sealed class PartyManager : IPartyManager
         {
             foreach (var candidate in this._partyByCharacterName.Values.Distinct())
             {
-                snapshot = candidate.PartyList.FirstOrDefault(m => !m.IsConnected && m is OfflinePartyMember offline && offline.CharacterId == id);
+                snapshot = candidate.PartyList.OfType<OfflinePartyMember>().FirstOrDefault(m => m.CharacterId == id);
                 if (snapshot is not null)
                 {
                     party = candidate;
@@ -66,9 +71,11 @@ public sealed class PartyManager : IPartyManager
 
         await party.ReplaceMemberAsync(snapshot, member).ConfigureAwait(false);
 
-        // Send the full party state to the rejoined player since they missed updates while offline.
-        await member.InvokeViewPlugInAsync<IUpdatePartyListPlugIn>(p => p.UpdatePartyListAsync()).ConfigureAwait(false);
-        await member.InvokeViewPlugInAsync<IPartyHealthViewPlugIn>(p => p.UpdatePartyHealthAsync()).ConfigureAwait(false);
+        if (member.Party == party)
+        {
+            // Replacement also sends the current party list to all members, including the returning player.
+            await member.InvokeViewPlugInAsync<IPartyHealthViewPlugIn>(p => p.UpdatePartyHealthAsync()).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc />
@@ -83,9 +90,6 @@ public sealed class PartyManager : IPartyManager
     /// A snapshot with a known character id only belongs to that character, so another character
     /// which got the old name later does not take the reserved slot.
     /// </summary>
-    private static bool IsSameCharacter(IPartyMember member, Guid? characterId)
-        => member is not OfflinePartyMember offline
-           || characterId is null
-           || offline.CharacterId == Guid.Empty
-           || offline.CharacterId == characterId;
+    private static bool IsSameCharacter(OfflinePartyMember member, Guid? characterId)
+        => characterId is null || member.CharacterId == Guid.Empty || member.CharacterId == characterId;
 }

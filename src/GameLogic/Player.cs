@@ -750,6 +750,8 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
 
         if (character is null)
         {
+            await this.ReservePartySlotAsync().ConfigureAwait(false);
+
             if (this._muHelperLazy.IsValueCreated)
             {
                 await this._muHelperLazy.Value.StopAsync().ConfigureAwait(false);
@@ -1416,10 +1418,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// </summary>
     public async ValueTask RemoveFromGameAsync()
     {
-        if (this.Party is { } party)
-        {
-            await party.LeaveTemporarilyAsync(this).ConfigureAwait(false);
-        }
+        await this.ReservePartySlotAsync().ConfigureAwait(false);
 
         await this.HandleMoveToNextSafezoneAsync().ConfigureAwait(false);
 
@@ -1653,6 +1652,8 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// <inheritdoc />
     protected override async ValueTask DisposeAsyncCore()
     {
+        await this.ReservePartySlotAsync().ConfigureAwait(false);
+
         // A disposed player must never stay reachable from the game context: it would keep counting
         // towards the server's maximum player count (which turns real clients away) and keep its whole
         // object graph alive. The regular teardown removes it through the PlayerDisconnected event, but
@@ -1711,6 +1712,9 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     {
         throw new NotImplementedException("CreateViewPlugInContainer must be overwritten in derived classes.");
     }
+
+    private ValueTask ReservePartySlotAsync()
+        => this.Party?.LeaveTemporarilyAsync(this) ?? ValueTask.CompletedTask;
 
     /// <summary>
     /// Handles the move to next safezone logic after death or disconnect.

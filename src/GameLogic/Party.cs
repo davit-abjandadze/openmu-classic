@@ -344,6 +344,11 @@ public sealed class Party : AsyncDisposable
         {
             members = this._partyMembers;
             this._partyMembers = [];
+            this.PartyMaster = null;
+            foreach (var member in members)
+            {
+                this.CleanupMember(member);
+            }
         }
 
         for (byte i = 0; i < members.Length; i++)
@@ -354,7 +359,6 @@ public sealed class Party : AsyncDisposable
                 var index = i;
                 await member.InvokeViewPlugInAsync<IPartyMemberRemovedPlugIn>(
                     p => p.PartyMemberRemovedAsync(index)).ConfigureAwait(false);
-                this.CleanupMember(member);
             }
             catch (Exception ex)
             {
@@ -508,6 +512,8 @@ public sealed class Party : AsyncDisposable
                 {
                     this.PartyMaster = this._partyMembers[0];
                 }
+
+                this.CleanupMember(member);
             }
         }
 
@@ -517,7 +523,7 @@ public sealed class Party : AsyncDisposable
             return;
         }
 
-        // Notify the member before cleaning up so the index is still valid.
+        // The client still has the old list, so send the index from that list.
         try
         {
             await member.InvokeViewPlugInAsync<IPartyMemberRemovedPlugIn>(
@@ -527,8 +533,6 @@ public sealed class Party : AsyncDisposable
         {
             this._logger.LogDebug(ex, "Error notifying kicked member {Name}", member.Name);
         }
-
-        this.CleanupMember(member);
 
         await this.SendPartyListAsync().ConfigureAwait(false);
         await this.UpdateNearbyCountAsync().ConfigureAwait(false);

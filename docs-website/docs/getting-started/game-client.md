@@ -60,3 +60,12 @@ IP resolver:
 
 See [Startup parameters](../deployment/startup-parameters.md) for the equivalent
 start parameters and environment variables.
+
+## Returning to your party
+
+When the Party Auto Rejoin plugin is enabled, logging out or losing your
+connection reserves your place in the party, even if every member goes
+offline. Log in with the same character on the same game server to rejoin
+automatically. Use the in-game party controls to leave permanently.
+
+Reserved places last for the lifetime of the game server process.

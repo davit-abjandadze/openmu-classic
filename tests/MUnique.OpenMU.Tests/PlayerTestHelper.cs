@@ -70,11 +70,12 @@ public static class PlayerTestHelper
     /// Gets a test player with the specified game context.
     /// </summary>
     /// <param name="gameContext">The game context.</param>
+    /// <param name="character">The existing character to enter with, if any.</param>
     /// <returns>The test player.</returns>
-    public static async ValueTask<Player> CreatePlayerAsync(IGameContext gameContext)
+    public static async ValueTask<Player> CreatePlayerAsync(IGameContext gameContext, Character? character = null)
     {
         var player = new TestPlayer(gameContext);
-        await EnterWorldAsync(player, CreateCharacter(gameContext)).ConfigureAwait(false);
+        await EnterWorldAsync(player, character ?? CreateCharacter(gameContext)).ConfigureAwait(false);
         return player;
     }
 
