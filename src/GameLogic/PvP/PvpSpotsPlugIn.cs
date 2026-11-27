@@ -11,6 +11,7 @@ using System.Threading;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
+using MUnique.OpenMU.GameLogic.Offline;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.PlugIns;
 
@@ -22,7 +23,7 @@ using MUnique.OpenMU.PlugIns;
 [PlugIn]
 [Display(Name = "PvP spots and prestige", Description = "Areas in which killing players doesn't make the killer a player killer and earns prestige. Kills, deaths and assists are counted per week and in total.")]
 [Guid("2D7E5B1A-4F3C-4E8B-A6D2-9C1F0E3B7A51")]
-public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotHitPlugIn, IAttackableGotKilledPlugIn, IDuelWonPlugIn, ISupportCustomConfiguration<PvpSpotsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
+public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotHitPlugIn, IAttackableGotKilledPlugIn, IAttackableMovedPlugIn, IObjectAddedToMapPlugIn, IObjectRemovedFromMapPlugIn, IDuelWonPlugIn, ISupportCustomConfiguration<PvpSpotsConfiguration>, ISupportDefaultCustomConfiguration, IDisabledByDefault
 {
     /// <summary>
     /// The recent hits on a victim per attacker, to determine the assistants of a kill.
@@ -31,6 +32,7 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
     private readonly ConditionalWeakTable<Player, ConcurrentDictionary<Player, DateTime>> _recentHits = new();
 
     private readonly ConcurrentDictionary<(Guid Killer, Guid Victim), List<DateTime>> _recentKills = new();
+    private readonly ConditionalWeakTable<Player, ZonePresence> _zonePresence = new();
 
     private long _nextRecentKillsCleanupTicks;
 
@@ -98,6 +100,45 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
         {
             eventArgs.IsExempted = true;
         }
+    }
+
+    /// <inheritdoc />
+    public void AttackableMoved(IAttackable attackable)
+    {
+        if (attackable is Player player && this._zonePresence.TryGetValue(player, out var presence))
+        {
+            _ = this.NotifyZoneChangeAsync(player, presence);
+        }
+    }
+
+    /// <inheritdoc />
+    public ValueTask ObjectAddedToMapAsync(GameMap map, ILocateable addedObject)
+    {
+        if (addedObject is not Player player || player is OfflinePlayer)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        var presence = this._zonePresence.GetValue(player, static _ => new ZonePresence());
+        return this.NotifyZoneChangeAsync(player, presence, map);
+    }
+
+    /// <inheritdoc />
+    public ValueTask ObjectRemovedFromMapAsync(GameMap map, ILocateable removedObject)
+    {
+        if (removedObject is Player player && this._zonePresence.TryGetValue(player, out var presence))
+        {
+            lock (presence)
+            {
+                if (presence.Map == map)
+                {
+                    // Keep the last spot until the next arrival so a map change can announce an exit.
+                    presence.Map = null;
+                }
+            }
+        }
+
+        return ValueTask.CompletedTask;
     }
 
     /// <inheritdoc />
@@ -290,6 +331,40 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
         attributes[PvpStats.TotalDeaths]++;
     }
 
+    private async ValueTask NotifyZoneChangeAsync(Player player, ZonePresence presence, GameMap? arrivalMap = null)
+    {
+        string messageKey;
+        lock (presence)
+        {
+            var map = arrivalMap ?? presence.Map;
+            if (map is null || player.CurrentMap != map)
+            {
+                return;
+            }
+
+            var spot = this.Configuration is { } configuration ? GetSpotOf(player, configuration) : null;
+            if (ReferenceEquals(spot, presence.Spot) && (spot is null || presence.Map == map))
+            {
+                presence.Map = map;
+                return;
+            }
+
+            presence.Map = map;
+            presence.Spot = spot;
+            messageKey = spot is null ? nameof(PlayerMessage.LeftPvpZone) : nameof(PlayerMessage.EnteredPvpZone);
+        }
+
+        // Movement notifications are synchronous. A failed client send must never interrupt movement.
+        try
+        {
+            await player.ShowLocalizedBlueMessageAsync(messageKey).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            player.Logger.LogDebug(ex, "Couldn't send the PvP zone notification to {Player}", player.Name);
+        }
+    }
+
     private bool IsFarming(Guid killerId, Guid victimId, PvpSpotsConfiguration configuration, DateTime now)
     {
         if (configuration.MaximumKillsOfSameVictim <= 0)
@@ -341,5 +416,12 @@ public class PvpSpotsPlugIn : IPlayerKillPenaltyExemptionPlugIn, IAttackableGotH
                 }
             }
         }
+    }
+
+    private sealed class ZonePresence
+    {
+        public GameMap? Map { get; set; }
+
+        public PvpSpotsConfiguration.PvpSpot? Spot { get; set; }
     }
 }

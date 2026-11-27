@@ -1216,6 +1216,12 @@ Extensões de inventário: {18}</value>
   <data name="PvpNotActive" xml:space="preserve">
     <value>O sistema PvP não está ativo.</value>
   </data>
+  <data name="EnteredPvpZone" xml:space="preserve">
+    <value>Você entrou em uma zona PvP.</value>
+  </data>
+  <data name="LeftPvpZone" xml:space="preserve">
+    <value>Você saiu da zona PvP.</value>
+  </data>
   <data name="PvpZonesHeader" xml:space="preserve">
     <value>Zonas PvP (sem PK, prestígio por cada morte):</value>
   </data>

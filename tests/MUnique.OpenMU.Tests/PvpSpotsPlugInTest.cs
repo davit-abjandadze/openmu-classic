@@ -5,12 +5,15 @@
 namespace MUnique.OpenMU.Tests;
 
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.PvP;
+using MUnique.OpenMU.GameLogic.Views;
+using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Pathfinding;
 
 /// <summary>
@@ -75,6 +78,49 @@ public class PvpSpotsPlugInTest
 
         this._victim.Position = OutsideSpot;
         Assert.That(IsExempted(this._killer, this._victim), Is.False);
+    }
+
+    /// <summary>
+    /// Verifies that entering and leaving a PvP spot through movement or map arrival sends one notice each.
+    /// </summary>
+    [Test]
+    public async Task ZoneChangesAreAnnouncedOncePerTransitionAsync()
+    {
+        var player = this._killer;
+        var map = player.CurrentMap!;
+        var manager = player.GameContext.PlugInManager;
+        manager.RegisterPlugInAtPlugInPoint<IAttackableMovedPlugIn>(this._plugIn);
+        manager.RegisterPlugInAtPlugInPoint<IObjectAddedToMapPlugIn>(this._plugIn);
+        manager.RegisterPlugInAtPlugInPoint<IObjectRemovedFromMapPlugIn>(this._plugIn);
+        var message = Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMessagePlugIn>()!);
+        const string entryNotice = "You have entered a PvP zone.";
+        const string exitNotice = "You have left the PvP zone.";
+
+        await map.RemoveAsync(player).ConfigureAwait(false);
+        player.Position = OutsideSpot;
+        await map.AddAsync(player).ConfigureAwait(false);
+        message.Verify(view => view.ShowMessageAsync(entryNotice, MessageType.BlueNormal), Times.Never);
+        message.Verify(view => view.ShowMessageAsync(exitNotice, MessageType.BlueNormal), Times.Never);
+
+        player.Position = InSpot;
+        player.Position = new Point(111, 110);
+        message.Verify(view => view.ShowMessageAsync(entryNotice, MessageType.BlueNormal), Times.Once);
+
+        player.Position = OutsideSpot;
+        player.Position = new Point(201, 200);
+        message.Verify(view => view.ShowMessageAsync(exitNotice, MessageType.BlueNormal), Times.Once);
+        player.Position = InSpot;
+        message.Verify(view => view.ShowMessageAsync(entryNotice, MessageType.BlueNormal), Times.Exactly(2));
+
+        await map.RemoveAsync(player).ConfigureAwait(false);
+        await map.AddAsync(player).ConfigureAwait(false);
+        message.Verify(view => view.ShowMessageAsync(entryNotice, MessageType.BlueNormal), Times.Exactly(3));
+
+        await map.RemoveAsync(player).ConfigureAwait(false);
+        player.Position = OutsideSpot;
+        message.Verify(view => view.ShowMessageAsync(exitNotice, MessageType.BlueNormal), Times.Once);
+        await map.AddAsync(player).ConfigureAwait(false);
+        message.Verify(view => view.ShowMessageAsync(exitNotice, MessageType.BlueNormal), Times.Exactly(2));
     }
 
     /// <summary>

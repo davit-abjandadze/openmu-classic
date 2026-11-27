@@ -107,7 +107,15 @@ public class PvpSpotsConfiguration
     /// <returns>The spot, or <c>null</c> if the position is not in a spot.</returns>
     public PvpSpot? GetSpot(int mapNumber, byte x, byte y)
     {
-        return this.Spots.FirstOrDefault(spot => spot.Contains(mapNumber, x, y));
+        foreach (var spot in this.Spots)
+        {
+            if (spot.Contains(mapNumber, x, y))
+            {
+                return spot;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

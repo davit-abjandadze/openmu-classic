@@ -1211,6 +1211,15 @@ namespace MUnique.OpenMU.GameLogic.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have entered a PvP zone..
+        /// </summary>
+        public static string EnteredPvpZone {
+            get {
+                return ResourceManager.GetString("EnteredPvpZone", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The equipment has been changed..
         /// </summary>
         public static string EquipmentHasChangedMessage {
@@ -1534,6 +1543,15 @@ namespace MUnique.OpenMU.GameLogic.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to You have left the PvP zone..
+        /// </summary>
+        public static string LeftPvpZone {
+            get {
+                return ResourceManager.GetString("LeftPvpZone", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Level of &apos;{0}&apos;: {1}..
         /// </summary>
