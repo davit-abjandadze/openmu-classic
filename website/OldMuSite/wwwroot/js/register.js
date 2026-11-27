@@ -3,6 +3,7 @@
 // The registration form. A security check (proof of work) is solved in a worker as soon as the
 // page opens, so it's usually done before the visitor has typed the password.
 (() => {
+  const { t, registrationError } = window.OldMuLocale;
   const form = document.getElementById('register-form');
   const message = form.querySelector('[data-message]');
   const submit = form.querySelector('[data-submit]');
@@ -27,7 +28,7 @@
   function setSecurity(state, text) {
     security.classList.remove('ready', 'failed');
     if (state) security.classList.add(state);
-    securityText.textContent = text;
+    securityText.textContent = t(text);
   }
 
   function solveChallenge() {
@@ -36,7 +37,10 @@
     setSecurity(null, 'Preparing the security check…');
     solving = (async () => {
       const response = await fetch('/api/register/challenge', { cache: 'no-store' });
-      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || 'The security check could not be loaded.');
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || 'The security check could not be loaded.');
+      }
       const { token, bits } = await response.json();
       const salt = token.split('.')[0];
       const nonce = await new Promise((resolve, reject) => {
@@ -49,7 +53,7 @@
       setSecurity('ready', 'Security check passed');
       return challenge;
     })();
-    solving.catch((error) => setSecurity('failed', error.message));
+    solving.catch((error) => setSecurity('failed', registrationError(error.message, 'The security check could not be loaded.')));
     return solving;
   }
 
@@ -68,7 +72,7 @@
     if (!field) return;
     const hint = field.querySelector('.hint');
     field.classList.toggle('invalid', !!error);
-    hint.textContent = error || hint.dataset.hint;
+    hint.textContent = error ? t(error) : hint.dataset.hint;
   }
 
   function validate() {
@@ -100,7 +104,7 @@
     }
 
     submit.disabled = true;
-    submit.textContent = 'Please wait…';
+    submit.textContent = t('Please wait…');
     try {
       const solved = challenge || await (solving || solveChallenge()).catch(() => solveChallenge());
       const response = await fetch('/api/register', {
@@ -124,18 +128,19 @@
         return;
       }
 
-      showError(result.error || 'Something went wrong. Please try again.');
+      const text = registrationError(result.error, 'Something went wrong. Please try again.');
+      showError(text);
       if (result.field) {
-        markField(result.field, result.error);
+        markField(result.field, text);
         form[result.field]?.focus();
       }
       solveChallenge(); // a challenge can be used only once
     } catch (error) {
-      showError(error.message || 'The server could not be reached. Please try again.');
+      showError(registrationError(error.message, 'The server could not be reached. Please try again.'));
       solveChallenge();
     } finally {
       submit.disabled = false;
-      submit.textContent = 'Create account';
+      submit.textContent = t('Create account');
     }
   });
 

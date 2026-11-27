@@ -3,6 +3,7 @@
 // The class families of the server and the short names of their classes, used by the class
 // filters of the rankings. Classes of other families (left in the test data) only show under "All".
 window.OldMuClasses = (() => {
+  const { t } = window.OldMuLocale;
   const classes = {
     'Dark Wizard': ['dw', 'DW'], 'Soul Master': ['dw', 'SM'], 'Grand Master': ['dw', 'GM'],
     'Dark Knight': ['dk', 'DK'], 'Blade Knight': ['dk', 'BK'], 'Blade Master': ['dk', 'BM'],
@@ -26,7 +27,7 @@ window.OldMuClasses = (() => {
     container.replaceChildren(...families.map(([key, label]) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = label;
+      button.textContent = t(label);
       button.dataset.family = key;
       button.setAttribute('aria-pressed', String(key === selected));
       button.addEventListener('click', () => {

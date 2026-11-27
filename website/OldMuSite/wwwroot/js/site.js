@@ -2,6 +2,17 @@
 
 // Shared by all pages: mobile menu, server status, download/discord links, next event.
 (() => {
+  const { russian, t, number, playerLabel } = window.OldMuLocale;
+  const languageLink = document.querySelector('[data-language-link]');
+  const alternatePage = languageLink.getAttribute('href');
+  const syncLanguageLink = () => {
+    languageLink.href = alternatePage + location.search + location.hash;
+  };
+  syncLanguageLink();
+  window.addEventListener('hashchange', syncLanguageLink);
+  window.addEventListener('popstate', syncLanguageLink);
+  languageLink.addEventListener('click', syncLanguageLink);
+
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.nav');
   if (toggle && nav) {
@@ -21,14 +32,17 @@
       document.querySelectorAll('[data-status]').forEach((pill) => {
         pill.classList.toggle('online', status.online);
         pill.classList.toggle('offline', !status.online);
+        const count = number(status.players);
         pill.querySelector('[data-status-text]').textContent = status.online
-          ? `Online · ${status.players} ${status.players === 1 ? 'player' : 'players'}`
-          : 'Offline';
+          ? russian
+            ? `${count} ${playerLabel(status.players)}`
+            : `Online · ${count} ${status.players === 1 ? 'player' : 'players'}`
+          : t('Offline');
       });
       document.querySelectorAll('[data-online-badge]').forEach((badge) => {
         badge.hidden = !status.online;
-        badge.querySelector('[data-online-count]').textContent = status.players;
-        badge.querySelector('[data-online-label]').textContent = status.players === 1 ? 'player online' : 'players online';
+        badge.querySelector('[data-online-count]').textContent = number(status.players);
+        badge.querySelector('[data-online-label]').textContent = playerLabel(status.players);
       });
       if (status.downloadUrl) {
         document.querySelectorAll('[data-download]').forEach((link) => {
@@ -37,7 +51,7 @@
         });
       } else {
         document.querySelectorAll('[data-download-label]').forEach((link) => {
-          link.textContent = 'Coming soon';
+          link.textContent = t('Coming soon');
           link.removeAttribute('href');
         });
       }
@@ -48,7 +62,7 @@
         });
       }
     } catch {
-      document.querySelectorAll('[data-status-text]').forEach((el) => { el.textContent = 'Status unknown'; });
+      document.querySelectorAll('[data-status-text]').forEach((el) => { el.textContent = t('Status unknown'); });
     }
   }
 
@@ -77,12 +91,14 @@
     if (!best) return;
     const hours = Math.floor(best.wait / 60);
     const minutes = best.wait % 60;
-    const left = best.wait === 0 ? 'now' : `in ${hours ? hours + ' h ' : ''}${minutes} min`;
+    const left = russian
+      ? best.wait === 0 ? 'сейчас' : `через ${hours ? hours + ' ч ' : ''}${minutes} мин`
+      : best.wait === 0 ? 'now' : `in ${hours ? hours + ' h ' : ''}${minutes} min`;
     target.innerHTML = '';
-    target.append('Next: ');
+    target.append(russian ? 'Далее: ' : 'Next: ');
     const b = document.createElement('b');
     b.textContent = best.name;
-    target.append(b, ` at ${best.time} – ${left}`);
+    target.append(b, russian ? ` в ${best.time} · ${left}` : ` at ${best.time} – ${left}`);
   }
 
   loadStatus();

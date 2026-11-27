@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Рейтинг – Old MU</title>
+  <meta name="description" content="Рейтинги Old MU: лучшие персонажи по ресетам и уровню, престиж PvP, Площадь Дьявола и Кровавый замок.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=languages">
+  <script src="/js/localization.js" defer></script>
+  <script src="/js/site.js" defer></script>
+  <script src="/js/classes.js" defer></script>
+  <script src="/js/ranking.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/ru/" aria-label="Главная страница Old MU"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <div class="language-switch" role="group" aria-label="Сменить язык">
+        <span lang="ru" aria-current="true" aria-label="Русский">RU</span>
+        <a lang="en" hreflang="en" aria-label="English" href="/ranking.html" data-language-link>EN</a>
+      </div>
+      <button class="menu-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="/ru/#info">Сервер</a>
+        <a href="/ru/guide.html">Гайд</a>
+        <a href="/ru/#events">События</a>
+        <a href="/ru/ranking.html" aria-current="page">Рейтинг</a>
+        <a href="/ru/#start">Скачать</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Проверяем…</span></span>
+        <a class="btn btn-red btn-small" href="/ru/register.html">Регистрация</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Рейтинг</h1>
+        <span class="ornament"></span>
+        <div class="online-now" data-online-now>
+          <div class="online-number"><span class="dot"></span><b data-online-count>–</b></div>
+          <div class="online-text" data-online-label>игроков онлайн</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ranking-section">
+      <div class="wrap">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" data-board="characters" aria-selected="true">Персонажи</button>
+          <button type="button" role="tab" data-board="pvp-week">PvP за неделю</button>
+          <button type="button" role="tab" data-board="pvp-all">PvP за всё время</button>
+          <button type="button" role="tab" data-board="devil-square">Площадь Дьявола</button>
+          <button type="button" role="tab" data-board="blood-castle">Кровавый замок</button>
+        </div>
+        <div class="class-tabs" data-class-tabs></div>
+
+        <div class="ranking-card">
+          <div class="ranking-tools">
+            <p class="ranking-note" data-note></p>
+            <input type="search" class="ranking-search" placeholder="Найти персонажа…" aria-label="Найти персонажа" data-search>
+          </div>
+          <div class="table-scroll">
+            <table class="ranking-table">
+              <thead data-head></thead>
+              <tbody data-body><tr><td class="empty">Загрузка…</td></tr></tbody>
+            </table>
+          </div>
+          <p class="ranking-foot"><span class="dot online"></span> онлайн · данные обновляются каждые несколько минут</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online — товарный знак Webzen. Это частный некоммерческий сервер.</span>
+      <span><a href="/ru/register.html">Регистрация</a> · <a href="/ru/">Главная</a></span>
+    </div>
+  </footer>
+</body>
+</html>

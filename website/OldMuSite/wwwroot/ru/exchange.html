@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Обмен предметов – Old MU</title>
+  <meta name="description" content="Предметы Excellent, которые можно получить командой /exchange в Old MU, требования к персонажам и предметы для обмена.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=languages">
+  <script src="/js/localization.js" defer></script>
+  <script src="/js/site.js" defer></script>
+  <script src="/js/classes.js" defer></script>
+  <script src="/js/exchange.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/ru/" aria-label="Главная страница Old MU"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <div class="language-switch" role="group" aria-label="Сменить язык">
+        <span lang="ru" aria-current="true" aria-label="Русский">RU</span>
+        <a lang="en" hreflang="en" aria-label="English" href="/exchange.html" data-language-link>EN</a>
+      </div>
+      <button class="menu-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="/ru/#info">Сервер</a>
+        <a href="/ru/guide.html">Гайд</a>
+        <a href="/ru/#events">События</a>
+        <a href="/ru/ranking.html">Рейтинг</a>
+        <a href="/ru/#start">Скачать</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Проверяем…</span></span>
+        <a class="btn btn-red btn-small" href="/ru/register.html">Регистрация</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Обмен предметов</h1>
+        <span class="ornament"></span>
+        <p class="page-lead">Сдайте <b data-x="requiredItems">3</b> ненужных предмета Excellent и получите один предмет Excellent на выбор.</p>
+      </div>
+    </section>
+
+    <div class="wrap exchange-page">
+      <p class="back-link"><a href="/ru/guide.html#exchange">← Назад к гайду</a></p>
+
+      <div class="exchange-info">
+        <div class="info-card">
+          <h2>Как работает обмен</h2>
+          <ol class="guide-steps">
+            <li>Положите в инвентарь <b data-x="requiredItems">3</b> предмета Excellent с уровнем выпадения от <b data-x="minimumDropLevel">44</b>. Предметы должны быть сняты с персонажа. <a href="#inputs">Какие предметы подходят?</a></li>
+            <li>Выберите предмет ниже и введите команду, например <span class="cmd">/exchange Dragon Armor</span>. Игра покажет, какие предметы будут сданы, начиная с самых дешёвых.</li>
+            <li>Для подтверждения добавьте <b>yes</b> в конце команды: <span class="cmd">/exchange Dragon Armor yes</span>.</li>
+          </ol>
+          <p class="note">Перед обменом уберите на склад предметы Excellent, которые хотите оставить.</p>
+        </div>
+        <div class="info-card">
+          <h2>Что вы получите</h2>
+          <ul class="chance-list">
+            <li><span>Уровень предмета</span><b>+0</b></li>
+            <li><span>Одна опция Excellent</span><b>всегда</b></li>
+            <li><span>Две опции Excellent</span><b><span data-x="twoOptionsChance">25</span>%</b></li>
+            <li><span>Три опции Excellent</span><b><span data-x="threeOptionsChance">5</span>%</b></li>
+            <li><span>Удача</span><b><span data-x="luckChance">50</span>%</b></li>
+            <li><span>Дополнительная опция</span><b>случайная, до +<span data-x="maximumOption">12</span></b></li>
+          </ul>
+          <p class="note">Оружие получает атакующие опции (например, шанс урона Excellent, +2% урона, скорость атаки, восстановление здоровья или маны после убийства). Броня и щиты получают защитные опции (например, +4% к максимальному здоровью, снижение или отражение урона, зен после убийства).</p>
+        </div>
+      </div>
+
+      <div class="exchange-message" data-message hidden></div>
+
+      <h2 class="exchange-heading">Что можно получить</h2>
+      <div class="class-tabs" data-class-tabs></div>
+      <div class="category-tabs" data-category-tabs></div>
+      <div class="item-grid" data-targets><p class="empty">Загрузка…</p></div>
+
+      <h2 class="exchange-heading" id="inputs">Что можно сдать</h2>
+      <p class="inputs-lead">Подходит любая версия <b>Excellent</b> этих предметов. Их уровень выпадения — <b data-x="minimumDropLevel">44</b> и выше.</p>
+      <div class="inputs" data-inputs></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online — товарный знак Webzen. Это частный некоммерческий сервер.</span>
+      <span><a href="/ru/guide.html">Гайд</a> · <a href="/ru/ranking.html">Рейтинг</a> · <a href="/ru/">Главная</a></span>
+    </div>
+  </footer>
+</body>
+</html>

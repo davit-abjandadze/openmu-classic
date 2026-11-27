@@ -7,7 +7,7 @@
   if (!tabs || cards.length === 0) return;
 
   const Classes = window.OldMuClasses;
-  const number = (value) => (value ?? 0).toLocaleString('en-US');
+  const { russian, t, number, page } = window.OldMuLocale;
   const columns = {
     characters: [(e) => e.resets, (e) => e.level],
     'pvp-week': [(e) => e.prestige, (e) => e.kills, (e) => e.deaths, (e) => e.assists],
@@ -21,7 +21,7 @@
     const td = document.createElement('td');
     td.className = 'empty';
     td.colSpan = 2 + columns[card.dataset.topBoard].length;
-    td.textContent = text;
+    td.textContent = t(text);
     row.append(td);
     card.querySelector('tbody').replaceChildren(row);
   }
@@ -29,12 +29,14 @@
   function render(card) {
     const board = card.dataset.topBoard;
     const link = card.querySelector('.see-all');
-    link.href = `/ranking.html#${board}${filter === 'all' ? '' : '/' + filter}`;
+    link.href = page(`/ranking.html#${board}${filter === 'all' ? '' : '/' + filter}`);
     const entries = data[board];
     if (!entries) return;
 
     const matching = entries.filter((e) => Classes.matches(e.characterClass, filter));
-    link.textContent = matching.length > 0 ? `See all ${matching.length}` : 'Open ranking';
+    link.textContent = matching.length > 0
+      ? russian ? `Весь рейтинг (${number(matching.length)})` : `See all ${matching.length}`
+      : t('Open ranking');
     if (matching.length === 0) {
       message(card, 'Nobody is ranked here yet.');
       return;
@@ -50,13 +52,13 @@
       if (entry.online) {
         const dot = document.createElement('span');
         dot.className = 'dot online';
-        dot.title = 'Online now';
+        dot.title = t('Online now');
         name.append(dot);
       }
       name.append(entry.name);
       const cls = document.createElement('small');
       cls.textContent = Classes.short(entry.characterClass);
-      cls.title = entry.characterClass;
+      cls.title = t(entry.characterClass);
       name.append(cls);
       row.append(rank, name);
       for (const value of columns[board]) {
@@ -79,11 +81,11 @@
     try {
       const response = await fetch(`/api/rankings/${card.dataset.topBoard}`, { cache: 'no-store' });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      if (!response.ok) throw new Error();
       data[card.dataset.topBoard] = result.entries;
       render(card);
-    } catch (error) {
-      message(card, error.message || 'The ranking is not available right now.');
+    } catch {
+      message(card, 'The ranking is not available right now.');
     }
   });
 })();

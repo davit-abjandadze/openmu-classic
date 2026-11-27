@@ -10,7 +10,7 @@
   const onlineCount = document.querySelector('[data-online-now] [data-online-count]');
   const onlineLabel = document.querySelector('[data-online-now] [data-online-label]');
 
-  const number = (value) => (value ?? 0).toLocaleString('en-US');
+  const { t, number, playerLabel } = window.OldMuLocale;
 
   const boards = {
     characters: {
@@ -54,7 +54,7 @@
     const row = document.createElement('tr');
     for (const title of ['#', 'Character', 'Class', ...boards[board].columns.map((c) => c[0])]) {
       const th = document.createElement('th');
-      th.textContent = title;
+      th.textContent = t(title);
       row.append(th);
     }
     head.replaceChildren(row);
@@ -68,7 +68,7 @@
       .filter((e) => !filter || e.name.toLowerCase().includes(filter));
     if (shown.length === 0) {
       const row = document.createElement('tr');
-      const td = cell(row, filter || family !== 'all' ? 'No character found.' : 'Nobody is ranked here yet.', 'empty');
+      const td = cell(row, t(filter || family !== 'all' ? 'No character found.' : 'Nobody is ranked here yet.'), 'empty');
       td.colSpan = 3 + columns.length;
       body.replaceChildren(row);
       return;
@@ -83,9 +83,9 @@
       const name = cell(row, '', 'name');
       const dot = document.createElement('span');
       dot.className = entry.online ? 'dot online' : 'dot';
-      dot.title = entry.online ? 'Online now' : 'Offline';
+      dot.title = t(entry.online ? 'Online now' : 'Offline');
       name.append(dot, entry.name);
-      cell(row, entry.characterClass, 'class');
+      cell(row, t(entry.characterClass), 'class');
       for (const [, value] of columns) cell(row, value(entry), 'num');
       return row;
     }));
@@ -93,7 +93,7 @@
 
   function showOnline(players, serverOnline) {
     onlineCount.textContent = serverOnline ? number(players) : '0';
-    onlineLabel.textContent = !serverOnline ? 'server offline' : players === 1 ? 'player online' : 'players online';
+    onlineLabel.textContent = serverOnline ? playerLabel(players) : t('server offline');
     onlineCount.parentElement.classList.toggle('offline', !serverOnline);
   }
 
@@ -101,10 +101,10 @@
     if (!boards[board]) board = 'characters';
     current = board;
     tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.board === board)));
-    note.textContent = boards[board].note;
+    note.textContent = t(boards[board].note);
     renderHead(board);
     const row = document.createElement('tr');
-    cell(row, 'Loading…', 'empty').colSpan = 3 + boards[board].columns.length;
+    cell(row, t('Loading…'), 'empty').colSpan = 3 + boards[board].columns.length;
     body.replaceChildren(row);
 
     const id = ++request;
@@ -112,15 +112,15 @@
       const response = await fetch(`/api/rankings/${board}`, { cache: 'no-store' });
       const result = await response.json();
       if (id !== request) return; // another tab was chosen meanwhile
-      if (!response.ok) throw new Error(result.error);
+      if (!response.ok) throw new Error();
       entries = result.entries;
       showOnline(result.players, result.serverOnline);
       renderBody();
-    } catch (error) {
+    } catch {
       if (id !== request) return;
       entries = [];
       const failed = document.createElement('tr');
-      cell(failed, error.message || 'The ranking is not available right now.', 'empty').colSpan = 3 + boards[board].columns.length;
+      cell(failed, t('The ranking is not available right now.'), 'empty').colSpan = 3 + boards[board].columns.length;
       body.replaceChildren(failed);
     }
   }

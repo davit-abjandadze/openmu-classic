@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Регистрация – Old MU</title>
+  <meta name="description" content="Создайте аккаунт Old MU. Для регистрации нужны только логин и пароль.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=languages">
+  <script src="/js/localization.js" defer></script>
+  <script src="/js/site.js" defer></script>
+  <script src="/js/register.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/ru/" aria-label="Главная страница Old MU"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <div class="language-switch" role="group" aria-label="Сменить язык">
+        <span lang="ru" aria-current="true" aria-label="Русский">RU</span>
+        <a lang="en" hreflang="en" aria-label="English" href="/register.html" data-language-link>EN</a>
+      </div>
+      <button class="menu-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="/ru/#info">Сервер</a>
+        <a href="/ru/guide.html">Гайд</a>
+        <a href="/ru/#events">События</a>
+        <a href="/ru/ranking.html">Рейтинг</a>
+        <a href="/ru/#start">Скачать</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Проверяем…</span></span>
+        <a class="btn btn-red btn-small" href="/ru/register.html" aria-current="page">Регистрация</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="register-page">
+    <div class="register-art">
+      <img class="art-logo" src="/img/logo.webp" alt="" width="680" height="455">
+    </div>
+
+    <div class="register-side">
+      <div class="card">
+        <form id="register-form" novalidate autocomplete="off">
+          <h1>Создать аккаунт</h1>
+          <p class="lead">Электронная почта не нужна. Запомните пароль: восстановить его по почте нельзя.</p>
+
+          <div class="form-message" role="alert" data-message></div>
+
+          <div class="field" data-field="login">
+            <label for="login">Логин</label>
+            <input id="login" name="login" type="text" autocapitalize="off" autocomplete="username" spellcheck="false"
+                   minlength="4" maxlength="10" pattern="[A-Za-z0-9]{4,10}" required>
+            <div class="hint" data-hint="4–10 латинских букв (a–z) или цифр.">4–10 латинских букв (a–z) или цифр.</div>
+          </div>
+
+          <div class="field" data-field="password">
+            <label for="password">Пароль</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" maxlength="20" required>
+            <div class="hint" data-hint="6–20 символов без пробелов.">6–20 символов без пробелов.</div>
+          </div>
+
+          <div class="field" data-field="repeat">
+            <label for="repeat">Повторите пароль</label>
+            <input id="repeat" name="repeat" type="password" autocomplete="new-password" maxlength="20" required>
+            <div class="hint" data-hint="Введите пароль ещё раз.">Введите пароль ещё раз.</div>
+          </div>
+
+          <!-- Left empty by people; filled by form bots. -->
+          <div class="hp" aria-hidden="true">
+            <label for="website">Сайт</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="security" data-security><span class="spinner"></span><span data-security-text>Готовим проверку безопасности…</span></div>
+
+          <button class="btn btn-red" type="submit" data-submit>Создать аккаунт</button>
+          <p class="below">Уже есть аккаунт? <a href="/ru/#start">Скачать игру</a></p>
+        </form>
+
+        <div class="success" data-success>
+          <div class="check">✓</div>
+          <h1>Добро пожаловать!</h1>
+          <p>Аккаунт <b data-success-login></b> создан. Скачайте игру, запустите лаунчер и войдите в аккаунт.</p>
+          <a class="btn btn-red" href="/ru/#start" data-download>Скачать</a>
+          <p class="below"><a href="/ru/register.html">Создать ещё один аккаунт</a></p>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

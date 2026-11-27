@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Old MU — Легенда не умирает</title>
+  <meta name="description" content="Old MU — классический первый сезон MU Online на клиенте шестого сезона. Четыре класса, бесплатные события и рейтинг PvP.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=languages">
+  <script src="/js/localization.js" defer></script>
+  <script src="/js/site.js" defer></script>
+  <script src="/js/classes.js" defer></script>
+  <script src="/js/home-ranking.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/ru/" aria-label="Главная страница Old MU"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <div class="language-switch" role="group" aria-label="Сменить язык">
+        <span lang="ru" aria-current="true" aria-label="Русский">RU</span>
+        <a lang="en" hreflang="en" aria-label="English" href="/" data-language-link>EN</a>
+      </div>
+      <button class="menu-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="#info">Сервер</a>
+        <a href="/ru/guide.html">Гайд</a>
+        <a href="#events">События</a>
+        <a href="#ranking">Рейтинг</a>
+        <a href="#start">Скачать</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Проверяем…</span></span>
+        <a class="btn btn-red btn-small" href="/ru/register.html">Регистрация</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-lights" aria-hidden="true"></div>
+      <div class="wrap">
+      <div class="hero-inner">
+        <h1 class="hero-title"><img class="hero-logo" src="/img/logo.webp" alt="Old MU — Легенда не умирает" width="680" height="455"></h1>
+        <p class="hero-sub">Классический первый сезон MU Online на клиенте шестого сезона. Знакомые карты, классы и атмосфера, а ещё MU Helper.</p>
+        <div class="hero-actions">
+          <a class="btn btn-red" href="/ru/register.html">Создать аккаунт</a>
+          <a class="btn" href="#start" data-download>Скачать</a>
+        </div>
+        <a class="online-badge" href="/ru/ranking.html" data-online-badge hidden>
+          <span class="dot"></span><b data-online-count>0</b> <span data-online-label>игроков онлайн</span>
+        </a>
+      </div>
+      </div>
+    </section>
+
+    <section class="facts" id="info">
+      <div class="wrap">
+        <div class="facts-grid">
+          <div class="fact"><b>100x</b><span>Опыт</span></div>
+          <div class="fact"><b>500x</b><span>Зен</span></div>
+          <div class="fact"><b>+11</b><span>Макс. уровень предметов</span></div>
+          <div class="fact"><b>350–400</b><span>Уровень ресета</span></div>
+          <div class="fact"><b>55</b><span>Макс. ресетов</span></div>
+          <div class="fact"><b>S1</b><span>Контент</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>О сервере</h2>
+          <span class="ornament"></span>
+          <p>Лоренсия, Девиас, Нория, Подземелье, Затерянная башня, Атланс, Таркан и Икар.</p>
+        </div>
+        <div class="features">
+          <article class="feature"><h3>Бесплатный вход на Площадь Дьявола и в Кровавый замок</h3><p>Три раза в день, без билетов. Вы попадёте в зал с игроками вашего уровня.</p></article>
+          <article class="feature"><h3>Серебряные медали</h3><p>Побеждайте в событиях и убивайте боссов, чтобы получить серебряные медали. У Томпсона их можно обменять на ящики Кундуна.</p></article>
+          <article class="feature"><h3>Боссы на карте</h3><p>Нажмите Tab, чтобы увидеть Гидру, Балрога, Зайкана, Рыцаря Луча Смерти и Тёмного Феникса на карте и узнать, когда они появятся снова.</p></article>
+          <article class="feature"><h3>PvP-зоны и престиж</h3><p>Сражайтесь за PvP-зоны, побеждайте в дуэлях и поднимайтесь в недельном рейтинге престижа.</p></article>
+          <article class="feature"><h3>Ресеты</h3><p>Ресет доступен с 350-го уровня и даёт 500 очков. Чем больше ресетов, тем меньше опыта вы получаете.</p></article>
+          <article class="feature"><h3>Честная игра</h3><p>Не более двух аккаунтов с одного IP-адреса и только один аккаунт с каждого IP-адреса на событие.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ranking">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Лучшие игроки</h2>
+          <span class="ornament"></span>
+        </div>
+        <div class="class-tabs" data-class-tabs></div>
+        <div class="top-boards">
+          <article class="top-board" data-top-board="characters">
+            <h3>Ресеты</h3>
+            <p>По числу ресетов, затем по уровню.</p>
+            <table class="top-table"><thead><tr><th>#</th><th>Персонаж</th><th>Ресеты</th><th>Уровень</th></tr></thead><tbody></tbody></table>
+            <a class="see-all" href="/ru/ranking.html#characters"></a>
+          </article>
+          <article class="top-board" data-top-board="pvp-week">
+            <h3>PvP за неделю</h3>
+            <p>Рейтинг обнуляется каждую неделю.</p>
+            <table class="top-table"><thead><tr><th>#</th><th>Персонаж</th><th>Престиж</th><th>У</th><th>С</th><th>П</th></tr></thead><tbody></tbody></table>
+            <a class="see-all" href="/ru/ranking.html#pvp-week"></a>
+          </article>
+          <article class="top-board" data-top-board="pvp-all">
+            <h3>Легенды PvP</h3>
+            <p>Результаты за всё время.</p>
+            <table class="top-table"><thead><tr><th>#</th><th>Персонаж</th><th>Престиж</th><th>У</th><th>С</th><th>П</th></tr></thead><tbody></tbody></table>
+            <a class="see-all" href="/ru/ranking.html#pvp-all"></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="classes">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Выберите класс</h2>
+          <span class="ornament"></span>
+          <p>В игре доступны четыре классических класса.</p>
+        </div>
+        <div class="classes">
+          <article class="class-card dk">
+            <div class="class-art">
+              <img src="/img/class-dk.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Тёмный рыцарь</h3>
+            <div class="evo">→ Рыцарь клинка</div>
+            <p>Бесстрашный воин с мощными атаками ближнего боя и навыком Twisting Slash.</p>
+          </article>
+          <article class="class-card dw">
+            <div class="class-art">
+              <img src="/img/class-dw.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Тёмный маг</h3>
+            <div class="evo">→ Повелитель душ</div>
+            <p>Повелитель стихий. Использует Evil Spirit, телепортацию и щит маны.</p>
+          </article>
+          <article class="class-card elf">
+            <div class="class-art">
+              <img src="/img/class-elf.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Эльфийка</h3>
+            <div class="evo">→ Эльфийка-муза</div>
+            <p>Меткая лучница, которая может лечить и усиливать себя в бою.</p>
+          </article>
+          <article class="class-card mg">
+            <div class="class-art">
+              <img src="/img/class-mg.webp" alt="" width="883" height="439" loading="lazy" decoding="async">
+            </div>
+            <h3>Магический гладиатор</h3>
+            <div class="evo">Доступен с самого начала</div>
+            <p>Владеет мечом и магией. Для создания персонажа не нужно достигать определённого уровня.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="events">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Расписание событий</h2>
+          <span class="ornament"></span>
+          <p>Время указано по Тбилиси (UTC+4).</p>
+        </div>
+        <div class="events-wrap">
+          <div class="events-art" role="img" aria-label="Замок"></div>
+          <div class="schedule">
+            <table>
+              <thead><tr><th>Событие</th><th>Начало</th></tr></thead>
+              <tbody>
+                <tr><td>Площадь Дьявола</td><td data-times="13:00,19:00,22:00">13:00 · 19:00 · 22:00</td></tr>
+                <tr><td>Кровавый замок</td><td data-times="13:30,19:30,22:30">13:30 · 19:30 · 22:30</td></tr>
+                <tr><td>Золотое вторжение</td><td data-times="23:00">23:00</td></tr>
+                <tr><td>Команда против команды</td><td data-times="23:30">23:30</td></tr>
+              </tbody>
+            </table>
+            <p class="next-event" data-next-event></p>
+            <p class="note">Вход на Площадь Дьявола — <b>/joinds</b>, в Кровавый замок — <b>/joinbc</b>, на «Команда против команды» — <b>/jointvt</b>. Вход открыт 5 минут.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Начните играть</h2>
+          <span class="ornament"></span>
+        </div>
+        <div class="steps">
+          <div class="step"><h3>Создайте аккаунт</h3><p>Достаточно логина и пароля. Электронная почта не нужна.</p><a class="btn btn-small" href="/ru/register.html">Регистрация</a></div>
+          <div class="step"><h3>Скачайте игру</h3><p>Скачайте лаунчер Old MU с клиентом игры и распакуйте архив в любую папку.</p><a class="btn btn-small" href="#start" data-download data-download-label>Скачать</a></div>
+          <div class="step"><h3>Войдите в игру</h3><p>Запустите <b>OldMuLauncher.exe</b>, нажмите Start Game и введите логин и пароль.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="banner">
+      <div class="wrap">
+        <h2>Легенда не умирает</h2>
+        <p>Ваши старые друзья уже в Лоренсии.</p>
+        <a class="btn btn-red" href="/ru/register.html">Создать аккаунт</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online — товарный знак Webzen. Это частный некоммерческий сервер.</span>
+      <span><a href="/ru/register.html">Регистрация</a> · <a href="/ru/ranking.html">Рейтинг</a> · <a href="#start" data-download>Скачать</a> <span data-discord hidden>· <a href="#" rel="noopener" target="_blank">Discord</a></span></span>
+    </div>
+  </footer>
+</body>
+</html>

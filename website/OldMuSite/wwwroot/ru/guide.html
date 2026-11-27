@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Гайд – Old MU</title>
+  <meta name="description" content="Руководство по Old MU: начало игры, характеристики, ресеты, события, медали, боссы, PvP, обмен предметов и команды чата.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=languages">
+  <script src="/js/localization.js" defer></script>
+  <script src="/js/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/ru/" aria-label="Главная страница Old MU"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <div class="language-switch" role="group" aria-label="Сменить язык">
+        <span lang="ru" aria-current="true" aria-label="Русский">RU</span>
+        <a lang="en" hreflang="en" aria-label="English" href="/guide.html" data-language-link>EN</a>
+      </div>
+      <button class="menu-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      <nav class="nav">
+        <a href="/ru/#info">Сервер</a>
+        <a href="/ru/guide.html" aria-current="page">Гайд</a>
+        <a href="/ru/#events">События</a>
+        <a href="/ru/ranking.html">Рейтинг</a>
+        <a href="/ru/#start">Скачать</a>
+        <span class="status-pill" data-status><span class="dot"></span><span data-status-text>Проверяем…</span></span>
+        <a class="btn btn-red btn-small" href="/ru/register.html">Регистрация</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Гайд</h1>
+        <span class="ornament"></span>
+        <p class="page-lead">Всё, что нужно знать для игры на Old MU.</p>
+      </div>
+    </section>
+
+    <div class="wrap guide-layout">
+      <nav class="guide-toc" aria-label="Содержание">
+        <b>Содержание</b>
+        <a href="#start">Начало игры</a>
+        <a href="#stats">Характеристики</a>
+        <a href="#resets">Ресеты</a>
+        <a href="#events">События</a>
+        <a href="#medals">Серебряные медали</a>
+        <a href="#bosses">Боссы</a>
+        <a href="#pvp">PvP</a>
+        <a href="#siege">Осада замка</a>
+        <a href="#exchange">Обмен предметов</a>
+        <a href="#offline">Прокачка офлайн</a>
+        <a href="#chat">Чат и гильдии</a>
+        <a href="#rules">Правила</a>
+        <a href="#commands">Все команды</a>
+      </nav>
+
+      <div class="guide-content">
+        <section class="guide-section" id="start">
+          <h2>Начало игры</h2>
+          <ol class="guide-steps">
+            <li><b>Создайте аккаунт</b> на <a href="/ru/register.html">странице регистрации</a>. Достаточно логина и пароля, электронная почта не нужна.</li>
+            <li><b>Скачайте игру</b>, распакуйте архив в любую папку и запустите <b>OldMuLauncher.exe</b>.</li>
+            <li>Нажмите <b>Start Game</b>, войдите в аккаунт и создайте персонажа: <b>Тёмного рыцаря</b>, <b>Тёмного мага</b>, <b>Эльфийку</b> или <b>Магического гладиатора</b>. Магический гладиатор доступен сразу.</li>
+            <li>Вы начнёте в Лоренсии, а эльфийки — в Нории. Охотьтесь, повышайте уровень и включите <b>MU Helper</b>, чтобы автоматизировать охоту.</li>
+          </ol>
+          <p>Вводите команды из этого гайда в игровой чат. Нажмите Enter, затем введите команду. <span class="cmd">/list</span> покажет все команды, а <span class="cmd">/help /reset</span> — описание команды ресета.</p>
+          <p><b>Группа:</b> каждый участник группы рядом с убитым монстром получает столько же опыта, сколько получил бы в одиночку.</p>
+        </section>
+
+        <section class="guide-section" id="stats">
+          <h2>Характеристики</h2>
+          <p>За каждый уровень вы получаете очки силы, ловкости, выносливости и энергии. Распределяйте их в окне персонажа (<b>C</b>) или с помощью команд:</p>
+          <table class="cmd-table">
+            <tr><td><span class="cmd">/addstr 100</span></td><td>Добавляет 100 очков к силе.</td></tr>
+            <tr><td><span class="cmd">/addagi 100</span></td><td>Ловкость.</td></tr>
+            <tr><td><span class="cmd">/addvit 100</span></td><td>Выносливость.</td></tr>
+            <tr><td><span class="cmd">/addene 100</span></td><td>Энергия.</td></tr>
+          </table>
+        </section>
+
+        <section class="guide-section" id="resets">
+          <h2>Ресеты</h2>
+          <p>Когда персонаж достигнет нужного уровня, сделайте ресет, чтобы стать сильнее.</p>
+          <ul>
+            <li>Введите <span class="cmd">/reset</span> начиная с <b>350-го уровня</b>. Для каждого следующего ресета требуется на 10 уровней больше, максимум до 400-го.</li>
+            <li>Ресет <b>бесплатный</b>. Персонаж возвращается на <b>10-й уровень</b>, его характеристики сбрасываются, а вы получаете <b>500 очков за каждый сделанный ресет</b> (5 ресетов = 2 500 очков). Персонаж перемещается в город, после чего происходит выход из игры.</li>
+            <li>Максимум — <b>55 ресетов</b>. Чем больше ресетов, тем меньше опыта вы получаете.</li>
+            <li><span class="cmd">/resetinfo</span> показывает условия и награду следующего ресета.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section" id="events">
+          <h2>События</h2>
+          <p>Вход на все события <b>бесплатный</b>, билеты не нужны. Время указано по Тбилиси (UTC+4). Вход открыт 5 минут. Игра предупреждает о начале за 5 и 2 минуты.</p>
+          <table class="cmd-table">
+            <tr><th>Событие</th><th>Начало</th><th>Как войти</th></tr>
+            <tr><td>Площадь Дьявола</td><td>13:00 · 19:00 · 22:00</td><td><span class="cmd">/joinds</span></td></tr>
+            <tr><td>Кровавый замок</td><td>13:30 · 19:30 · 22:30</td><td><span class="cmd">/joinbc</span></td></tr>
+            <tr><td>Золотое вторжение</td><td>23:00</td><td>На картах появляются золотые монстры.</td></tr>
+            <tr><td>Команда против команды</td><td>23:30</td><td><span class="cmd">/jointvt</span></td></tr>
+          </table>
+          <p>На Площадь Дьявола и в Кровавый замок можно войти <b>раз в день</b> на каждое событие. Вы попадёте в зал с игроками вашего уровня и будете получать двойной опыт. Лучшие игроки получают <a href="#medals">серебряные медали</a>.</p>
+        </section>
+
+        <section class="guide-section" id="medals">
+          <h2>Серебряные медали</h2>
+          <p>Серебряные медали дают за участие в событиях и убийство боссов. Медали попадают в инвентарь. Если он полон, заберите их позже у Томпсона.</p>
+          <ul>
+            <li><b>Площадь Дьявола</b>: 4 медали за первое место, по 2 за второе и третье.</li>
+            <li><b>Кровавый замок</b>: 3 медали победителю, по 1 остальным участникам его группы.</li>
+            <li>Убейте не менее <b>50 монстров</b> за один заход на Площадь Дьявола или в Кровавый замок и останьтесь до конца, чтобы получить <b>1 дополнительную</b> серебряную медаль.</li>
+            <li><b>Команда против команды</b>: 3 медали лучшему игроку, по 1 игрокам команды-победителя.</li>
+            <li><b>Боссы</b>: 1 серебряная медаль за босса, по 6 за Тёмного Феникса и Хелл Мейна (см. <a href="#bosses">список боссов</a>).</li>
+          </ul>
+          <p><b>Торговец Томпсон</b> стоит возле фонтана в Лоренсии и обменивает медали на ящики:</p>
+          <table class="cmd-table">
+            <tr><td>Ящик Кундуна +3</td><td>5 серебряных медалей</td></tr>
+            <tr><td>Ящик Кундуна +4</td><td>10 серебряных медалей</td></tr>
+          </table>
+        </section>
+
+        <section class="guide-section" id="bosses">
+          <h2>Боссы</h2>
+          <p>Нажмите <b>Tab</b>, чтобы увидеть боссов на карте и время их возрождения. Команда <span class="cmd">/bosses</span> покажет данные по всем картам. С боссов выпадают ящики Кундуна и серебряные медали.</p>
+          <table class="cmd-table">
+            <tr><th>Босс</th><th>Карта</th><th>Возрождение</th><th>Добыча</th></tr>
+            <tr><td>Гидра</td><td>Атланс</td><td>70 мин</td><td>Ящик Кундуна +3, 1 серебряная медаль</td></tr>
+            <tr><td>Балрог</td><td>Затерянная башня</td><td>70 мин</td><td>Ящик Кундуна +3, 1 серебряная медаль</td></tr>
+            <tr><td>Зайкан</td><td>Таркан</td><td>120 мин</td><td>Ящик Кундуна +4, 1 серебряная медаль</td></tr>
+            <tr><td>Рыцарь Луча Смерти</td><td>Таркан</td><td>120 мин</td><td>Ящик Кундуна +4, 1 серебряная медаль</td></tr>
+            <tr><td>Тёмный Феникс</td><td>Икар</td><td>240 мин</td><td>Ящик Кундуна +4, 6 серебряных медалей</td></tr>
+            <tr><td>Хелл Мейн</td><td>Арена</td><td>240 мин</td><td>Ящик Кундуна +4, 6 серебряных медалей</td></tr>
+          </table>
+          <p>Хелл Мейн — самый сильный босс. Соберите группу, чтобы его победить.</p>
+        </section>
+
+        <section class="guide-section" id="pvp">
+          <h2>PvP</h2>
+          <ul>
+            <li>В <b>PvP-зонах</b> за убийство других игроков начисляется <b>престиж</b>, а статус убийцы не присваивается. Список зон показывает команда <span class="cmd">/zones</span>.</li>
+            <li>При входе в PvP-зону появляется синее системное сообщение.</li>
+            <li>За победу в <b>дуэли</b> также начисляется престиж.</li>
+            <li><span class="cmd">/ranking</span> показывает рейтинг за неделю, а <span class="cmd">/ranking all</span> — за всё время. Оба доступны на <a href="/ru/ranking.html">странице рейтинга</a>.</li>
+            <li>Статус убийцы (PK), полученный вне PvP-зон, можно снять командой <span class="cmd">/pkclear</span>. Стоимость — 10 000 000 зен за убийство.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section" id="siege">
+          <h2>Осада замка</h2>
+          <p>Каждую неделю гильдии сражаются за замок в долине Лорен. Время указано по Тбилиси.</p>
+          <ul>
+            <li><b>Понедельник</b>: главы гильдий регистрируют свои гильдии у стражника на мосту в долине Лорен. Глава должен достичь 200-го уровня, а в гильдии должно быть не менее 20 участников.</li>
+            <li><b>Среда</b>: зарегистрированные гильдии сдают <b>Знаки лорда</b> (Rena +3, выпадают с монстров от 50-го уровня). В атаку идут до трёх гильдий с наибольшим числом знаков и участников.</li>
+            <li><b>Суббота, 20:00–22:00</b>: битва за замок. Гильдия, чей глава последним захватит корону, получит замок и право собирать налоги.</li>
+          </ul>
+          <p>Каждый участник гильдии, сражавшийся не менее 30 минут, получает <b>5 ящиков Кундуна +4</b>, даже если к концу осады он вышел из игры. Памела и Анджела продают зелья защитникам и нападающим в долине Лорен. У Гоблина Хаоса можно создать Камень жизни и зелья для осады.</p>
+        </section>
+
+        <section class="guide-section" id="exchange">
+          <h2>Обмен предметов <a class="list-link" href="/ru/exchange.html">(список)</a></h2>
+          <p>Обменяйте ненужные предметы Excellent на один предмет Excellent на выбор. Команда <span class="cmd">/exchange</span> принимает <b data-exchange="requiredItems">3</b> предмета Excellent с уровнем выпадения от <b data-exchange="minimumDropLevel">44</b>.</p>
+          <ol class="guide-steps">
+            <li>Положите предметы для обмена в инвентарь, сняв их с персонажа. Самые дешёвые предметы забираются первыми. Чтобы сохранить нужные предметы, уберите их на склад.</li>
+            <li>Введите <span class="cmd">/exchange</span>, чтобы увидеть доступные предметы.</li>
+            <li>Введите <span class="cmd">/exchange Dragon Armor</span>. Игра покажет, какие предметы будут сданы.</li>
+            <li>Подтвердите обмен командой <span class="cmd">/exchange Dragon Armor yes</span>. Новый предмет появится в инвентаре.</li>
+          </ol>
+          <p>Новый предмет будет уровня <b>+0</b> как минимум с одной опцией Excellent. Остальные опции определяются случайно. <a href="/ru/exchange.html">Посмотреть, какие предметы можно сдать и получить →</a></p>
+        </section>
+
+        <section class="guide-section" id="offline">
+          <h2>Прокачка офлайн</h2>
+          <p>Ваш персонаж может продолжать охотиться после выхода из игры.</p>
+          <ol class="guide-steps">
+            <li>Отправляйтесь в место охоты и включите <b>MU Helper</b>.</li>
+            <li>Введите <span class="cmd">/offlevel</span>. Игра закроется, а персонаж продолжит охотиться с вашими настройками MU Helper.</li>
+            <li>Войдите в игру снова, чтобы остановить охоту.</li>
+          </ol>
+          <p>Офлайн-прокачка недоступна во время событий, и персонаж должен быть жив. Офлайн-персонаж занимает одно из двух мест, доступных с вашего IP-адреса.</p>
+        </section>
+
+        <section class="guide-section" id="chat">
+          <h2>Чат и гильдии</h2>
+          <table class="cmd-table">
+            <tr><td><span class="cmd">/world text</span></td><td>Пишет всем игрокам на всех серверах. Обычный чат видят только игроки поблизости.</td></tr>
+            <tr><td><span class="cmd">/post text</span></td><td>Отправляет всем игрокам сообщение синим цветом.</td></tr>
+            <tr><td><span class="cmd">/war guild</span></td><td>Предлагает главе другой гильдии начать войну.</td></tr>
+            <tr><td><span class="cmd">/battlesoccer guild</span></td><td>Предлагает другой гильдии сыграть в боевой футбол.</td></tr>
+          </table>
+        </section>
+
+        <section class="guide-section" id="rules">
+          <h2>Правила</h2>
+          <ul>
+            <li>Одновременно в игре могут находиться не более <b>двух аккаунтов с одного IP-адреса</b>, включая офлайн-прокачку.</li>
+            <li>В каждом событии может участвовать только <b>один аккаунт с каждого IP-адреса</b>.</li>
+            <li>Предметы можно улучшать до <b>+11</b>.</li>
+            <li>Читы, боты и использование ошибок игры запрещены. Уважайте других игроков.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section" id="commands">
+          <h2>Все команды</h2>
+          <table class="cmd-table">
+            <tr><th>Команда</th><th>Описание</th></tr>
+            <tr><td><span class="cmd">/list</span></td><td>Показывает все команды.</td></tr>
+            <tr><td><span class="cmd">/help command</span></td><td>Описывает команду. Например, <span class="cmd">/help /reset</span>.</td></tr>
+            <tr><td><span class="cmd">/addstr</span> <span class="cmd">/addagi</span> <span class="cmd">/addvit</span> <span class="cmd">/addene</span> <i>очки</i></td><td>Добавляет очки характеристик.</td></tr>
+            <tr><td><span class="cmd">/reset</span></td><td>Делает ресет персонажа (с 350-го уровня).</td></tr>
+            <tr><td><span class="cmd">/resetinfo</span></td><td>Показывает условия и награду следующего ресета.</td></tr>
+            <tr><td><span class="cmd">/joinds</span> <span class="cmd">/joinbc</span> <span class="cmd">/jointvt</span></td><td>Вход на Площадь Дьявола, в Кровавый замок или на «Команда против команды», пока вход открыт.</td></tr>
+            <tr><td><span class="cmd">/bosses</span></td><td>Показывает всех боссов и время их возрождения.</td></tr>
+            <tr><td><span class="cmd">/zones</span></td><td>Показывает список PvP-зон.</td></tr>
+            <tr><td><span class="cmd">/ranking</span> <span class="cmd">/ranking all</span></td><td>Рейтинг PvP за неделю или за всё время.</td></tr>
+            <tr><td><span class="cmd">/pkclear</span></td><td>Снимает статус убийцы за зен.</td></tr>
+            <tr><td><span class="cmd">/exchange</span></td><td>Обменивает предметы Excellent. См. <a href="/ru/exchange.html">список предметов</a>.</td></tr>
+            <tr><td><span class="cmd">/offlevel</span></td><td>Оставляет персонажа охотиться с MU Helper после выхода из игры.</td></tr>
+            <tr><td><span class="cmd">/openware</span></td><td>Открывает склад из любой точки.</td></tr>
+            <tr><td><span class="cmd">/move map</span></td><td>Перемещает на другую карту, как в окне перемещения (M). Например, <span class="cmd">/move devias</span>.</td></tr>
+            <tr><td><span class="cmd">/waiting</span></td><td>Показывает награды, ожидающие свободного места в инвентаре.</td></tr>
+            <tr><td><span class="cmd">/world text</span> <span class="cmd">/post text</span></td><td>Пишет всем игрокам.</td></tr>
+            <tr><td><span class="cmd">/war guild</span> <span class="cmd">/battlesoccer guild</span></td><td>Война гильдий и боевой футбол.</td></tr>
+            <tr><td><span class="cmd">/language code</span></td><td>Меняет язык игровых сообщений.</td></tr>
+            <tr><td><span class="cmd">/discord link</span></td><td>Привязывает аккаунт к Discord.</td></tr>
+          </table>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© Old MU. MU Online — товарный знак Webzen. Это частный некоммерческий сервер.</span>
+      <span><a href="/ru/register.html">Регистрация</a> · <a href="/ru/ranking.html">Рейтинг</a> · <a href="/ru/">Главная</a></span>
+    </div>
+  </footer>
+  <script src="/js/guide.js" defer></script>
+</body>
+</html>

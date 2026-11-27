@@ -9,13 +9,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/site.css">
+  <link rel="stylesheet" href="/css/site.css?v=languages">
+  <script src="/js/localization.js" defer></script>
   <script src="/js/site.js" defer></script>
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="/" aria-label="Old MU home"><img src="/img/logo-small.webp" alt="Old MU" width="74" height="50"></a>
+      <div class="language-switch" role="group" aria-label="Change language">
+        <span lang="en" aria-current="true" aria-label="English">EN</span>
+        <a lang="ru" hreflang="ru" aria-label="Русский" href="/ru/guide.html" data-language-link>RU</a>
+      </div>
       <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
       <nav class="nav">
         <a href="/#info">Server</a>
@@ -140,6 +145,7 @@
           <h2>PvP</h2>
           <ul>
             <li>The <b>PvP spots</b> are areas where killing players gives <b>prestige</b> and doesn't make you a killer. <span class="cmd">/zones</span> lists them.</li>
+            <li>A blue system message appears when you enter a PvP zone.</li>
             <li>Winning a <b>duel</b> gives prestige too.</li>
             <li><span class="cmd">/ranking</span> shows the ranking of this week, <span class="cmd">/ranking all</span> of all time. It's also on the <a href="/ranking.html">ranking page</a>.</li>
             <li>A killer (PK) outside the PvP spots can clear the status with <span class="cmd">/pkclear</span>: 10,000,000 zen per kill.</li>
