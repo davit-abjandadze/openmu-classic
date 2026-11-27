@@ -28,7 +28,7 @@ public sealed class MainForm : Form
         [Spot.Settings] = Rectangle.FromLTRB(40, 840, 252, 904),
         [Spot.Website] = Rectangle.FromLTRB(272, 840, 476, 904),
         [Spot.Discord] = Rectangle.FromLTRB(496, 840, 698, 904),
-        [Spot.Exit] = Rectangle.FromLTRB(716, 840, 886, 904),
+        [Spot.Update] = Rectangle.FromLTRB(716, 840, 886, 904),
         [Spot.Start] = Rectangle.FromLTRB(1080, 784, 1490, 886),
         [Spot.Server] = Rectangle.FromLTRB(1110, 630, 1474, 682),
     };
@@ -39,6 +39,7 @@ public sealed class MainForm : Form
     private static readonly Rectangle FooterMessageArea = Rectangle.FromLTRB(560, 956, 1500, 1006);
 
     private readonly LauncherSettings settings;
+    private bool updating;
     private readonly Image artwork;
     private readonly System.Windows.Forms.Timer statusTimer = new() { Interval = 5000 };
     private readonly CancellationTokenSource disposing = new();
@@ -89,7 +90,7 @@ public sealed class MainForm : Form
         Settings,
         Website,
         Discord,
-        Exit,
+        Update,
         Start,
         Server,
     }
@@ -114,6 +115,7 @@ public sealed class MainForm : Form
         base.OnShown(e);
         this.statusTimer.Start();
         _ = this.RefreshStatusAsync();
+        _ = this.UpdateGameAsync();
     }
 
     /// <inheritdoc />
@@ -274,6 +276,8 @@ public sealed class MainForm : Form
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.DrawImage(this.artwork, new Rectangle(Point.Empty, size));
+            g.ScaleTransform(this.scale, this.scale);
+            this.PaintUpdateLabel(g);
         }
 
         this.background?.Dispose();
@@ -285,6 +289,22 @@ public sealed class MainForm : Form
         }
 
         this.Invalidate();
+    }
+
+    private void PaintUpdateLabel(Graphics g)
+    {
+        // Reuse the unlettered strip of the original button to retain its vertical shading and frame.
+        g.DrawImage(this.artwork, new Rectangle(735, 852, 130, 39), new Rectangle(790, 852, 7, 39), GraphicsUnit.Pixel);
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        var ink = Color.FromArgb(245, 243, 242);
+        using var pen = new Pen(ink, 3);
+        using var brush = new SolidBrush(ink);
+        g.DrawArc(pen, 750, 862, 22, 22, 0, 310);
+        g.FillPolygon(brush, [new Point(764, 868), new Point(773, 868), new Point(773, 859)]);
+        using var font = new Font("Times New Roman", 23, FontStyle.Regular, GraphicsUnit.Pixel);
+        using var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+        g.DrawString("Update", font, brush, new RectangleF(780, 853, 80, 39), format);
     }
 
     private Rectangle ToClient(Rectangle art) => Rectangle.Round(new RectangleF(art.X * this.scale, art.Y * this.scale, art.Width * this.scale, art.Height * this.scale));
@@ -425,14 +445,21 @@ public sealed class MainForm : Form
 
     private void Activate(Spot spot)
     {
+        if (this.updating && spot != Spot.Minimize)
+        {
+            return;
+        }
+
         switch (spot)
         {
             case Spot.Minimize:
                 this.WindowState = FormWindowState.Minimized;
                 break;
             case Spot.Close:
-            case Spot.Exit:
                 this.Close();
+                break;
+            case Spot.Update:
+                _ = this.UpdateGameAsync();
                 break;
             case Spot.Website:
                 OpenUrl(this.settings.WebsiteUrl);
@@ -454,6 +481,12 @@ public sealed class MainForm : Form
 
     private void StartGame()
     {
+        if (File.Exists(Path.Combine(Path.GetDirectoryName(this.settings.ClientFullPath)!, ClientUpdater.PendingFile)))
+        {
+            this.ShowMessage("Press Update to finish the interrupted update.", true);
+            return;
+        }
+
         if (GameStarter.Start(this.settings) is { } error)
         {
             this.ShowMessage(error, true);
@@ -469,6 +502,54 @@ public sealed class MainForm : Form
         {
             this.WindowState = FormWindowState.Minimized;
         }
+    }
+
+    private async Task UpdateGameAsync()
+    {
+        if (this.updating)
+        {
+            return;
+        }
+
+        this.updating = true;
+        try
+        {
+            var running = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(this.settings.ClientFullPath));
+            foreach (var process in running)
+            {
+                process.Dispose();
+            }
+
+            if (running.Length > 0)
+            {
+                this.ShowMessage("Close the game, then press Update.", true);
+                return;
+            }
+
+            this.ShowMessage("Checking for updates...", false);
+            var progress = new Progress<string>(text => this.ShowMessage(text, false));
+            var count = await Task.Run(() => ClientUpdater.ApplyAsync(this.settings.WebsiteUrl,
+                Path.GetDirectoryName(this.settings.ClientFullPath)!, progress));
+            this.ShowMessage(count == 0 ? "Your client is up to date." : $"Updated {count} files. Ready to play.", false);
+        }
+        catch (Exception ex)
+        {
+            this.ShowMessage(ex.Message, true);
+        }
+        finally
+        {
+            this.updating = false;
+        }
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        if (this.updating && e.CloseReason == CloseReason.UserClosing)
+        {
+            e.Cancel = true;
+        }
+
+        base.OnFormClosing(e);
     }
 
     private void OpenSettings()

@@ -55,6 +55,9 @@ and then browse to <http://localhost:8080>. Log in with `OPENMU_ADMIN_USER` /
 
 ## Website and registration
 
+The header language switch opens the same page in English or Russian. The Russian pages live
+under `/ru/` and keep that language as visitors follow links within the site.
+
 The website runs on port 80 (`WEBSITE_PORT`). Registration asks for a login and a password
 only; it creates the account through the server's API (`POST /api/accounts`) with an API key:
 
@@ -120,3 +123,27 @@ docker compose start openmu-startup
 
 Set `Host` in the launcher's `launcher.json` to `PUBLIC_HOST` and keep
 `Port` 44406.
+
+### Publishing a client patch
+
+The launcher checks the signed feed every time it opens. If the game is running,
+close it and press **Update** to retry. The feed is at `/updates/manifest.json` on
+`WebsiteUrl`. On the home server, the website mounts `~/openmu/updates` at
+`/app/wwwroot/updates`. Put changed distribution files in a ZIP with names
+relative to `OldMu/Client/` (for example `OldMu/Client/Data/Interface/example.OZJ`).
+From `~/openmu`, run one publication at a time:
+
+```sh
+python3 publish-client-update.py patch.zip updates update-signing.pem
+```
+
+The publisher retains earlier entries so players can skip releases. It writes
+content-addressed downloads first and replaces the signed manifest last.
+Back up the private signing key separately from the web directory. The matching
+public key is embedded in the launcher. Include the same files in the full
+client ZIP when refreshing the download for new players.
+
+Existing players download `/updates/OldMuLauncher.exe` on the home server and
+replace the launcher beside their `launcher.json` while it is closed. Opening
+the new launcher with the game closed applies client updates automatically.
+The full client ZIP includes the launcher for new installations.
