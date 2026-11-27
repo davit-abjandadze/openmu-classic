@@ -9,6 +9,7 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PvP;
 using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
+using MUnique.OpenMU.Persistence.Initialization.Skills;
 
 /// <summary>
 /// Restricts the content of the season 6 data to a classic server:
@@ -42,6 +43,9 @@ public class ClassicContentRestriction
     private const byte OrbsGroup = 12;
 
     private const byte ScrollsGroup = 15;
+
+    // Energy shown for each playable level of the Orb of Summoning in the classic client.
+    private static readonly int[] SummonEnergyByOrbLevel = [30, 60, 90, 130, 170, 210, 300];
 
     private static readonly IReadOnlySet<byte> AllowedClasses = new HashSet<byte>
     {
@@ -221,6 +225,27 @@ public class ClassicContentRestriction
         foreach (var item in gameConfiguration.Items.Where(IsSkillLearningItem))
         {
             RemoveLevelRequirements(item.Requirements);
+        }
+    }
+
+    /// <summary>
+    /// Aligns the seven elf summoning skills with the energy displayed on their orbs.
+    /// </summary>
+    /// <param name="context">The persistence context.</param>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void ApplySummonEnergy(IContext context, GameConfiguration gameConfiguration)
+    {
+        foreach (var skill in gameConfiguration.Skills.Where(s => s.Number >= (short)SkillNumber.SummonGoblin && s.Number <= (short)SkillNumber.SummonSoldier))
+        {
+            var requirement = skill.Requirements.FirstOrDefault(r => r.Attribute?.Id == Stats.TotalEnergy.Id);
+            if (requirement is null)
+            {
+                requirement = context.CreateNew<AttributeRequirement>();
+                requirement.Attribute = Stats.TotalEnergy.GetPersistent(gameConfiguration);
+                skill.Requirements.Add(requirement);
+            }
+
+            requirement.MinimumValue = SummonEnergyByOrbLevel[skill.Number - (short)SkillNumber.SummonGoblin];
         }
     }
 

@@ -60,6 +60,7 @@ public class ClassicDataInitialization : DataInitialization
     {
         await base.OnGameConfigurationInitializedAsync().ConfigureAwait(false);
         ClassicContentRestriction.Apply(this.GameConfiguration);
+        ClassicContentRestriction.ApplySummonEnergy(this.Context, this.GameConfiguration);
         await ClassicRates.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         ClassicEvents.ApplyToMiniGames(this.GameConfiguration);
         await ClassicMerchantStores.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
@@ -68,6 +69,7 @@ public class ClassicDataInitialization : DataInitialization
         ClassicBosses.Apply(this.Context, this.GameConfiguration);
         ClassicIcarusMonsters.Apply(this.Context, this.GameConfiguration);
         ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);
+        ClassicArenaPens.Apply(this.GameConfiguration);
         await ClassicMedalMerchant.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         ClassicCastleSiege.Apply(this.Context, this.GameConfiguration);
         ClassicCastleSiege.ActivateSuppliers(this.GameConfiguration);

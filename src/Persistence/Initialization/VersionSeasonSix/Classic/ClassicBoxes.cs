@@ -15,7 +15,7 @@ using MUnique.OpenMU.Persistence.Initialization.Properties;
 /// <list type="bullet">
 ///   <item>The Box of Heaven (Box of Luck +7) always drops a normal (not excellent) weapon or armor piece
 ///     of <see cref="BoxOfHeavenMinimumLevel"/> to <see cref="BoxOfHeavenMaximumLevel"/>, instead of a jewel or zen.
-///     All active equipment which drops from monsters is possible.</item>
+///     Equipment is capped at the drop level of Dragon Armor.</item>
 ///   <item>Monsters of at least level <see cref="BoxOfHeavenMinimumMonsterLevel"/> drop the Box of Heaven with a chance of
 ///     <see cref="BoxOfHeavenDropChance"/>, on all maps which have the common jewel drop.</item>
 ///   <item>Caren the Barmaid sells the Box of Kundun +1 to +4 (Box of Luck +8 to +11).</item>
@@ -91,6 +91,11 @@ public static class ClassicBoxes
     ];
 
     /// <summary>
+    /// The highest drop level among the Dragon, Legendary and Guardian sets (Dragon Armor).
+    /// </summary>
+    internal const byte BoxOfHeavenMaximumDropLevel = 59;
+
+    /// <summary>
     /// The number of the common jewel drop group (see <see cref="GameConfigurationInitializerBase"/>),
     /// whose maps also get the Box of Heaven drop.
     /// </summary>
@@ -154,7 +159,7 @@ public static class ClassicBoxes
     /// <param name="item">The item.</param>
     /// <returns><c>true</c>, if it can drop from the Box of Heaven.</returns>
     internal static bool IsBoxOfHeavenItem(ItemDefinition item)
-        => item.Group <= LastEquipmentGroup && item.IsActive && item.DropsFromMonsters && !item.IsAmmunition && item.ItemSlot is not null;
+        => item.Group <= LastEquipmentGroup && item.DropLevel <= BoxOfHeavenMaximumDropLevel && item.IsActive && item.DropsFromMonsters && !item.IsAmmunition && item.ItemSlot is not null;
 
     /// <summary>
     /// Gets the identifier of the drop group by which monsters drop the Box of Heaven.

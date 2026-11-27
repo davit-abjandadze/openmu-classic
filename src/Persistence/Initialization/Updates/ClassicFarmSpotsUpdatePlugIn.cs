@@ -16,6 +16,7 @@ using MUnique.OpenMU.PlugIns;
 /// The classic data shares the Season 6 updates, so this update does nothing on a regular Season 6 database.
 /// Version 2 replaces the three big spots of 12 monsters per map by 35 tiny spots of 8 monsters.
 /// Version 3 adds the hand-picked spots of Devias (Elite Yeti, Yeti and Worm).
+/// Version 4 adds the hand-picked Arena spots.
 /// </remarks>
 [PlugIn]
 [Display(Name = nameof(MUnique.OpenMU.Persistence.Initialization.Properties.PlugInResources.ClassicFarmSpotsUpdatePlugIn_Name), Description = nameof(MUnique.OpenMU.Persistence.Initialization.Properties.PlugInResources.ClassicFarmSpotsUpdatePlugIn_Description), ResourceType = typeof(MUnique.OpenMU.Persistence.Initialization.Properties.PlugInResources))]
@@ -30,7 +31,7 @@ public class ClassicFarmSpotsUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Adds 35 farm spots to each map from Lorencia to Icarus, in which 8 monsters of the same kind stand on a 3x3 square, shared by the normal monsters of the map, plus hand-picked spots in Devias. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Adds 35 farm spots to each of the original farming maps, plus hand-picked spots in Devias and Arena. Each spot spawns 8 monsters of the same kind in a 3x3 square. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -45,10 +46,30 @@ public class ClassicFarmSpotsUpdatePlugIn : UpdatePlugInBase
     public override bool IsMandatory => true;
 
     /// <inheritdoc />
-    public override int Version => 3;
+    public override int Version => 4;
 
     /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 11, 20, 22, 00, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 27, 0, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration, int? installedVersion)
+    {
+        if (installedVersion is null or < 3)
+        {
+            return this.ApplyAsync(context, gameConfiguration);
+        }
+
+        // Existing farm spots can be customized in the map editor.
+        if (ClassicContentRestriction.IsClassic(gameConfiguration))
+        {
+            ClassicFarmSpots.ApplyArena(context, gameConfiguration);
+        }
+
+        return ValueTask.CompletedTask;
+    }
 
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)

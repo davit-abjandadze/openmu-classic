@@ -30,7 +30,7 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Monsters of level 30 and above drop the Box of Heaven (0.1% chance), which always drops a normal (not excellent) +7 to +11 weapon or armor piece, Caren the Barmaid sells the Box of Kundun +1 to +4, and the excellent Archangel weapons are moved from the Box of Kundun +4 to the +5, which is held back: nothing sells or drops it, the Golden Tantalos drops the +4 instead. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Monsters of level 30 and above drop the Box of Heaven (0.1% chance), which always drops normal +7 to +11 equipment up to drop level 59 (Dragon Armor), Caren the Barmaid sells the Box of Kundun +1 to +4, and the excellent Archangel weapons are moved from the Box of Kundun +4 to the +5, which is held back: nothing sells or drops it, the Golden Tantalos drops the +4 instead. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -51,11 +51,12 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     /// <remarks>
     /// Version 2 moves the Archangel weapons from the Box of Kundun +4 to the +5.
     /// Version 3 holds the Box of Kundun +5 back: Caren the Barmaid doesn't sell it anymore, and the Golden Tantalos drops the +4 instead.
+    /// Version 4 caps Box of Heaven rewards at the drop level of Dragon Armor.
     /// </remarks>
-    public override int Version => 3;
+    public override int Version => 4;
 
     /// <inheritdoc />
-    public override DateTime UpdatedAt => new(2026, 11, 26, 12, 00, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 27, 12, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     /// <remarks>
@@ -63,6 +64,29 @@ public class ClassicBoxesUpdatePlugIn : UpdatePlugInBase
     /// Both updates have the same <see cref="UpdatedAt"/>, so without the dependency their order would depend on their keys.
     /// </remarks>
     public override IEnumerable<UpdateDependency> DependsOn => [typeof(ClassicMagicGladiatorUpdatePlugIn).GUID];
+
+    /// <inheritdoc />
+    protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration, int? installedVersion)
+    {
+        if (installedVersion is null or < 3)
+        {
+            return this.ApplyAsync(context, gameConfiguration);
+        }
+
+        // Keep the owner's reward selection and merchant stores when upgrading from version 3.
+        if (ClassicContentRestriction.IsClassic(gameConfiguration) && ClassicBoxes.GetBoxOfLuck(gameConfiguration) is { } box)
+        {
+            foreach (var group in box.DropItems.Where(g => g.SourceItemLevel == ClassicBoxes.BoxOfHeavenLevel))
+            {
+                foreach (var item in group.PossibleItems.Where(i => i.DropLevel > ClassicBoxes.BoxOfHeavenMaximumDropLevel).ToList())
+                {
+                    group.PossibleItems.Remove(item);
+                }
+            }
+        }
+
+        return ValueTask.CompletedTask;
+    }
 
     /// <inheritdoc />
     protected override async ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)

@@ -224,6 +224,24 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Checks the client energy thresholds on fresh data and after upgrading the old skill table.
+    /// </summary>
+    [Test]
+    public async Task SummonEnergyMatchesOrbLevelsAsync()
+    {
+        var energy = this._gameConfiguration.Skills.Where(s => s.Number is >= 30 and <= 36)
+            .OrderBy(s => s.Number)
+            .Select(s => s.Requirements.Single(r => r.Attribute?.Id == Stats.TotalEnergy.Id)).ToList();
+        int[] expected = [30, 60, 90, 130, 170, 210, 300];
+        Assert.That(energy.Select(r => r.MinimumValue), Is.EqualTo(expected));
+        energy[3].MinimumValue = 230;
+        var update = new ClassicSkillLevelRequirementsUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        Assert.That(energy.Select(r => r.MinimumValue), Is.EqualTo(expected));
+    }
+
+    /// <summary>
     /// Tests that the buffs of Dark Wizard, Dark Knight and Fairy Elf can only be cast on the caster itself.
     /// </summary>
     /// <param name="skillNumber">The skill number.</param>
@@ -1033,7 +1051,7 @@ internal class ClassicDataInitializationTest
 
     /// <summary>
     /// Tests that the Box of Heaven (Box of Luck +7) always drops a normal +7 to +11 weapon or armor piece,
-    /// out of all active equipment which drops from monsters, and never zen.
+    /// up to the tier of Dragon Armor, and never zen.
     /// </summary>
     [Test]
     public void BoxOfHeavenDropsNormalEquipment()
@@ -1046,8 +1064,30 @@ internal class ClassicDataInitializationTest
         Assert.That(group.MinimumLevel, Is.EqualTo(7));
         Assert.That(group.MaximumLevel, Is.EqualTo(11));
         Assert.That(group.PossibleItems, Is.EquivalentTo(this._gameConfiguration.Items.Where(ClassicBoxes.IsBoxOfHeavenItem)));
-        Assert.That(group.PossibleItems, Has.All.Matches<ItemDefinition>(i => i.Group <= 11 && i.IsActive && !i.IsAmmunition));
+        Assert.That(group.PossibleItems, Has.All.Matches<ItemDefinition>(i => i.Group <= 11 && i.IsActive && !i.IsAmmunition && i.DropLevel <= 59));
         Assert.That(group.PossibleItems.Select(i => (i.Group, i.Number)), Does.Contain(((byte)0, (short)0)).And.Contain(((byte)8, (short)0)).And.Contain(((byte)6, (short)0)));
+    }
+
+    /// <summary>
+    /// Verifies that version 4 removes high-grade rewards without restoring manually excluded items.
+    /// </summary>
+    [Test]
+    public async Task UpdateCapsBoxOfHeavenRewardsAsync()
+    {
+        var box = ClassicBoxes.GetBoxOfLuck(this._gameConfiguration)!;
+        var group = box.DropItems.Single(g => g.SourceItemLevel == ClassicBoxes.BoxOfHeavenLevel);
+        var low = group.PossibleItems.First(i => i.DropLevel < 59);
+        group.PossibleItems.Remove(low);
+        group.PossibleItems.Add(this._gameConfiguration.Items.Single(i => i.Group == 8 && i.Number == 16));
+        var update = new ClassicBoxesUpdatePlugIn();
+        await this.SetBoxUpdateVersionAsync(update, 3).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(group.PossibleItems.Any(i => i.DropLevel > 59), Is.False);
+        Assert.That(group.PossibleItems, Does.Not.Contain(low));
+        Assert.That(group.PossibleItems.Any(i => i.Group == 8 && i.Number == 1), Is.True);
+        group.PossibleItems.Add(low);
     }
 
     /// <summary>
@@ -1169,6 +1209,7 @@ internal class ClassicDataInitializationTest
         }
 
         var update = new ClassicBoxesUpdatePlugIn();
+        await this.SetBoxUpdateVersionAsync(update, 0).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
 
@@ -1217,6 +1258,7 @@ internal class ClassicDataInitializationTest
         var dropGroupCount = this._gameConfiguration.DropItemGroups.Count;
 
         var update = new ClassicBoxesUpdatePlugIn();
+        await this.SetBoxUpdateVersionAsync(update, 2).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
 
@@ -1263,6 +1305,7 @@ internal class ClassicDataInitializationTest
         var plus5Count = plus5.PossibleItems.Count;
 
         var update = new ClassicBoxesUpdatePlugIn();
+        await this.SetBoxUpdateVersionAsync(update, 1).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
         await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
 
@@ -1681,21 +1724,111 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that Arena farm spots use normal monsters and leave space around Hell Maine.
+    /// </summary>
+    [Test]
+    public void ArenaFarmSpotsLeaveRoomForHellMaine()
+    {
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6 && m.Discriminator == 0);
+        var hellMaine = arena.MonsterSpawns.Single(s => s.MonsterDefinition?.Number == 309);
+        var spots = arena.MonsterSpawns.Where(ClassicFarmSpots.IsFarmSpot).ToList();
+        var terrain = new GameMapTerrain(arena);
+
+        Assert.That(spots, Has.Count.EqualTo(25));
+        Assert.That(spots.Select(s => s.MonsterDefinition!.Number).Distinct(), Is.EquivalentTo(new short[] { 45, 47, 48, 57, 58, 60, 61, 62, 69, 70, 71, 72, 73, 74, 75 }));
+        foreach (var spot in spots)
+        {
+            Assert.That(spot.MonsterDefinition!.IsActive, Is.True);
+            Assert.That(spot.WaveNumber, Is.Zero);
+            Assert.That(spot.SpawnTrigger, Is.EqualTo(SpawnTrigger.Automatic));
+            for (var x = (int)spot.X1; x <= spot.X2; x++)
+            {
+                for (var y = (int)spot.Y1; y <= spot.Y2; y++)
+                {
+                    Assert.That(terrain.WalkMap[x, y] && !terrain.SafezoneMap[x, y], Is.True, $"{x}/{y}");
+                    var dx = x - hellMaine.X1;
+                    var dy = y - hellMaine.Y1;
+                    Assert.That((dx * dx) + (dy * dy), Is.GreaterThanOrEqualTo(20 * 20), $"{x}/{y}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tests that each of the walled Arena pens can be reached on foot from the place where players arrive in the Arena.
+    /// </summary>
+    [Test]
+    public void ArenaPensCanBeEntered()
+    {
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6 && m.Discriminator == 0);
+        AssertArenaPensCanBeEntered(arena);
+    }
+
+    /// <summary>
+    /// Tests that the update opens the entrances into the Arena pens on an existing classic database
+    /// which still has the original terrain, and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateOpensArenaPenEntrancesAsync()
+    {
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6 && m.Discriminator == 0);
+        var original = arena.TerrainData!.ToArray();
+        foreach (var tile in ClassicArenaPens.EntranceTiles)
+        {
+            original[ClassicArenaPens.GetOffset(tile)] |= (byte)TerrainAttributeType.Blocked;
+        }
+
+        arena.TerrainData = original;
+        Assert.That(new GameMapTerrain(arena).WalkMap[10, 33], Is.False);
+
+        var update = new ClassicArenaPenEntrancesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        var updated = arena.TerrainData;
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(arena.TerrainData, Is.SameAs(updated));
+        AssertArenaPensCanBeEntered(arena);
+    }
+
+    /// <summary>
     /// Tests that the farm spot update adds the spots once, also when it's applied twice.
     /// </summary>
     [Test]
     public async Task FarmSpotsUpdateIsRepeatableAsync()
     {
         var lorencia = this._gameConfiguration.Maps.Single(m => m.Number == 0);
-        lorencia.MonsterSpawns.Remove(lorencia.MonsterSpawns.First(ClassicFarmSpots.IsFarmSpot));
+        var lorenciaSpot = lorencia.MonsterSpawns.First(ClassicFarmSpots.IsFarmSpot);
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6 && m.Discriminator == 0);
+        var arenaSpots = arena.MonsterSpawns.Where(ClassicFarmSpots.IsFarmSpot).ToList();
+        var arenaSpotIds = arenaSpots.Select(s => s.GetId()).ToList();
+        foreach (var spot in arenaSpots)
+        {
+            arena.MonsterSpawns.Remove(spot);
+        }
+
         var count = this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count);
 
         var update = new ClassicFarmSpotsUpdatePlugIn();
-        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
-        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
-
-        Assert.That(lorencia.MonsterSpawns.Count(ClassicFarmSpots.IsFarmSpot), Is.EqualTo(ClassicFarmSpots.SpotsPerMap));
-        Assert.That(this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count), Is.EqualTo(count + 1));
+        var updates = await this._context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false);
+        var installed = updates.Single(u => u.Key == update.Key);
+        installed.Version = 3;
+        var originalQuantity = lorenciaSpot.Quantity;
+        lorenciaSpot.Quantity--;
+        try
+        {
+            for (var run = 0; run < 2; run++)
+            {
+                await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+                Assert.That(installed.Version, Is.EqualTo(4));
+                Assert.That(lorenciaSpot.Quantity, Is.EqualTo(originalQuantity - 1));
+                Assert.That(arena.MonsterSpawns.Where(ClassicFarmSpots.IsFarmSpot).Select(s => s.GetId()), Is.EquivalentTo(arenaSpotIds));
+                Assert.That(this._gameConfiguration.Maps.Sum(m => m.MonsterSpawns.Count), Is.EqualTo(count + arenaSpots.Count));
+            }
+        }
+        finally
+        {
+            lorenciaSpot.Quantity = originalQuantity;
+        }
     }
 
     private void AssertCastleSiegePlugInsAndSuppliersAreActive()
@@ -1752,5 +1885,39 @@ internal class ClassicDataInitializationTest
         var mapsWithJewels = this._gameConfiguration.Maps.Where(m => m.DropItemGroups.Any(g => g.ItemType == SpecialItemType.Jewel)).ToList();
         Assert.That(mapsWithJewels, Is.Not.Empty);
         Assert.That(mapsWithJewels, Has.All.Matches<GameMapDefinition>(m => m.DropItemGroups.Contains(normal) && m.DropItemGroups.Contains(excellent)));
+    }
+
+    private static void AssertArenaPensCanBeEntered(GameMapDefinition arena)
+    {
+        // A tile in the middle of each pen.
+        var pens = new (int X, int Y)[] { (10, 38), (29, 38), (47, 39), (10, 56), (29, 56), (47, 57), (47, 83), (10, 74), (29, 74), (10, 92), (29, 92) };
+        var terrain = new GameMapTerrain(arena);
+        var start = (X: 102, Y: 116); // The arrival gate of the Arena.
+        var reached = new HashSet<(int X, int Y)> { start };
+        var queue = new Queue<(int X, int Y)>(reached);
+        while (queue.TryDequeue(out var tile))
+        {
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                for (var dy = -1; dy <= 1; dy++)
+                {
+                    var next = (X: tile.X + dx, Y: tile.Y + dy);
+                    if (next.X is >= 0 and < 256 && next.Y is >= 0 and < 256 && terrain.WalkMap[next.X, next.Y] && reached.Add(next))
+                    {
+                        queue.Enqueue(next);
+                    }
+                }
+            }
+        }
+
+        Assert.That(pens, Has.All.Matches<(int X, int Y)>(reached.Contains));
+    }
+
+    private async Task SetBoxUpdateVersionAsync(ClassicBoxesUpdatePlugIn update, int version)
+    {
+        var updates = await this._context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false);
+        var entry = updates.FirstOrDefault(u => u.Key == update.Key) ?? this._context.CreateNew<ConfigurationUpdate>();
+        entry.Key = update.Key;
+        entry.Version = version;
     }
 }

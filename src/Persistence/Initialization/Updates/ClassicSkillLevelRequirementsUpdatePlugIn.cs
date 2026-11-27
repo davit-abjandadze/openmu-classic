@@ -29,7 +29,7 @@ public class ClassicSkillLevelRequirementsUpdatePlugIn : UpdatePlugInBase
     /// <summary>
     /// The plug in description.
     /// </summary>
-    internal const string PlugInDescription = "Removes the character level requirements of the skills, and of the scrolls and orbs which teach them. Only applies to the classic (Season 1 content) data.";
+    internal const string PlugInDescription = "Removes character level requirements from skills and learning items, and matches elf summon energy requirements to the client. Only applies to the classic (Season 1 content) data.";
 
     /// <inheritdoc />
     public override string Name => PlugInName;
@@ -47,11 +47,18 @@ public class ClassicSkillLevelRequirementsUpdatePlugIn : UpdatePlugInBase
     public override DateTime CreatedAt => new(2026, 11, 19, 12, 00, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
+    public override int Version => 2;
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 27, 12, 00, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
     {
         if (ClassicContentRestriction.IsClassic(gameConfiguration))
         {
             ClassicContentRestriction.RemoveSkillLevelRequirements(gameConfiguration);
+            ClassicContentRestriction.ApplySummonEnergy(context, gameConfiguration);
         }
 
         return ValueTask.CompletedTask;

@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Classic;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Maps;
 
 /// <summary>
 /// Creates the farm spots of the classic server: many tiny areas in which a few monsters of the same kind stand
@@ -89,6 +90,37 @@ public static class ClassicFarmSpots
 
         // Devias: Worm
         new(2, 24, 242, 83),
+
+        // Paths around the enclosed Arena pens: Atlans first, then Tarkan and early Icarus.
+        new(Arena.Number, 45, 20, 94), // Bahamut
+        new(Arena.Number, 47, 29, 83), // Valkyrie
+        new(Arena.Number, 48, 39, 94), // Lizard King
+        new(Arena.Number, 45, 19, 75),
+        new(Arena.Number, 47, 29, 67),
+        new(Arena.Number, 48, 39, 75),
+        new(Arena.Number, 62, 12, 49), // Mutant
+        new(Arena.Number, 69, 28, 49), // Alquamos
+        new(Arena.Number, 60, 46, 49), // Bloody Wolf
+        new(Arena.Number, 57, 19, 39), // Iron Wheel
+        new(Arena.Number, 70, 29, 31), // Queen Rainer
+        new(Arena.Number, 58, 47, 31), // Tantallos
+        new(Arena.Number, 48, 65, 94),
+        new(Arena.Number, 62, 65, 74),
+        new(Arena.Number, 71, 65, 52), // Mega Crust
+        new(Arena.Number, 61, 65, 39), // Beam Knight
+
+        // Right path: leave a gap around Hell Maine's spawn at 90/90.
+        new(Arena.Number, 47, 91, 115),
+        new(Arena.Number, 70, 91, 67),
+        new(Arena.Number, 73, 91, 56), // Drakan
+        new(Arena.Number, 74, 91, 40), // Alpha Crust
+        new(Arena.Number, 72, 91, 25), // Phantom Knight
+
+        // Bottom strip: keep the marked southwest pocket clear.
+        new(Arena.Number, 75, 91, 10), // Great Drakan
+        new(Arena.Number, 75, 72, 8),
+        new(Arena.Number, 72, 55, 7),
+        new(Arena.Number, 74, 38, 8),
     ];
 
     private const int SearchMargin = 4;
@@ -99,40 +131,15 @@ public static class ClassicFarmSpots
     /// <param name="context">The context.</param>
     /// <param name="gameConfiguration">The game configuration.</param>
     public static void Apply(IContext context, GameConfiguration gameConfiguration)
-    {
-        foreach (var mapNumber in MapNumbers)
-        {
-            if (gameConfiguration.Maps.FirstOrDefault(m => m.Number == mapNumber && m.Discriminator == 0) is not { TerrainData: not null } map)
-            {
-                continue;
-            }
+        => Apply(context, gameConfiguration, MapNumbers.Concat(FixedSpots.Select(s => s.MapNumber)).Distinct());
 
-            var fixedSpots = new List<Spot>();
-            for (var index = 0; index < FixedSpots.Count; index++)
-            {
-                var fixedSpot = FixedSpots[index];
-                if (fixedSpot.MapNumber == mapNumber
-                    && gameConfiguration.Monsters.FirstOrDefault(m => m.Number == fixedSpot.MonsterNumber) is { } monster)
-                {
-                    var spot = new Spot(monster, fixedSpot.X, fixedSpot.Y);
-                    ApplySpawn(context, map, (short)(FirstFixedSpawnNumber + index), spot);
-                    fixedSpots.Add(spot);
-                }
-            }
-
-            var spots = FindSpots(map, fixedSpots);
-            for (var index = 0; index < spots.Count; index++)
-            {
-                ApplySpawn(context, map, (short)(FirstSpawnNumber + index), spots[index]);
-            }
-
-            // Spots of an earlier version which aren't found anymore.
-            foreach (var obsolete in map.MonsterSpawns.Where(s => GetSpotIndex(s) >= spots.Count).ToList())
-            {
-                map.MonsterSpawns.Remove(obsolete);
-            }
-        }
-    }
+    /// <summary>
+    /// Adds or updates the Arena spots in a configuration that already has the other farm spots.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void ApplyArena(IContext context, GameConfiguration gameConfiguration)
+        => Apply(context, gameConfiguration, [Arena.Number]);
 
     /// <summary>
     /// Gets the identifier of the monster spawn area of a spot.
@@ -158,7 +165,48 @@ public static class ClassicFarmSpots
     {
         var mapNumber = spawn.GameMap?.Number ?? -1;
         var id = spawn.GetId();
-        return Enumerable.Range(0, FixedSpots.Count).Any(i => GetSpawnId(mapNumber, (short)(FirstFixedSpawnNumber + i)) == id);
+        return Enumerable.Range(0, FixedSpots.Count).Any(i => FixedSpots[i].MapNumber == mapNumber && GetSpawnId(mapNumber, (short)(FirstFixedSpawnNumber + i)) == id);
+    }
+
+    private static void Apply(IContext context, GameConfiguration gameConfiguration, IEnumerable<short> mapNumbers)
+    {
+        foreach (var mapNumber in mapNumbers)
+        {
+            if (gameConfiguration.Maps.FirstOrDefault(m => m.Number == mapNumber && m.Discriminator == 0) is not { TerrainData: not null } map)
+            {
+                continue;
+            }
+
+            var fixedSpots = new List<Spot>();
+            for (var index = 0; index < FixedSpots.Count; index++)
+            {
+                var fixedSpot = FixedSpots[index];
+                if (fixedSpot.MapNumber == mapNumber
+                    && gameConfiguration.Monsters.FirstOrDefault(m => m.Number == fixedSpot.MonsterNumber) is { } monster)
+                {
+                    var spot = new Spot(monster, fixedSpot.X, fixedSpot.Y);
+                    ApplySpawn(context, map, (short)(FirstFixedSpawnNumber + index), spot);
+                    fixedSpots.Add(spot);
+                }
+            }
+
+            if (!MapNumbers.Contains(mapNumber))
+            {
+                continue;
+            }
+
+            var spots = FindSpots(map, fixedSpots);
+            for (var index = 0; index < spots.Count; index++)
+            {
+                ApplySpawn(context, map, (short)(FirstSpawnNumber + index), spots[index]);
+            }
+
+            // Spots of an earlier version which aren't found anymore.
+            foreach (var obsolete in map.MonsterSpawns.Where(s => GetSpotIndex(s) >= spots.Count).ToList())
+            {
+                map.MonsterSpawns.Remove(obsolete);
+            }
+        }
     }
 
     private static int GetSpotIndex(MonsterSpawnArea spawn)
