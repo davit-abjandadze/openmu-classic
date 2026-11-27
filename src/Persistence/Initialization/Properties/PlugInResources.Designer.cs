@@ -1366,5 +1366,11 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("ClassicInstancedEventsUpdatePlugIn_Description", resourceCulture);
             }
         }
+
+        /// <summary>Gets the localized ClassicAtlansAttacksUpdatePlugIn_Name text.</summary>
+        public static string ClassicAtlansAttacksUpdatePlugIn_Name => ResourceManager.GetString("ClassicAtlansAttacksUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicAtlansAttacksUpdatePlugIn_Description text.</summary>
+        public static string ClassicAtlansAttacksUpdatePlugIn_Description => ResourceManager.GetString("ClassicAtlansAttacksUpdatePlugIn_Description", resourceCulture)!;
     }
 }

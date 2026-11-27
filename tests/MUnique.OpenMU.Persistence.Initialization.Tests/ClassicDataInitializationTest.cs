@@ -41,6 +41,30 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Checks the fresh monster assignments and repairs an existing classic configuration twice.
+    /// </summary>
+    [Test]
+    public async Task AtlansMonstersUseNormalAttacksAsync()
+    {
+        var lizard = this._gameConfiguration.Monsters.Single(m => m.Number == 48);
+        var valkyrie = this._gameConfiguration.Monsters.Single(m => m.Number == 52);
+        Assert.That(lizard.AttackSkill, Is.Null);
+        Assert.That(valkyrie.AttackSkill, Is.Null);
+        var others = this._gameConfiguration.Monsters.Where(m => m.Number is not (48 or 52)).ToList();
+        var otherSkills = others.Select(m => m.AttackSkill).ToList();
+        lizard.AttackSkill = this._gameConfiguration.Skills.Single(s => s.Number == (short)Skills.SkillNumber.Lightning);
+        valkyrie.AttackSkill = this._gameConfiguration.Skills.Single(s => s.Number == (short)Skills.SkillNumber.Ice);
+        var update = new ClassicAtlansAttacksUpdatePlugIn();
+        for (var run = 0; run < 2; run++)
+        {
+            await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+            Assert.That(lizard.AttackSkill, Is.Null);
+            Assert.That(valkyrie.AttackSkill, Is.Null);
+            Assert.That(others.Select(m => m.AttackSkill), Is.EqualTo(otherSkills));
+        }
+    }
+
+    /// <summary>
     /// Disposes the context.
     /// </summary>
     [OneTimeTearDown]

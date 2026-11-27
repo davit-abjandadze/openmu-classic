@@ -135,6 +135,7 @@ public class ClassicContentRestriction
     public static void Apply(GameConfiguration gameConfiguration)
     {
         ApplyClassRestrictions(gameConfiguration);
+        RemoveAtlansAttackSkills(gameConfiguration);
 
         foreach (var map in gameConfiguration.Maps.Where(m => IsTooNew(m.IntroducedIn)))
         {
@@ -171,6 +172,18 @@ public class ClassicContentRestriction
         RemoveUpgradeCraftingsAboveMaximumLevel(gameConfiguration);
         RemoveSkillLevelRequirements(gameConfiguration);
         RestrictBuffsToSelf(gameConfiguration);
+    }
+
+    /// <summary>
+    /// Makes Lizard King and Silver Valkyrie use their normal attacks.
+    /// </summary>
+    /// <param name="gameConfiguration">The game configuration.</param>
+    internal static void RemoveAtlansAttackSkills(GameConfiguration gameConfiguration)
+    {
+        foreach (var monster in gameConfiguration.Monsters.Where(m => m.Number is 48 or 52))
+        {
+            monster.AttackSkill = null;
+        }
     }
 
     /// <summary>

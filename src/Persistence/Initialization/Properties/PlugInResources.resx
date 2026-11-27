@@ -530,4 +530,6 @@
   <data name="ClassicInstancedEventsUpdatePlugIn_Description" xml:space="preserve">
     <value>Replaces the nightly Devil Square (21:00) and Blood Castle (22:00) by three slots a day (Devil Square 13:00, 19:00, 22:00; Blood Castle 13:30, 19:30, 22:30) in which all solo players and parties of a tier share its room (6 Devil Square and 7 Blood Castle tiers), once per day and event. Only applies to the classic (Season 1 content) data.</value>
   </data>
+  <data name="ClassicAtlansAttacksUpdatePlugIn_Name" xml:space="preserve"><value>Classic Atlans monster attacks</value></data>
+  <data name="ClassicAtlansAttacksUpdatePlugIn_Description" xml:space="preserve"><value>Removes Lightning from Lizard King and Ice from Silver Valkyrie in classic games.</value></data>
 </root>
