@@ -1253,6 +1253,12 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ClassicSilverMedalRewardsUpdatePlugIn_Description text.</summary>
         public static string ClassicSilverMedalRewardsUpdatePlugIn_Description => ResourceManager.GetString("ClassicSilverMedalRewardsUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized ClassicArenaPenEntrancesUpdatePlugIn_Name text.</summary>
+        public static string ClassicArenaPenEntrancesUpdatePlugIn_Name => ResourceManager.GetString("ClassicArenaPenEntrancesUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ClassicArenaPenEntrancesUpdatePlugIn_Description text.</summary>
+        public static string ClassicArenaPenEntrancesUpdatePlugIn_Description => ResourceManager.GetString("ClassicArenaPenEntrancesUpdatePlugIn_Description", resourceCulture)!;
+
         /// <summary>Gets the localized ClassicFarmSpotsUpdatePlugIn_Name text.</summary>
         public static string ClassicFarmSpotsUpdatePlugIn_Name => ResourceManager.GetString("ClassicFarmSpotsUpdatePlugIn_Name", resourceCulture)!;
 

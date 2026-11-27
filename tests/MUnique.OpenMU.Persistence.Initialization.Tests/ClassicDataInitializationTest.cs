@@ -1755,6 +1755,42 @@ internal class ClassicDataInitializationTest
     }
 
     /// <summary>
+    /// Tests that each of the walled Arena pens can be reached on foot from the place where players arrive in the Arena.
+    /// </summary>
+    [Test]
+    public void ArenaPensCanBeEntered()
+    {
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6 && m.Discriminator == 0);
+        AssertArenaPensCanBeEntered(arena);
+    }
+
+    /// <summary>
+    /// Tests that the update opens the entrances into the Arena pens on an existing classic database
+    /// which still has the original terrain, and that applying it again changes nothing.
+    /// </summary>
+    [Test]
+    public async Task UpdateOpensArenaPenEntrancesAsync()
+    {
+        var arena = this._gameConfiguration.Maps.Single(m => m.Number == 6 && m.Discriminator == 0);
+        var original = arena.TerrainData!.ToArray();
+        foreach (var tile in ClassicArenaPens.EntranceTiles)
+        {
+            original[ClassicArenaPens.GetOffset(tile)] |= (byte)TerrainAttributeType.Blocked;
+        }
+
+        arena.TerrainData = original;
+        Assert.That(new GameMapTerrain(arena).WalkMap[53, 39], Is.False);
+
+        var update = new ClassicArenaPenEntrancesUpdatePlugIn();
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+        var updated = arena.TerrainData;
+        await update.ApplyUpdateAsync(this._context, this._gameConfiguration).ConfigureAwait(false);
+
+        Assert.That(arena.TerrainData, Is.SameAs(updated));
+        AssertArenaPensCanBeEntered(arena);
+    }
+
+    /// <summary>
     /// Tests that the farm spot update adds the spots once, also when it's applied twice.
     /// </summary>
     [Test]
@@ -1849,6 +1885,32 @@ internal class ClassicDataInitializationTest
         var mapsWithJewels = this._gameConfiguration.Maps.Where(m => m.DropItemGroups.Any(g => g.ItemType == SpecialItemType.Jewel)).ToList();
         Assert.That(mapsWithJewels, Is.Not.Empty);
         Assert.That(mapsWithJewels, Has.All.Matches<GameMapDefinition>(m => m.DropItemGroups.Contains(normal) && m.DropItemGroups.Contains(excellent)));
+    }
+
+    private static void AssertArenaPensCanBeEntered(GameMapDefinition arena)
+    {
+        // A tile in the middle of each pen.
+        var pens = new (int X, int Y)[] { (10, 38), (29, 38), (47, 39), (10, 56), (29, 56), (47, 57), (47, 83), (10, 74), (29, 74), (10, 92), (29, 92) };
+        var terrain = new GameMapTerrain(arena);
+        var start = (X: 102, Y: 116); // The arrival gate of the Arena.
+        var reached = new HashSet<(int X, int Y)> { start };
+        var queue = new Queue<(int X, int Y)>(reached);
+        while (queue.TryDequeue(out var tile))
+        {
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                for (var dy = -1; dy <= 1; dy++)
+                {
+                    var next = (X: tile.X + dx, Y: tile.Y + dy);
+                    if (next.X is >= 0 and < 256 && next.Y is >= 0 and < 256 && terrain.WalkMap[next.X, next.Y] && reached.Add(next))
+                    {
+                        queue.Enqueue(next);
+                    }
+                }
+            }
+        }
+
+        Assert.That(pens, Has.All.Matches<(int X, int Y)>(reached.Contains));
     }
 
     private async Task SetBoxUpdateVersionAsync(ClassicBoxesUpdatePlugIn update, int version)
