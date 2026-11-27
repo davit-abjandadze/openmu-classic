@@ -40,12 +40,6 @@ spot spawns eight monsters. The paths around the pens start with Atlans monsters
 and progress through Tarkan and Icarus. The right path and bottom strip also have
 spots, with space left around Hell Maine.
 
-**Classic: entrances into the Arena pens** opens a three tiles wide entrance into
-each of the eleven walled pens. The game client has its own copy of the terrain
-and the wall models, so publish the changed `Data/World7/EncTerrain7.att` and
-`Data/World7/EncTerrain7.obj` in a client patch as well. Players without the
-patch still see a closed wall and can't walk in.
-
 :::warning[A restart is required]
 The updates take effect after a restart of the server process. Until then, the
 running server still works with the configuration it loaded at startup.

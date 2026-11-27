@@ -69,7 +69,6 @@ public class ClassicDataInitialization : DataInitialization
         ClassicBosses.Apply(this.Context, this.GameConfiguration);
         ClassicIcarusMonsters.Apply(this.Context, this.GameConfiguration);
         ClassicFarmSpots.Apply(this.Context, this.GameConfiguration);
-        ClassicArenaPens.Apply(this.GameConfiguration);
         await ClassicMedalMerchant.ApplyAsync(this.Context, this.GameConfiguration).ConfigureAwait(false);
         ClassicCastleSiege.Apply(this.Context, this.GameConfiguration);
         ClassicCastleSiege.ActivateSuppliers(this.GameConfiguration);
