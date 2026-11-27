@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameServer.MessageHandler.Items;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
+using MUnique.OpenMU.GameLogic.Views.Inventory;
 using MUnique.OpenMU.GameServer.RemoteView.Inventory;
 using MUnique.OpenMU.Network.Packets.ClientToServer;
 using MUnique.OpenMU.Network.PlugIns;
@@ -33,6 +34,12 @@ internal class ItemMoveExtendedHandlerPlugIn : IPacketHandlerPlugIn
     public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
     {
         ItemMoveRequestExtended message = packet;
+
+        if (packet.Length != ItemMoveRequestExtended.Length || !Enum.IsDefined(message.FromStorage) || !Enum.IsDefined(message.ToStorage))
+        {
+            await player.InvokeViewPlugInAsync<IItemMoveFailedPlugIn>(p => p.ItemMoveFailedAsync(null)).ConfigureAwait(false);
+            return;
+        }
 
         // we don't transmit the item binary data anymore in this extended message.
         await this._moveAction.MoveItemAsync(player, message.FromSlot, message.FromStorage.Convert(), message.ToSlot, message.ToStorage.Convert()).ConfigureAwait(false);

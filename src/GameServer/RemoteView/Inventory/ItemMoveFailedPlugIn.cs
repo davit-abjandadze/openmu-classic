@@ -50,6 +50,7 @@ public class ItemMoveFailedPlugIn : IItemMoveFailedPlugIn
                 return actualSize;
             }
 
+            packet.ItemData.Clear();
             return size;
         }
 

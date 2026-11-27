@@ -13,6 +13,7 @@ using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameServer;
+using MUnique.OpenMU.GameServer.MessageHandler.Items;
 using MUnique.OpenMU.GameServer.RemoteView;
 using MUnique.OpenMU.GameServer.RemoteView.Inventory;
 using MUnique.OpenMU.Interfaces;
@@ -82,6 +83,31 @@ public class InventoryRefreshRemoteViewTests
         AssertItem(bytes.AsSpan(8 + itemSize, itemSize), extended, 3, 4, 17);
     }
 
+    /// <summary>
+    /// Rejects a move with an unknown source and then acknowledges an ordinary bag move.
+    /// </summary>
+    [Test]
+    public async ValueTask RejectedMoveLeavesItemAvailableForNextMoveAsync()
+    {
+        var (player, output) = await CreatePlayerAsync(true).ConfigureAwait(false);
+        var item = new BasicModel.Item
+        {
+            Definition = new BasicModel.ItemDefinition { Number = 1, Width = 1, Height = 3, Durability = 20 },
+            Durability = 10,
+        };
+        await player.Inventory!.AddItemAsync(20, item).ConfigureAwait(false);
+        var handler = new ItemMoveExtendedHandlerPlugIn();
+        output.SetLength(0);
+        await handler.HandlePacketAsync(player, new byte[] { 0xC3, 7, 0x24, 255, 20, 0, 21 }).ConfigureAwait(false);
+        Assert.That(output.ToArray().Skip(2).Take(2), Is.EqualTo(new byte[] { 0x24, 255 }));
+        Assert.That(player.Inventory.GetItem(20), Is.SameAs(item));
+
+        output.SetLength(0);
+        await handler.HandlePacketAsync(player, new byte[] { 0xC3, 7, 0x24, 0, 20, 0, 21 }).ConfigureAwait(false);
+        Assert.That(output.ToArray().Skip(2).Take(3), Is.EqualTo(new byte[] { 0x24, 0, 21 }));
+        Assert.That(player.Inventory.GetItem(21), Is.SameAs(item));
+    }
+
     private static void AssertSnapshot(byte[] bytes, byte count, int itemSize)
     {
         Assert.That(bytes.Length, Is.EqualTo(6 + (count * (1 + itemSize))), "no reserved item padding is sent");
@@ -112,6 +138,8 @@ public class InventoryRefreshRemoteViewTests
         manager.RegisterPlugIn<IViewPlugIn, ItemSerializer>();
         manager.RegisterPlugIn<IViewPlugIn, ItemSerializerExtended>();
         manager.RegisterPlugIn<IViewPlugIn, UpdateInventoryListPlugIn>();
+        manager.RegisterPlugIn<IViewPlugIn, ItemMoveFailedPlugIn>();
+        manager.RegisterPlugIn<IViewPlugIn, ItemMovedPlugIn>();
         var maps = new MapInitializer(configuration, new NullLogger<MapInitializer>(), NullDropGenerator.Instance, null);
         var context = new GameServerContext(
             new BasicModel.GameServerDefinition { GameConfiguration = configuration, ServerConfiguration = new BasicModel.GameServerConfiguration() },
